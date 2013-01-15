@@ -314,11 +314,11 @@ function Feed(data){{{
 	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
 
 	this.buttons = new Object();
-	this.buttons.settings = $("<a class='floatRight' href='#'><img src='images/applications-system.png' alt='settings' border='0'></a>")
+	this.buttons.settings = $("<a class='floatRight' href='#'><img src='images/scalable/categories/applications-system.svg' style='width: 14px;' alt='settings' border='0'></a>")
 		.on("click", function(){
 			f.showSettings();
 		});
-	this.buttons.newMessage = $("<a id='newMessage_"+this.data.startID+"' class='newmessage floatRight' href='#'><img src='images/mail-message-new.png' alt='mark as read' border='0'></a>")
+	this.buttons.newMessage = $("<a id='newMessage_"+this.data.startID+"' class='newmessage floatRight' href='#'><img src='./images/scalable/actions/mail-message-new.svg' style='width: 14px;' alt='mark as read' border='0'></a>")
 		.on("click", function() {
 			f.markAllRead();
 		});
