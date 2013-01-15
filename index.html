@@ -3,47 +3,32 @@
 <title>blindRSS</title>
 <link rel='stylesheet' href='style.css'>
 <script type="text/javascript">
+var optionarray;
+var startupprocedure = 0;
 var feedarray = new Array();
 /*
  * feedarray
  * array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread))
  */
-var feedbeingreloaded = 0;
-var reloadall = 0;
+var options = new Array();
 var request;
 var Width = window.innerWidth;
 var Height = window.innerHeight;
 var rollUpHeightOriginals = new Array();
 var mouseX;
 var mouseY;
-var tmpselect;
 
 function getMouseCoordinates(event) {{{
 	var ev = event || window.event;
 	mouseX = ev.pageX;
 	mouseY = ev.pageY;
-	var divSettings = document.getElementById("divSettings");
-	if (divSettings.style.visibility != 'hidden'){
-		if (mouseX > parseInt(divSettings.style.left) + parseInt(divSettings.offsetWidth)){
-			divSettings.style.visibility='hidden';
-		}
-		if (mouseY > parseInt(divSettings.style.top) + parseInt(divSettings.offsetHeight)){
-			divSettings.style.visibility='hidden';
-		}
-		if (mouseY < parseInt(divSettings.style.top)){
-			divSettings.style.visibility='hidden';
-		}
-		if (mouseX < parseInt(divSettings.style.left)){
-			divSettings.style.visibility='hidden';
-		}
-	}
 }}}
 function resize(){{{
 	Width = window.innerWidth;
 	Height = window.innerHeight;
 	if (document.getElementById("subnavigationscrollouter")){
-		document.getElementById("subnavigationscrollouter").style.height=Height-167+"px";
-		document.getElementById("contentinner").style.height=Height-302+"px";
+		document.getElementById("subnavigationscrollouter").style.height=Height-145+"px";
+		document.getElementById("contentinner").style.height=Height-280+"px";
 	}
 }}}
 function getContainersByIndex(feedIndex){{{
@@ -191,6 +176,9 @@ function submitFeedChanges(x){{{
 	}
 
 }}}
+function closeSettings(){{{
+	document.getElementById("divSettings").style.visibility='hidden';
+}}}
 function showSettings(feedID){{{
 	var divSettings = document.getElementById("divSettings");
 	var divSettingsInner = document.getElementById("divSettingsInner");
@@ -206,6 +194,16 @@ function showSettings(feedID){{{
 	var td = document.createElement("td");
 
 	td.appendChild(document.createTextNode(feed[1]));
+	tr.appendChild(td);
+	td = document.createElement("td");
+	td.align="right";
+	var a = document.createElement("a");
+	a.href="javascript:closeSettings();";
+	var img = document.createElement("img");
+	img.src = "process-stop.png";
+	img.border = 0;
+	a.appendChild(img);
+	td.appendChild(a);
 	tr.appendChild(td);
 	tbody.appendChild(tr);
 
@@ -286,6 +284,16 @@ function showSettingsDirectory(feedID){{{
 	var td = document.createElement("td");
 
 	td.appendChild(document.createTextNode(feed[1]));
+	tr.appendChild(td);
+	td = document.createElement("td");
+	td.align="right";
+	var a = document.createElement("a");
+	a.href="javascript:closeSettings();";
+	var img = document.createElement("img");
+	img.src = "process-stop.png";
+	img.border = 0;
+	a.appendChild(img);
+	td.appendChild(a);
 	tr.appendChild(td);
 	tbody.appendChild(tr);
 
@@ -465,7 +473,8 @@ function showItems(id){{{
 	for (var i=0; i < feed[5].length; i++){
 		var a=document.createElement("a");
 		a.href="javascript:showDetails("+id+","+i+");";
-		a.appendChild(document.createTextNode(feed[5][i][0]));
+		//a.appendChild(document.createTextNode(feed[5][i][0]));
+		a.innerHTML=feed[5][i][0];
 
 		if(feed[5][i][4] == 1){
 			div.appendChild(a);
@@ -541,14 +550,86 @@ function processFeed() {{{
 			showstatus("Feed reloaded");
 			hideDirectoryNewMessages(feedarrayid);
 			request = null;
-			if (reloadall == 1){
-				reloadAllFeeds();
+			showItems(feedarrayitem);
+		} else {
+			showstatus("Error fetching Feed: " + request.status + " " + request.statustext);
+		}
+	}
+}}}
+function processAllFeeds() {{{
+// processes the update of a single feed and hides/unhides the 'new entries' image on demand
+	if (request.readyState == 4) {
+		if (request.status == 200){
+			var feeds = request.responseXML.firstChild;
+			if (!feeds.firstChild.firstChild){
+				showstatus("No new messages.");
+				return;
 			} else {
-				showItems(feedarrayitem);
+				showstatus("Reloading all feeds");
+			}
+			for (var feed = feeds.firstChild; feed; feed = feed.nextSibling){
+				var id = feed.firstChild;
+				var item = id.nextSibling;
+				var feedarrayptr;
+				var feedarrayid;
+				var feedarrayitem;
+				for (var i=0; i<feedarray.length; i++){
+					if (feedarray[i][0] == id.firstChild.nodeValue){
+						feedarrayid=i;
+						feedarrayptr=feedarray[i];
+						feedarrayitem=i;
+						i=feedarray.length;
+					}
+				}
+				if (!feedarrayptr){
+					showstatus("Couldn't find feed id " + id.firstChild.nodeValue);
+					return;
+				}
+				feedarrayptr[5] = new Array();
+				feedarrayptr = feedarrayptr[5];
+				while(item){
+					var itemid = item.firstChild;
+					var title = itemid.nextSibling;
+					var content = title.nextSibling;
+					var link = content.nextSibling;
+					var isread = link.nextSibling;
+
+					var newitem = feedarrayptr.length;
+
+					feedarrayptr[newitem] = new Object();
+					feedarrayptr[newitem][0] = title.firstChild.nodeValue;
+					feedarrayptr[newitem][1] = new Array();
+					var line = content.firstChild;
+					var ptr = feedarrayptr[newitem][1];
+					while (line && line.firstChild){
+						ptr[ptr.length] = line.firstChild.nodeValue;
+						line=line.nextSibling;
+					}
+					if (link.firstChild){
+						feedarrayptr[newitem][2] = link.firstChild.nodeValue;
+					}
+					if (itemid.firstChild){
+						feedarrayptr[newitem][3] = itemid.firstChild.nodeValue;
+					}
+					if (isread.firstChild){
+						feedarrayptr[newitem][4] = isread.firstChild.nodeValue;
+					}
+
+					if (isread.firstChild.nodeValue == 0){
+						var div = document.getElementById("divNewMessages"+feedarrayitem);
+						if (div){
+							div.style.visibility="";
+						}
+					}
+					item=item.nextSibling;
+				}
+				hideDirectoryNewMessages(feedarrayid);
+				request = null;
 			}
 		} else {
 			showstatus("Error fetching Feed: " + request.status + " " + request.statustext);
 		}
+		showstatus("All feeds reloaded");
 	}
 }}}
 function reloadFeed(i){{{
@@ -565,24 +646,15 @@ function reloadFeed(i){{{
 }}}
 function reloadAllFeeds(){{{
 // initiates the update of the entries of all feeds
-	reloadall = 1;
-	if(feedarray[feedbeingreloaded]){
-		request=ajaxManager();
-		showstatus("Reloading Feed '" + feedarray[feedbeingreloaded][1] + "'");
-		if (document.getElementById("onlyunread").checked){
-			request.open("GET", "feed.php?id="+feedarray[feedbeingreloaded][0]+"&onlychecked=1", true);
-		} else {
-			request.open("GET", "feed.php?id="+feedarray[feedbeingreloaded][0], true);
-		}
-		request.onreadystatechange=processFeed;
-		request.send(null);
-		feedbeingreloaded++;
+	request=ajaxManager();
+	showstatus("Reloading All Feeds");
+	if (document.getElementById("onlyunread").checked){
+		request.open("GET", "allfeeds.php?onlychecked=1", true);
 	} else {
-		feedbeingreloaded = 0;
-		reloadall = 0;
-		showstatus("All feeds (re)loaded");
-		return;
+		request.open("GET", "allfeeds.php", true);
 	}
+	request.onreadystatechange=processAllFeeds;
+	request.send(null);
 }}}
 function showNavigation() {{{
 	var i;
@@ -624,7 +696,6 @@ function showNavigation() {{{
 			img.title="Close";
 			img.src="go-down.png";
 			img.border=0;
-			img.border=0;
 			img.id="imgrollUp"+i;
 			a.appendChild(img);
 			divdiv.appendChild(a);
@@ -640,7 +711,6 @@ function showNavigation() {{{
 			divdiv.style.top="0px";
 			img.title="Change Settings";
 			img.src="applications-system.png";
-			img.border=0;
 			img.border=0;
 			a.appendChild(img);
 			divdiv.appendChild(a);
@@ -658,7 +728,6 @@ function showNavigation() {{{
 			divdiv.id="divNewMessages"+i;
 			img.title="New messages!";
 			img.src="mail-message-new.png";
-			img.border=0;
 			img.border=0;
 			a.appendChild(img);
 			divdiv.appendChild(a);
@@ -714,7 +783,6 @@ function showNavigation() {{{
 		img.title="Reload this feed";
 		img.src="view-refresh.png";
 		img.border=0;
-		img.border=0;
 		a.appendChild(img);
 		divdiv.appendChild(a);
 		div.appendChild(divdiv);
@@ -729,7 +797,6 @@ function showNavigation() {{{
 		divdiv.style.top="0px";
 		img.title="Change Feed";
 		img.src="applications-system.png";
-		img.border=0;
 		img.border=0;
 		a.appendChild(img);
 		divdiv.appendChild(a);
@@ -748,7 +815,6 @@ function showNavigation() {{{
 		img.title="New messages!";
 		img.src="mail-message-new.png";
 		img.border=0;
-		img.border=0;
 		a.appendChild(img);
 		divdiv.appendChild(a);
 		div.appendChild(divdiv);
@@ -762,7 +828,6 @@ function showNavigation() {{{
 		img=document.createElement("img");
 		img.title="Delete this feed";
 		img.src="process-stop.png";
-		img.border=0;
 		img.border=0;
 		a.appendChild(img);
 		divdiv.appendChild(a);
@@ -887,23 +952,156 @@ function removeFeed(i){{{
 		request.send(null);
 	}
 }}}
+function getOption(key, def){{{
+	var x;
+	for (x=0; x<options.length; x++){
+		if (options[x][0] == key){
+			   return options[x][1];
+		}
+	}
+	x = options.length;
+	options[x] = new Object();
+	options[x][0] = key;
+	options[x][1] = -1;
+	showstatus("Loading Option '" + key + "'");
+	request=ajaxManager();
+
+	request.open("GET", "getoption.php?key="+key+"&default="+def);
+	request.onreadystatechange = getOptionFinal;
+	request.send(null);
+	return -1;
+}}}
+function getOptionFinal(){{{
+	if (request.readyState == 4) {
+		if (request.status == 200){
+			var k=request.responseXML.firstChild.firstChild;
+			var v=k.nextSibling;
+			var x;
+			for (x=0; x<options.length; x++){
+				if (options[x][0] == k.firstChild.nodeValue){
+					options[x][1] = v.firstChild.nodeValue;
+				}
+			}
+		}
+	}
+}}}
+function getOptionArray(){{{
+	var o;
+	o = getOption(optionarray[0][0], optionarray[0][1]);
+	if (o == -1){
+		setTimeout("getOptionArray()", 10);
+		return;
+	}
+	optionarray.shift();
+	if (optionarray[0]){
+		getOptionArray(optionarray);
+	} else {
+		showstatus("All Options loaded");
+		startupprocedure++;
+		startup();
+	}
+}}}
+function startup(){{{
+	if (startupprocedure == 0){
+		optionarray = new Array();
+		optionarray[0] = new Object();
+		optionarray[0][0] = "showOnlyUnread";
+		optionarray[0][1] = true;
+		optionarray[1] = new Object();
+		optionarray[1][0] = "purgeAfter";
+		optionarray[1][1] = "36135";
+		getOptionArray(optionarray);
+	}
+	if (startupprocedure == 1){
+		if (getOption("showOnlyUnread", true) == "true"){
+			document.getElementById("onlyunread").checked = true;
+		} else {
+			document.getElementById("onlyunread").checked = false;
+		}
+		document.getElementById("purgeafter").value = parseInt(getOption("purgeAfter", "36135"));
+		resize();
+		loadFeeds();
+	}
+}}}
+function showMenuOptions(){{{
+	menuOptions = document.getElementById("menuOptions");
+	menuOptions.style.left = mouseX-5;
+	if (mouseY + menuOptions.offsetHeight > Height){
+		menuOptions.style.top = Height - menuOptions.offsetHeight - 5;
+	} else {
+		menuOptions.style.top = mouseY-5;
+	}
+	menuOptions.style.zIndex=9999;
+	menuOptions.style.visibility='visible';
+}}}
+function hideMenuOptions(){{{
+	menuOptions = document.getElementById("menuOptions");
+	menuOptions.style.visibility='collapse';
+}}}
+function setOptionFinal(){{{
+	if (request.readyState == 4) {
+		if (request.status == 200){
+			var k=request.responseXML.firstChild.firstChild;
+			var v=k.nextSibling;
+			var x;
+			for (x=0; x<options.length; x++){
+				if (options[x][0] == k.firstChild.nodeValue){
+					options[x][1] = v.firstChild.nodeValue;
+					showstatus("Option '" + k.firstChild.nodeValue + "' set to '" + v.firstChild.nodeValue + "'");
+				}
+			}
+		}
+	}
+}}}
+function changeOnlyUnread(){{{
+	var key = 'showOnlyUnread';
+	var value = document.getElementById("onlyunread").checked;
+	showstatus("Setting Option '" + key + "' to '" + value + "'");
+	request=ajaxManager();
+
+	request.open("GET", "setoption.php?key="+key+"&value="+value);
+	request.onreadystatechange = setOptionFinal;
+	request.send(null);
+}}}
+function changePurgeAfter(){{{
+	var key = 'purgeAfter';
+	var value = document.getElementById("purgeafter").value;
+	showstatus("Setting Option '" + key + "' to '" + value + "'");
+	request=ajaxManager();
+
+	request.open("GET", "setoption.php?key="+key+"&value="+value);
+	request.onreadystatechange = setOptionFinal;
+	request.send(null);
+}}}
 window.onresize=resize;
 window.onmousemove=getMouseCoordinates;
 </script>
 </head>
-<body onLoad="javascript:resize();loadFeeds();">
+<body onLoad="javascript:startup();">
 <div id="divSettings" style="position: absolute; left; 0px; top: 0px; background-color: #000000; visibility: hidden;"><div id="divSettingsInner" style="margin: 1px; border: 1px; background-color: #8080FF;"></div></div>
-<table class='main'>
+<table class='main' border='0'>
 	<tr class='headline'>
 		<td colspan='2'>
-			<table width='100%'>
-				<tr>
-					<td width='50%' class='headline' align='left'>blindRSS</td>
-					<td width='50%' valign='top' align='right'>
+			<table width='100%' border='0'>
+				<tr align='left'>
+					<td width='50%' class='headlinewithbackground' valign='top'>
+						<div id='options' class='menuouter'><div class='menu'><a href='javascript:showMenuOptions();'>Options</a></div></div>
+						<div class='menuouter' id='menuOptions' style='visibility: collapse;position: absolute;'>
+							<div class='menu'>
+								<table>
+									<tr><td><nobr>Show only unread</nobr></td><td><input type='checkbox' id='onlyunread' name='onlyunread' onChange='javascript:changeOnlyUnread();' checked></td><td><a href='javascript:hideMenuOptions();'><img src='process-stop.png' border='0'></a></td></tr>
+									<tr><td><nobr>Purge messages after</nobr></td><td><select id='purgeafter' name='purgeafter' onChange='javascript:changePurgeAfter();'><option value='7'>1 Week</option><option value='31'>1 Month</option><option value='180'>6 Months</option><option value='365'>1 Year</option><option value='36135'>99 Years</option></select></td></tr>
+								</table>
+							</div>
+						</div>
+					</td>
+					<td width='50%' valign='top' align='right' rowspan='2'>
 						<nobr><form><input type='text' id='addUrl' value='http://foo/bar.rss'> <input type='text' id='addName' value='Foobar RSS'><select id='addDir'></select><input type='button' value='add feed' onclick="javascript:addFeed();"></form></nobr><br>
 						<a href='javascript:reloadAllFeeds();'><img src='view-refresh.png' border='0'></a><br>
-						Show only unread <input type='checkbox' id='onlyunread' name='onlyunread' checked>
 					</td>
+				</tr>
+				<tr>
+					<td width='50%' class='headline' align='left'>blindRSS</td>
 				</tr>
 			</table>
 		</td>

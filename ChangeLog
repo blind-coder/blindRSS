@@ -1,4 +1,13 @@
 
+Wed Jun 10 10:00:44 CEST 2009 Benjamin 'blindCoder' Schieder <blindcoder@scavenger.homeip.net>
+
+ * Version: 0.6
+ * Settings window no longer autohides when mouse leaves window
+ * Options got their own window.
+ * Option "PurgeAfter" added. Defines when entries are to be automatically deleted
+ * Options now saved on server
+ * new rss-parser (MagpieRSS)
+
 Thu Apr 16 14:19:20 CEST 2009 Benjamin 'blindCoder' Schieder <blindcoder@scavenger.homeip.net>
 
  * Version: 0.5

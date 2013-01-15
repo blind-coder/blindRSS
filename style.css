@@ -37,9 +37,19 @@ td.left {
 	width: 20%;
 }
 
-td.headline {
+td.headline, td.headlinewithbackground {
 	font-size: 24pt;
 }
-td.navigationheadline, td.contentheadline, td.headline {
+td.navigationheadline, td.contentheadline, td.headlinewithbackground {
 	background: #ffffff url(background.jpg) repeat-x; 
+}
+div.menuouter {
+	background-color: #000000;
+	float: left;
+	font-size: 12pt;
+}
+div.menu {
+	margin: 1px;
+	border: 1px;
+	background-color: #8080FF;
 }

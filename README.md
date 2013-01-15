@@ -8,7 +8,6 @@ Licenses
 
 This program is in the public domain.
 
-The feedParser and xmlParser files are licensed under the GPL.
 See the corresponding files for further copyright and license information.
 
 The images are from the Tango Icon Theme:
