@@ -3,16 +3,35 @@
 <link rel='stylesheet' href='style.css'>
 <script type="text/javascript">
 var feedarray = new Array();
+/*
+ * feedarray
+ * array = (ID, name, array = (title, array=(line), link, itemid, isread))
+ *
+ */
+var hierarchy = new Array();
+/*
+ * hierarchy
+ * array = (ID, enum(0=feed, 1=dir), feedarrayindex||name, 0||array=(hierarchy));
+ * Yes, I know, this is somewhat brain damaged. If you have a better idea, I'm all ears.
+ */
 var feedbeingreloaded = 0;
 var reloadall = 0;
 var request;
+var Width = window.innerWidth;
+var Height = window.innerHeight;
 
+function resize(){
+	document.getElementById("subnavigationscrollouter").style.height=Height-167+"px";
+	document.getElementById("contentinner").style.height=Height-302+"px";
+}
 function showstatus(stat){{{
+// Changes the text of the status line at the top to 'stat'
 	var statline=document.getElementById("statusline");
 
 	statline.firstChild.nodeValue="Status: " + stat;
 }}}
 function ajaxManager() {{{
+// returns an XMLHttpRequest Object
 	var r;
 	if (document.getElementById) {
 		if (window.XMLHttpRequest) {
@@ -26,6 +45,7 @@ function ajaxManager() {{{
 	}
 }}}
 function processMarkRead() {{{
+// Processes Requests for marking a feed entry as 'read'
 	if (request.readyState == 4) {
 		if (request.status == 200){
 		} else {
@@ -34,6 +54,7 @@ function processMarkRead() {{{
 	}
 }}}
 function markReadAll(feedid) {{{
+// Processes Requests for marking a whole feed as 'read'
 	if (confirm("Mark all entries as 'read'?")){
 		request=ajaxManager();
 
@@ -49,6 +70,7 @@ function markReadAll(feedid) {{{
 	}
 }}}
 function showDetails(feedid, itemid){{{
+// displays the details of a feed entry in the main display area and marks the entry as 'read'
 	var contentheadline=document.getElementById("contentheadline");
 	var contentcontent=document.getElementById("contentcontent");
 
@@ -83,10 +105,13 @@ function showDetails(feedid, itemid){{{
 	}
 }}}
 function showItems(id){{{
+// shows the items of a feed in the top display area
+// new ones are in bold
 	var feed;
 	feed = feedarray[id];
 
 	var div = document.getElementById("subnavigation");
+	div.style.marginLeft = "3px";
 	if (div.firstChild){
 		while(div.firstChild){
 			div.removeChild(div.firstChild);
@@ -104,10 +129,11 @@ function showItems(id){{{
 			b.appendChild(a);
 			div.appendChild(b);
 		}
-		div.appendChild(document.createElement("br")); *
+		div.appendChild(document.createElement("br"));
 	}
 }}}
 function processFeed() {{{
+// processes the update of a single feed and hides/unhides the 'new entries' image on demand
 	if (request.readyState == 4) {
 		if (request.status == 200){
 			showstatus("Reloading feed");
@@ -180,6 +206,7 @@ function processFeed() {{{
 	}
 }}}
 function reloadFeed(i){{{
+// initiates the update of the entries of a single feed
 	showstatus("Loading contents of '" + feedarray[i][1] + "'");
 	request=ajaxManager();
 	if (document.getElementById("onlyunread").checked){
@@ -191,6 +218,7 @@ function reloadFeed(i){{{
 	request.send(null);
 }}}
 function reloadAllFeeds(){{{
+// initiates the update of the entries of all feeds
 	reloadall = 1;
 	if(feedarray[feedbeingreloaded]){
 		request=ajaxManager();
@@ -210,7 +238,158 @@ function reloadAllFeeds(){{{
 		return;
 	}
 }}}
+function showNavigation(hierarchyLevel, parentNavigation) {{{
+	var i;
+	for (i=0; i<hierarchyLevel.length; i++){
+		/* array = (ID, enum(0=feed, 1=dir), feedarrayindex||name, 0||array=(hierarchy)); */
+		if (hierarchyLevel[i][1] == 1){
+			var table=document.createElement("table");
+			var tbody=document.createElement("tbody");
+			var tr=document.createElement("tr");
+			var td=document.createElement("td");
+			var div=document.createElement("div");
+
+			td.setAttribute("class", "navigationheadline");
+
+			div.appendChild(document.createTextNode(hierarchyLevel[i][2]));
+			div.style.position="relative";
+			div.style.top="0px";
+			div.style.left="0px";
+
+			td.appendChild(div);
+			tr.appendChild(td);
+			tbody.appendChild(tr);
+			table.appendChild(tbody);
+			parentNavigation.appendChild(table);
+
+			var ul=document.createElement("ul");
+			ul.style.paddingLeft="10px";
+			ul.style.marginTop="0px";
+			ul.style.marginBottom="0px";
+
+			parentNavigation.appendChild(ul);
+			showNavigation(hierarchyLevel[i][3], ul);
+			continue;
+		}
+
+		/* array = (ID, name, array = (title, array=(line), link, itemid, isread)) */
+		var feedarrayindex = hierarchyLevel[i][2];
+		var name = feedarray[feedarrayindex][1];
+		var id = feedarray[feedarrayindex][0];
+
+		var table=document.createElement("table");
+		var tbody=document.createElement("tbody");
+		var tr=document.createElement("tr");
+		var td=document.createElement("td");
+		var div=document.createElement("div");
+		var divdiv=document.createElement("div");
+
+		td.setAttribute("class", "navigationheadline");
+		var a = document.createElement("a");
+		a.href="javascript:showItems("+feedarrayindex+");";
+		a.appendChild(document.createTextNode(name));
+		div.appendChild(a);
+		div.style.position="relative";
+		div.style.top="0px";
+		div.style.left="0px";
+
+		divdiv=document.createElement("div");
+
+		a=document.createElement("a");
+		var img=document.createElement("img");
+		a.href="javascript:reloadFeed("+feedarrayindex+");";
+		divdiv.style.position="absolute";
+		divdiv.style.right="32px";
+		divdiv.style.top="0px";
+		img.title="Reload this feed";
+		img.src="view-refresh.png";
+		img.border=0;
+		img.border=0;
+		a.appendChild(img);
+		divdiv.appendChild(a);
+		div.appendChild(divdiv);
+
+		divdiv=document.createElement("div");
+
+		a=document.createElement("a");
+		a.href="javascript:markReadAll("+feedarrayindex+");";
+		var img=document.createElement("img");
+		divdiv.style.position="absolute";
+		divdiv.style.right="48px";
+		divdiv.style.top="0px";
+		img.title="New messages!";
+		img.src="mail-message-new.png";
+		img.border=0;
+		img.border=0;
+		img.id="imgNewMessages"+feedarrayindex;
+		img.style.visibility="hidden";
+		a.appendChild(img);
+		divdiv.appendChild(a);
+		div.appendChild(divdiv);
+
+		a=document.createElement("a");
+		a.href="javascript:removeFeed("+feedarrayindex+");";
+		divdiv=document.createElement("div");
+		divdiv.style.position="absolute";
+		divdiv.style.right="0px";
+		divdiv.style.top="0px";
+		img=document.createElement("img");
+		img.title="Delete this feed";
+		img.src="process-stop.png";
+		img.border=0;
+		img.border=0;
+		a.appendChild(img);
+		divdiv.appendChild(a);
+		div.appendChild(divdiv);
+		td.appendChild(div);
+		tr.appendChild(td);
+
+		tbody.appendChild(tr);
+		table.appendChild(tbody);
+		table.setAttribute("id", "feed"+id);
+		parentNavigation.appendChild(table);
+	}
+}}}
+function recursiveHierarchySearchForParentID(hierarchyLevel, parentID){{{
+	var i;
+	for (i=0; i < hierarchyLevel.length; i++){
+		if (hierarchyLevel[i][0] == parentID){
+			/* array = (ID, enum(0=feed, 1=dir), feedarrayindex||name, 0||array=(hierarchy)); */
+			return hierarchyLevel[i];
+		}
+		if (hierarchyLevel[i][1] == 1){
+			var retVal = recursiveHierarchySearchForParentID(hierarchyLevel[i][3], parentID);
+			if (retVal != -1){
+				return retVal;
+			}
+		}
+	}
+	return -1;
+}}}
+function getHierarchyPtrToParentID(parentID) {{{
+	return recursiveHierarchySearchForParentID(hierarchy, parentID);
+}}}
+function recursivePathToParentID(hierarchyLevel, parentID){{{
+	var i;
+	for (i=0; i < hierarchyLevel.length; i++){
+		if (hierarchyLevel[i][0] == parentID){
+			/* array = (ID, enum(0=feed, 1=dir), feedarrayindex||name, 0||array=(hierarchy)); */
+			return "/"+hierarchyLevel[i][2];
+		}
+		if (hierarchyLevel[i][1] == 1){
+			var retVal = recursivePathToParentID(hierarchyLevel[i][3], parentID);
+			if (retVal != -1){
+				return "/"+hierarchyLevel[i][2]+retVal;
+			}
+		}
+	}
+	return -1;
+}}}
+function getPathToParentID(parentID) {{{
+	return recursivePathToParentID(hierarchy, parentID);
+}}}
 function processFeedList() {{{
+// processes the request for updating the feed list
 	if (request.readyState == 4) {
 		if (request.status == 200){
 			var navigation=document.getElementById("navigation");
@@ -220,91 +399,56 @@ function processFeedList() {{{
 			feed=feeds.firstChild;
 			while(feed){
 				/* childNode[0]: id
-				   childNode[1]: name */
-				var newelement = feedarray.length;
+				   childNode[1]: name 
+				   childNode[2]: isdir
+				   childNode[3]: parentID */
+				var feedarraynewelement = feedarray.length;
+				var hierarchynewelement = hierarchy.length;
 				var id;
 				var name;
+				var isdir;
+				var parentID;
 				id=feed.childNodes[0].firstChild.nodeValue;
 				name=feed.childNodes[1].firstChild.nodeValue;
+				isdir=feed.childNodes[2].firstChild.nodeValue;
+				parentID=feed.childNodes[3].firstChild.nodeValue;
 
-				var table=document.createElement("table");
-				var tbody=document.createElement("tbody");
-				var tr=document.createElement("tr");
-				var td=document.createElement("td");
-				var div=document.createElement("div");
-				var divdiv=document.createElement("div");
+				var hierarchyptr;
+				var i;
+				if (parentID == 0){
+					hierarchy[hierarchynewelement] = new Object();
+					hierarchyptr = hierarchy[hierarchynewelement];
+				} else {
+					hierarchyptr = getHierarchyPtrToParentID(parentID);
+					hierarchyptr = hierarchyptr[3];
+					var hptrnewelement = hierarchyptr.length;
+					hierarchyptr[hptrnewelement] = new Object();
+					hierarchyptr = hierarchyptr[hptrnewelement];
+				}
+				if (isdir == 0){
+					feedarray[feedarraynewelement] = new Object();
+					feedarray[feedarraynewelement][0] = id;
+					feedarray[feedarraynewelement][1] = name;
 
-				td.setAttribute("class", "navigationheadline");
-				var a = document.createElement("a");
-				a.href="javascript:showItems("+newelement+");";
-				a.appendChild(document.createTextNode(name));
-				div.appendChild(a);
-				div.style.position="relative";
-				div.style.top="0px";
-				div.style.left="0px";
-
-				divdiv=document.createElement("div");
-
-				a=document.createElement("a");
-				var img=document.createElement("img");
-				a.href="javascript:reloadFeed("+newelement+");";
-				divdiv.style.position="absolute";
-				divdiv.style.right="32px";
-				divdiv.style.top="0px";
-				img.title="Reload this feed";
-				img.src="view-refresh.png";
-				img.border=0;
-				img.border=0;
-				a.appendChild(img);
-				divdiv.appendChild(a);
-				div.appendChild(divdiv);
-
-				divdiv=document.createElement("div");
-
-				a=document.createElement("a");
-				a.href="javascript:markReadAll("+newelement+");";
-				var img=document.createElement("img");
-				divdiv.style.position="absolute";
-				divdiv.style.right="48px";
-				divdiv.style.top="0px";
-				img.title="New messages!";
-				img.src="mail-message-new.png";
-				img.border=0;
-				img.border=0;
-				img.id="imgNewMessages"+newelement;
-				img.style.visibility="hidden";
-				a.appendChild(img);
-				divdiv.appendChild(a);
-				div.appendChild(divdiv);
-
-				a=document.createElement("a");
-				a.href="javascript:removeFeed("+newelement+");";
-				divdiv=document.createElement("div");
-				divdiv.style.position="absolute";
-				divdiv.style.right="0px";
-				divdiv.style.top="0px";
-				img=document.createElement("img");
-				img.title="Delete this feed";
-				img.src="process-stop.png";
-				img.border=0;
-				img.border=0;
-				a.appendChild(img);
-				divdiv.appendChild(a);
-				div.appendChild(divdiv);
-				td.appendChild(div);
-				tr.appendChild(td);
-
-				tbody.appendChild(tr);
-				table.appendChild(tbody);
-				table.setAttribute("id", "feed"+id);
-				navigation.appendChild(table);
-
-				feedarray[newelement] = new Object();
-				feedarray[newelement][0] = id;
-				feedarray[newelement][1] = name;
+					hierarchyptr[0] = id;
+					hierarchyptr[1] = 0;
+					hierarchyptr[2] = feedarraynewelement;
+					hierarchyptr[3] = 0;
+				} else {
+					hierarchyptr[0] = id;
+					hierarchyptr[1] = 1;
+					hierarchyptr[2] = name;
+					hierarchyptr[3] = new Array();
+					var option=document.createElement("option");
+					option.text=getPathToParentID(id);
+					option.value=id;
+					document.getElementById("addDir").appendChild(option);
+				}
 				feed=feed.nextSibling;
 			}
 			showstatus(feedarray.length + " Feeds loaded");
+			var navigation=document.getElementById("navigation");
+			showNavigation(hierarchy, navigation);
 			reloadAllFeeds();
 		} else {
 			showstatus("Error fetching FeedList: " + request.status + " " + request.statustext);
@@ -312,12 +456,14 @@ function processFeedList() {{{
 	}
 }}}
 function loadFeeds() {{{
+// loads all feeds at startup or upon request
 	var navigation=document.getElementById("navigation");
 
 	while (navigation.lastChild){
 		navigation.removeChild(navigation.lastChild);
 	}
 	feedarray = new Array();
+	hierarchy = new Array();
 	showstatus("Loading Feeds");
 	request=ajaxManager();
 
@@ -326,6 +472,8 @@ function loadFeeds() {{{
 	request.send(null);
 }}}
 function processAddDelFeed() {{{
+// processes addition and deletion of feeds. really just outputs the text from the request
+// and calls loadFeeds
 	if (request.readyState == 4) {
 		if (request.status == 200){
 			status=request.responseXML.firstChild;
@@ -335,24 +483,26 @@ function processAddDelFeed() {{{
 	}
 }}}
 function addFeed(){{{
+// requests addition of a feed from the server
 	request=ajaxManager();
 
-	request.open("GET", "add.php?url="+document.getElementById("addUrl").value+"&name="+document.getElementById("addName").value);
+	request.open("GET", "add.php?url="+document.getElementById("addUrl").value+"&name="+document.getElementById("addName").value+"&parentID="+document.getElementById("addDir").value);
 	request.onreadystatechange = processAddDelFeed;
 	request.send(null);
 }}}
-function removeFeed(feedid){{{
+function removeFeed(i){{{
+// requests deletion of a feed from the server
 	if (confirm("Really delete Feed?")){
 		request=ajaxManager();
 
-		request.open("GET", "del.php?id="+feedid);
+		request.open("GET", "del.php?id="+feedarray[i][0]);
 		request.onreadystatechange = processAddDelFeed;
 		request.send(null);
 	}
 }}}
 </script>
 </head>
-<body onLoad="javascript:loadFeeds();">
+<body onLoad="javascript:resize();loadFeeds();">
 <table class='main'>
 	<tr class='headline'>
 		<td colspan='2'>
@@ -360,7 +510,7 @@ function removeFeed(feedid){{{
 				<tr>
 					<td width='50%' class='headline' align='left'>blindRSS</td>
 					<td width='50%' valign='top' align='right'>
-						<nobr><form><input type='text' id='addUrl' value='http://foo/bar.rss'> <input type='text' id='addName' value='Foobar RSS'><input type='button' value='add feed' onclick="javascript:addFeed();"></form></nobr><br>
+						<nobr><form><input type='text' id='addUrl' value='http://foo/bar.rss'> <input type='text' id='addName' value='Foobar RSS'><select id='addDir'><option value='0'>/</option></select><input type='button' value='add feed' onclick="javascript:addFeed();"></form></nobr><br>
 						<a href='javascript:reloadAllFeeds();'><img src='view-refresh.png' border='0'></a><br>
 						Show only unread <input type='checkbox' id='onlyunread' name='onlyunread' checked>
 					</td>
@@ -376,7 +526,7 @@ function removeFeed(feedid){{{
 	</tr>
 	<tr class='main'>
 		<td class='left' valign='top'>
-			<div id='subnavigationscroll' dir="rtl" style="height: 400px; width:100%; overflow: auto;">
+			<div id='subnavigationscrollouter' dir="rtl" style="height: 400px; width:100%; overflow: auto;">
 				<div width="100%" dir="ltr">
 					<table class='navigation'>
 						<tr class='navigation'>
@@ -391,7 +541,7 @@ function removeFeed(feedid){{{
 			<table class='content'>
 				<tr class='content'>
 					<td class='content'>
-						<div id='subnavigationscroll' dir="rtl" style="height:80px; width:100%; overflow: auto;">
+						<div id='subnavigationscrollinner' dir="rtl" style="height:80px; width:100%; overflow: auto;">
 							<div width="100%" dir="ltr" id='subnavigation'>
 							</div>
 						</div>
@@ -404,26 +554,30 @@ function removeFeed(feedid){{{
 				</tr>
 				<tr class='content'>
 					<td class='content'>
-						<div dir='rtl' style="height:295px; width:100%; overflow: auto;">
-							<div width="100%" dir="ltr">
-								<table>
-									<tr>
-										<td class='contentheadline'>
-											<b><a href='#' id="contentheadline">Welcome to blindRSS</a></b>
-										</td>
-									</tr>
-									<tr>
-										<td id="contentcontent" class='contentcontent'>
-											blindRSS is a very simple browser-operated RSS reader.<br>
-											You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
-											It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
-											<br>
-											Enjoy :-)
-										</td>
-									</tr>
-								</table>
-							</div>
-						</div>
+						<table>
+							<tr>
+								<td class='contentheadline'>
+									<b><a href='#' id="contentheadline">Welcome to blindRSS</a></b>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<div id="contentinner" dir='rtl' style="height:265px; width:100%; overflow: auto;">
+										<div width="100%" dir="ltr">
+											<table>
+												<td id="contentcontent" class='contentcontent'>
+													blindRSS is a very simple browser-operated RSS reader.<br>
+													You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
+													It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
+													<br>
+													Enjoy :-)
+												</td>
+											</table>
+										</div>
+									</div>
+								</td>
+							</tr>
+						</table>
 					</td>
 				</tr>
 			</table>

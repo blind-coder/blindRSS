@@ -17,9 +17,9 @@ function blindparse($url){
 	return $fp->parseFeed($xml);
 }
 
-mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
-mysql_select_db($MYSQL_DB);
-$q = mysql_Query("SELECT * FROM feeds");
+mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS) || die (mysql_error());
+mysql_select_db($MYSQL_DB) || die (mysql_error());
+$q = mysql_Query("SELECT * FROM feeds WHERE `url` != '' AND `url` IS NOT NULL");
 
 while ($r = mysql_fetch_object($q)){
 	print_r($r);
