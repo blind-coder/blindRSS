@@ -1,37 +1,51 @@
 <?
 include("config.php");
-header ("Content-Type: text/xml");
-echo "<?xml version=\"1.0\"?>\n\n";
+header ("Content-Type: text/plain");
 
+$json = array();
 if ($ISDEMO){
-	echo "<status>This is just a demo page.</status>";
+	$json["error"] = "This is just a demo page.";
 } else {
 	mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
 	mysql_select_db($MYSQL_DB);
-	$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['feedid'])."'");
+
+	$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['id'])."'");
 	if (!(mysql_num_rows($q) > 0)){
-		echo "<status>Unknown feed ID!</status>";
-		exit;
-	}
-	$feedToChange = mysql_fetch_object($q);
-	if ($feedToChange->startID == 1){
-		echo "<status>Refusing to change master directory!</status>";
-		exit;
-	}
-	mysql_query("UPDATE `feeds` SET url='".mysql_real_escape_string($_GET['newurl'])."', name='".
-			mysql_real_escape_string($_GET['newtitle'])."' WHERE ID='".
-			mysql_real_escape_string($_GET['feedid'])."'");
-	if ($_GET['feedid'] == $_GET['moveabove']){
-		echo "<status>Updated name/title only</status>";
+		$json["error"] = "Unkonwn feed ID!";
+		echo json_encode($json);
 		exit;
 	}
 
-	$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['moveabove'])."'");
-	if (!(mysql_num_rows($q) > 0)){
-		echo "<status>Unknown moveabove ID!</status>";
+	$feedToChange = mysql_fetch_object($q);
+	if ($feedToChange->startID == 1){
+		$json["error"] = "Refusing to change master directory!";
+		echo json_encode($json);
 		exit;
 	}
+
+	$query = sprintf("UPDATE `feeds` SET url='%s', name='%s', cacheimages='%s' WHERE ID='%s'",
+		mysql_real_escape_string($_POST['newURL']),
+		mysql_real_escape_string($_POST['newName']),
+		mysql_real_escape_string($_POST['cacheimages']),
+		mysql_real_escape_string($_POST['id']));
+
+	mysql_query($query);
+	if ($_POST['newURL'] != $feedToChange->url){
+		$json["status"] .= "Updated URL. ";
+	}
+
+	if ($_POST['newName'] != $feedToChange->name){
+		$json["status"] .= "Updated title. ";
+	}
+
+	if ($_POST['cacheimages'] != $feedToChange->cacheimages){
+		$json["status"] .= "Changed caching behaviour. ";
+	}
+
+	$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['moveAbove'])."'");
 	$feedToMoveTo = mysql_fetch_object($q);
+
+	if ($feedToChange->ID != $feedToMoveTo->ID){
 	if ($feedToMoveTo->url == ""){{{
 		mysql_query("UPDATE feeds SET movedirection = 'moveme' WHERE startID >= $feedToChange->startID AND endID <= $feedToChange->endID");
 		$difference = ($feedToChange->endID - $feedToChange->startID) + 1;
@@ -39,17 +53,17 @@ if ($ISDEMO){
 		mysql_query("UPDATE feeds SET startID = startID - $difference WHERE startID > $feedToChange->endID");
 		mysql_query("UPDATE feeds SET endID = endID - $difference WHERE endID > $feedToChange->endID");
 
-		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['moveabove'])."'");
+		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['moveAbove'])."'");
 		$feedToMoveTo = mysql_fetch_object($q);
-		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['feedid'])."'");
+		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['id'])."'");
 		$feedToChange = mysql_fetch_object($q);
 
 		mysql_query("UPDATE feeds SET startID = startID + $difference WHERE startID >= $feedToMoveTo->endID");
 		mysql_query("UPDATE feeds SET endID = endID + $difference WHERE endID >= $feedToMoveTo->endID");
 
-		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['moveabove'])."'");
+		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['moveAbove'])."'");
 		$feedToMoveTo = mysql_fetch_object($q);
-		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['feedid'])."'");
+		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['id'])."'");
 		$feedToChange = mysql_fetch_object($q);
 
 		/* Move to Top
@@ -85,7 +99,7 @@ if ($ISDEMO){
 		11 |          11-----------+                11 |          11-----------+
 		   |          |                                |          |
 		12 12---------+                             12 12---------+ */
-		echo "<status>Feed moved!</status>";
+		$json["status"] .= "Feed moved. ";
 	}}}
 	else {{{
 		mysql_query("UPDATE feeds SET movedirection = 'moveme' WHERE startID >= $feedToChange->startID AND endID <= $feedToChange->endID");
@@ -94,24 +108,24 @@ if ($ISDEMO){
 		mysql_query("UPDATE feeds SET startID = startID - $difference WHERE startID > $feedToChange->endID");
 		mysql_query("UPDATE feeds SET endID = endID - $difference WHERE endID > $feedToChange->endID");
 
-		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['moveabove'])."'");
+		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['moveAbove'])."'");
 		$feedToMoveTo = mysql_fetch_object($q);
-		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['feedid'])."'");
+		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['id'])."'");
 		$feedToChange = mysql_fetch_object($q);
 #4-5
 		mysql_query("UPDATE feeds SET startID = startID + $difference WHERE startID >= $feedToMoveTo->startID AND movedirection = 'none'");
 		mysql_query("UPDATE feeds SET endID = endID + $difference WHERE endID > $feedToMoveTo->startID AND movedirection = 'none'");
 
-		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['moveabove'])."'");
+		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['moveAbove'])."'");
 		$feedToMoveTo = mysql_fetch_object($q);
-		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_GET['feedid'])."'");
+		$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mysql_real_escape_string($_POST['id'])."'");
 		$feedToChange = mysql_fetch_object($q);
 
 #10-11
 		mysql_query("UPDATE feeds SET startID = startID - $feedToChange->startID + $feedToMoveTo->startID - $difference WHERE movedirection = 'moveme'");
 		mysql_query("UPDATE feeds SET endID = endID - $feedToChange->startID + $feedToMoveTo->startID - $difference WHERE movedirection = 'moveme'");
 		mysql_query("UPDATE feeds SET movedirection = 'none'");
-		echo "<status>Feed moved!</status>";
+		$json["status"] = "Feed moved. ";
 /*
 $feedToChange = (                                $feedToMoveTo = (
     [ID] => 75                                       [ID] => 1
@@ -123,5 +137,24 @@ $feedToChange = (                                $feedToMoveTo = (
 )                                                ) */
 
 	}}}
+	}
+	if (!array_key_exists("filters", $_POST)){
+		echo json_encode($json);
+		exit;
+	}
+
+	mysql_query("DELETE FROM filter WHERE feedID = ".$feedToChange->ID);
+
+	$filters = json_decode($_POST["filters"]);
+	foreach ($filters AS $key => $value){
+		$query = sprintf("INSERT INTO filter (`feedID`, `regex`, `whiteorblack`) VALUES ('%s', '%s', '%s')", $feedToChange->ID, mysql_real_escape_string($value->regex), mysql_real_escape_string($value->whiteorblack));
+		mysql_query($query);
+		if (mysql_error()){
+			$json["error"] .= " ".mysql_error().": $query";
+		}
+	}
+	$json["status"] .= "Updated filters.";
+
+	echo json_encode($json);
 }
 ?>

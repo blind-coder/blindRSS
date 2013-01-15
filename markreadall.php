@@ -1,17 +1,15 @@
 <?
 include("config.php");
-header ("Content-Type: text/xml");
-echo "<?xml version=\"1.0\"?>\n\n";
+header ("Content-Type: text/plain");
+
+$json = array();
+mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
+mysql_select_db($MYSQL_DB);
 
 if ($ISDEMO){
-	echo "<feeds>";
-	echo "</feeds>";
+	$json["error"] = "This is a demo page!";
 } else {
-	mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
-	mysql_select_db($MYSQL_DB);
-
-	$q = mysql_query("UPDATE entries SET isread='1', date=date WHERE feedID='".$_GET['feedid']."'");
-	echo "<feeds>";
-	echo "</feeds>";
+	mysql_query("UPDATE entries SET isread='1', date=date WHERE feedID='".$_POST['feedID']."' AND entries.isread = '0'");
 }
+echo json_encode($json);
 ?>

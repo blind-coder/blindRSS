@@ -3,1340 +3,776 @@
 <head>
 <title>blindRSS</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link rel="stylesheet" type="text/css" href="style.css" media="screen" title="Tidy Blog" />
+<link rel="stylesheet" href="jquery/themes/base/jquery.ui.all.css" />
+<link rel="icon" type="image/png" href="feed-icon-14x14.png" />
+<script src="jquery/jquery-1.7.1.js"></script>
+<script src="jquery/ui/jquery.ui.core.js"></script>
+<script src="jquery/ui/jquery.ui.widget.js"></script>
+<script src="jquery/ui/jquery.ui.position.js"></script>
+<script src="jquery/ui/jquery.ui.menu.js"></script>
+<script src="jquery/ui/jquery.ui.autocomplete.js"></script>
+<script src="jquery/ui/jquery.ui.tooltip.js"></script>
+<script src="jquery/ui/jquery.ui.datepicker.js"></script>
+<script src="jquery/ui/jquery.ui.mouse.js"></script>
+<script src="jquery/ui/jquery.ui.draggable.js"></script>
+<script src="jquery/ui/jquery.ui.resizable.js"></script>
+<script src="jquery/ui/jquery.ui.dialog.js"></script>
+<script src="spin.js"></script>
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 <link rel="stylesheet" type="text/css" href="print.css" media="print" />
 <script type="text/javascript">
-var optionarray;
-var startupprocedure = 0;
-var searchresultid = -1;
-var feedarray = new Array();
-/*
- * feedarray
- * array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread), array(ID, regex, whiteorblack)
- */
-var options = new Array();
-var request;
-var Width = window.innerWidth;
-var Height = window.innerHeight;
-var rollUpHeightOriginals = new Array();
-var mouseX;
-var mouseY;
-
-function getMouseCoordinates(event) {{{
-	var ev = event || window.event;
-	mouseX = ev.pageX;
-	mouseY = ev.pageY;
-}}}
+var globalFeeds;
 function resize(){{{
-	Width = window.innerWidth;
-	Height = window.innerHeight;
-	var sidebar;
-	var contentinner;
-	var contentcontent;
-	sidebar = document.getElementById("sidebar");
-	contentinner=document.getElementById("contentinner");
-	contentcontent=document.getElementById("contentcontent");
-	if (sidebar){
-		//if (/WeTab/.test(navigator.userAgent)){
-			//contentinner.style.height="100%";
-			//return;
-		//}
-		var elemparent;
-		var offtop = 0;
-		if (!(/WeTab/.test(navigator.userAgent))){
-			elemparent = sidebar.offsetParent;
-			while (elemparent){
-				offtop += elemparent.offsetTop;
-				elemparent = elemparent.offsetParent;
-			}
-			sidebar.style.height=(Height-(offtop+5))+"px";
-		}
-		offtop = 0;
-		elemparent = contentinner.offsetParent;
-		while (elemparent){
-			offtop += elemparent.offsetTop;
-			elemparent = elemparent.offsetParent;
-		}
-		contentinner.style.height=Height-(offtop+10)+"px";
-		contentcontent.style.height=Height-(offtop+10)+"px";
-	}
+	$(".sidebar").height(window.innerHeight-($(".sidebar").position().top + 25));
+	$("#content").height(window.innerHeight-($("#content").position().top + 25));
 }}}
-function getContainersByIndex(feedIndex){{{
-	var retVal = new Array();
-	for (var i=0; i<feedarray.length; i++){
-		if (feedarray[i][2] < feedarray[feedIndex][2] && feedarray[feedIndex][3] < feedarray[i][3]){
-			retVal[retVal.length] = i;
-		}
-	}
-	return retVal;
+window.onresize=resize;
+function configureFeed(feed){{{
 }}}
-function getContainersByID(feedID){{{
-	var feedIndex = -1;
-	var retVal = new Array();
-	for (var i=0; i<feedarray.length; i++){
-		if (feedarray[i][0] ==  feedID){
-			feedIndex = i;
-			break;
-		}
+function deleteFeed(data){{{
+	var feed = data.data;
+	if (feed.endID - 1 != feed.startID){
+		alert("This group contains other feeds! Cowardly refusing to delete it.");
+		return;
 	}
-	if (feedIndex == -1){
-		return retVal;
-	}
-	for (var i=0; i<feedarray.length; i++){
-		if (feedarray[i][2] < feedarray[feedIndex][2] && feedarray[feedIndex][3] < feedarray[i][3]){
-			retVal[retVal.length] = i;
-		}
-	}
-	return retVal;
-}}}
-function getContainedByIndex(feedIndex){{{
-	var retVal = new Array();
-	for (var i=0; i<feedarray.length; i++){
-		if (feedarray[i][2] > feedarray[feedIndex][2] && feedarray[feedIndex][3] > feedarray[i][3]){
-			retVal[retVal.length] = i;
-		}
-	}
-	return retVal;
-}}}
-function getContainedByID(feedID){{{
-	var feedIndex = -1;
-	var retVal = new Array();
-	for (var i=0; i<feedarray.length; i++){
-		if (feedarray[i][0] ==  feedID){
-			feedIndex = i;
-			break;
-		}
-	}
-	if (feedIndex == -1){
-		return retVal;
-	}
-	for (var i=0; i<feedarray.length; i++){
-		if (feedarray[i][2] > feedarray[feedIndex][2] && feedarray[feedIndex][3] > feedarray[i][3]){
-			retVal[retVal.length] = i;
-		}
-	}
-	return retVal;
-}}}
-function rollUp(x){{{
-	var a = document.getElementById("arollUp"+x);
-	var div = document.getElementById("divrollUp"+x);
-	var img = document.getElementById("imgrollUp"+x);
-	rollUpHeightOriginals[x] = div.clientHeight;
-	div.style.visibility="collapse";
-	div.style.height=0;
-	a.href="javascript:rollDown('"+x+"');";
-	img.src="go-previous.png";
-}}}
-function rollDown(x){{{
-	var a = document.getElementById("arollUp"+x);
-	var div = document.getElementById("divrollUp"+x);
-	var img = document.getElementById("imgrollUp"+x);
-	div.style.visibility="";
-	div.style.height=rollUpHeightOriginals[x];
-	a.href="javascript:rollUp('"+x+"');";
-	img.src="go-down.png";
-}}}
-function showHierarchyInSelect(container, selectedID){{{
-	var parents = new Array();
-	parents[0] = new Array();
-	parents[0][0] = container;
-	parents[0][1] = 0;
-	for (var i=0; i<feedarray.length; i++){
-/* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread)) */
-		if (i > 0){
-			for (var x=0; x < feedarray[i][2] - feedarray[i-1][3] - 1; x++){
-				var option;
-				option = document.createElement("option");
-				option.value = parents[parents.length-1][1];
-				option.text = "(End of "+parents[parents.length-1][2]+")";
-				if (selectedID == option.value){
-					option.selected = true;
+	if (confirm("Really delete feed '"+feed.name+"'?")){
+		$("#spin_"+feed.ID).spin({
+			lines: 8, // The number of lines to draw
+			length: 0, // The length of each line
+			width: 4, // The line thickness
+			radius: 4, // The radius of the inner circle
+			color: '#000', // #rgb or #rrggbb
+			speed: 2, // Rounds per second
+			trail: 50, // Afterglow percentage
+			shadow: false // Whether to render a shadow
+		});
+		$.ajax({
+			url: "del.php",
+			type: "post",
+			dataType: "json",
+			data: {
+				id: feed.ID
+			},
+			success: function(data){
+				if (data.error){
+					alert(data.error);
+					return;
 				}
-				parents[parents.length-1][0].appendChild(option);
-				parents.pop();
+				$("#feed_"+feed.ID).fadeOut(600);
+				setTimeout(function(){ $("#spin_"+feed.ID).spin(false); $("#feed_"+feed.ID).remove(); }, 600);
 			}
-			if (feedarray[i][2] == feedarray[i-1][3] + 1 && (feedarray[i-1][4] == "NULL" || feedarray[i-1][4] == "")){
-				var option;
-				option = document.createElement("option");
-				option.value = parents[parents.length-1][1];
-				option.text = "(End of "+parents[parents.length-1][2]+")";
-				if (selectedID == option.value){
-					option.selected = true;
-				}
-				parents[parents.length-1][0].appendChild(option);
-				parents.pop();
-			}
-		}
-		if (feedarray[i][4] == "NULL" || feedarray[i][4] == ""){
-			var optgroup = document.createElement("optgroup");
-			optgroup.label = feedarray[i][1];
-			parents[parents.length-1][0].appendChild(optgroup);
-			parents[parents.length] = new Array();
-			parents[parents.length-1][0]=optgroup;
-			parents[parents.length-1][1]=feedarray[i][0];
-			parents[parents.length-1][2]=feedarray[i][1];
-			continue;
-		}
-		var option;
-		option = document.createElement("option");
-		option.value = feedarray[i][0];
-		option.text = feedarray[i][1];
-		if (selectedID == option.value){
-			option.selected = true;
-		}
-		parents[parents.length-1][0].appendChild(option);
+		});
 	}
 }}}
-function submitFeedChanges(x){{{
-	var feedTitle = document.getElementById("inputFeedTitle").value;
-	var feedURL;
-	var moveAbove = document.getElementById("selMoveAbove").value;
-
-	if (document.getElementById("inputFeedURL"))
-		feedURL = document.getElementById("inputFeedURL").value;
-	else
-		feedURL = "";
-	if (confirm("Make these changes to the feed?")){
-		request=ajaxManager();
-
-		request.open("GET", "editfeed.php?feedid="+x+"&newtitle="+feedTitle+"&newurl="+feedURL+"&moveabove="+moveAbove, true);
-		request.onreadystatechange = processAddDelEditFeed;
-		showstatus("Changing feed");
-		request.send(null);
-		hideOverlay('divSettings');
-	}
-
-}}}
-function showSettings(feedID){{{
-	var divSettings = document.getElementById("divSettings");
-	var divSettingsInner = document.getElementById("divSettingsInner");
-	var feed = feedarray[feedID];
-
-	while (divSettingsInner.lastChild){
-		divSettingsInner.removeChild(divSettingsInner.lastChild);
-	}
-
-	var table = document.createElement("table");
-	var tbody = document.createElement("tbody");
-	var tr = document.createElement("tr");
-	var td = document.createElement("td");
-
-	td.appendChild(document.createTextNode(feed[1]));
-	tr.appendChild(td);
-	td = document.createElement("td");
-	td.align="right";
-	var a = document.createElement("a");
-	a.href="javascript:hideOverlay('divSettings');";
-	var img = document.createElement("img");
-	img.src = "process-stop.png";
-	img.border = 0;
-	a.appendChild(img);
-	td.appendChild(a);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	td.appendChild(document.createTextNode("Move above feed: "));
-	tr.appendChild(td);
-	td = document.createElement("td");
-	var select = document.createElement("select");
-	select.id = "selMoveAbove";
-	select.size = 5;
-	showHierarchyInSelect(select, feed[0]);
-
-	td.appendChild(select);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
- /* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread), array(ID, regex, whiteorblack) */
-
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	td.appendChild(document.createTextNode("Feedtitle: "));
-	tr.appendChild(td);
-	td = document.createElement("td");
-	var input = document.createElement("input");
-	input.id = "inputFeedTitle";
-	input.value = feed[1];
-	if (feed[4] == "SPECIAL"){
-		input.readOnly = true;
-	}
-	td.appendChild(input);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	td.appendChild(document.createTextNode("FeedURL: "));
-	tr.appendChild(td);
-	td = document.createElement("td");
-	var input = document.createElement("input");
-	input.id = "inputFeedURL";
-	input.value = feed[4];
-	if (feed[4] == "SPECIAL"){
-		input.readOnly = true;
-	}
-	td.appendChild(input);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	tr.appendChild(td);
-	td = document.createElement("td");
-	var a = document.createElement("a");
-	a.href="javascript:submitFeedChanges("+feedarray[feedID][0]+");";
-	a.appendChild(document.createTextNode("Submit Changes"));
-	td.appendChild(a);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	td.appendChild(document.createTextNode("Filters: "));
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	td.appendChild(document.createTextNode("Regular expression"));
-	tr.appendChild(td);
-	td = document.createElement("td");
-	td.appendChild(document.createTextNode("White-/Blacklist"));
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	filter = 0;
-	while (feedarray[feedID][6][filter]){
-		var input;
-		tr = document.createElement("tr");
-		td = document.createElement("td");
-		input = document.createElement("input");
-		input.type="text";
-		input.value=feedarray[feedID][6][filter][1];
-		td.appendChild(input);
-		tr.appendChild(td);
-		td = document.createElement("td");
-		input = document.createElement("input");
-		input.type="radio";
-		input.value="white";
-		if (feedarray[feedID][6][filter][2] == "white"){
-			input.checked = true;
-		} else {
-			input.checked = false;
-		}
-		td.appendChild(input);
-		td.appendChild(document.createTextNode("white"));
-		input = document.createElement("input");
-		input.type="radio";
-		input.value="black";
-		if (feedarray[feedID][6][filter][2] == "black"){
-			input.checked = true;
-		} else {
-			input.checked = false;
-		}
-		td.appendChild(input);
-		td.appendChild(document.createTextNode("black"));
-		tr.appendChild(td);
-		td = document.createElement("td");
-		a = document.createElement("a");
-		a.appendChild(document.createTextNode("DEL"));
-		a.href="javascript:deleteFilter('"+feedarray[feedID][6][filter][0]+"');";
-		td.appendChild(a);
-		tr.appendChild(td);
-		td = document.createElement("td");
-		a = document.createElement("a");
-		a.appendChild(document.createTextNode("Edit"));
-		a.href="javascript:saveFilter('"+feedarray[feedID][6][filter][0]+"');";
-		td.appendChild(a);
-		tr.appendChild(td);
-		tbody.appendChild(tr);
-		filter = filter + 1;
-	}
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	a = document.createElement("a");
-	a.href="javascript:addFilter('"+feedID+"');";
-	a.appendChild(document.createTextNode("Add"));
-	td.appendChild(a);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-	table.appendChild(tbody);
-	divSettingsInner.appendChild(table);
-	showOverlay("divSettings");
-}}}
-function showSettingsDirectory(feedID){{{
-	var divSettings = document.getElementById("divSettings");
-	var divSettingsInner = document.getElementById("divSettingsInner");
-	var feed = feedarray[feedID];
-
-	while (divSettingsInner.lastChild){
-		divSettingsInner.removeChild(divSettingsInner.lastChild);
-	}
-
-	var table = document.createElement("table");
-	var tbody = document.createElement("tbody");
-	var tr = document.createElement("tr");
-	var td = document.createElement("td");
-
-	td.appendChild(document.createTextNode(feed[1]));
-	tr.appendChild(td);
-	td = document.createElement("td");
-	td.align="right";
-	var a = document.createElement("a");
-	a.href="javascript:hideOverlay('divSettings');";
-	var img = document.createElement("img");
-	img.src = "process-stop.png";
-	img.border = 0;
-	a.appendChild(img);
-	td.appendChild(a);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	td.appendChild(document.createTextNode("Move above feed: "));
-	tr.appendChild(td);
-	td = document.createElement("td");
-	var select = document.createElement("select");
-	select.id = "selMoveAbove";
-	select.size = 5;
-	showHierarchyInSelect(select, feed[0]);
-
-	td.appendChild(select);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	td.appendChild(document.createTextNode("Directoryname: "));
-	tr.appendChild(td);
-	td = document.createElement("td");
-	var input = document.createElement("input");
-	input.id = "inputFeedTitle";
- /* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread))*/
-	input.value = feed[1];
-	td.appendChild(input);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	tr = document.createElement("tr");
-	td = document.createElement("td");
-	tr.appendChild(td);
-	td = document.createElement("td");
-	var a = document.createElement("a");
-	a.href="javascript:submitFeedChanges("+feed[0]+");";
-	a.appendChild(document.createTextNode("Submit Changes"));
-	td.appendChild(a);
-	tr.appendChild(td);
-	tbody.appendChild(tr);
-
-	table.appendChild(tbody);
-	divSettingsInner.appendChild(table);
-	showOverlay("divSettings");
-}}}
-function showstatus(stat){{{
-// Changes the text of the status line at the top to 'stat'
-	var statline=document.getElementById("statusline");
-	if (statline){
-		statline.firstChild.nodeValue="Status: " + stat;
-	}
-}}}
-function ajaxManager() {{{
-// returns an XMLHttpRequest Object
-	var r;
-	if (document.getElementById) {
-		if (window.XMLHttpRequest) {
-			r=new XMLHttpRequest();
-		}
-	}
-	if (r){
-		return r;
+function updateFeed(feed){{{
+	var li = $("li#feed_"+feed.ID);
+	var numNew = $("#numNew_"+feed.ID);
+	var nameFeed = $("#nameFeed_"+feed.ID);
+	numNew.empty();
+	nameFeed.empty().append(feed.name);
+	var li = $("li#feed_"+feed.ID);
+	var numNew = $("#numNew_"+feed.ID);
+	if (parseInt(feed.entries) > 0){
+		li.addClass("new");
+		numNew.append(feed.entries);
 	} else {
-		alert ("Too cool for IE!");
+		li.removeClass("new");
 	}
+
+	$.each($("li.group"), function(key, li){
+		var startID = parseInt($(li).attr("startID"));
+		var endID = parseInt($(li).attr("endID"));
+		var numNew = 0;
+		$.each(globalFeeds, function (key, gFeed){
+			if (gFeed.startID < endID && gFeed.startID > startID){
+				numNew += parseInt(gFeed.entries);
+			}
+		});
+		if (numNew == 0){
+			numNew = "";
+		}
+		$(li).find("a.numNewMessages:first").empty().append(numNew);
+	});
 }}}
-function processMarkRead() {{{
-// Processes Requests for marking a feed entry as 'read'
-	if (request.readyState == 4) {
-		if (request.status != 200){
-			showstatus("Error marking entry as 'read': " + request.status + " " + request.statusText);
+function markReadAll(data){{{
+	var feed = data.data;
+	if ($("#confirmReadAll").attr("checked") != "checked"){
+		if (!confirm("Mark all entries as read in feed '"+feed.name+"'?")){
+			return;
 		}
 	}
+	var spinDiv = $("#spin_"+feed.ID);
+	spinDiv.spin("tiny");
+	$.ajax({
+		url: "markreadall.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			feedID: feed.ID
+		},
+		success: function(data){
+			if (!data){
+				spinDiv.spin(false);
+				return;
+			}
+			if (data.error){
+				alert(data.error);
+			}
+			getSingleFeed(feed.ID);
+			spinDiv.spin(false);
+		}
+	});
 }}}
-function hideDirectoryNewMessages(feedIndex){{{
-	var containers = getContainersByIndex(feedIndex);
-	for (var x=0; x<containers.length; x++){
-		var contained = getContainedByIndex(containers[x]);
-		var attr = "hidden";
-		for (var y=0; y<contained.length; y++){
-			for (var z=0; z<feedarray[contained[y]][5].length; z++){
-/* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread)) */
-				if (feedarray[contained[y]][5][z][4] == 0){
-					attr = "";
+function showEntry(data){{{
+	var entry = data.data;
+	var content = $("#content");
+	$("#entry_"+entry.ID).removeClass("new");
+	var desc = entry.description;
+	if ($("#disableScripts").attr("checked") == "checked"){
+		desc = desc.replace(/<script/g, "<disabledscript");
+	}
+	content.empty().append(desc);
+	$("#headline").empty().append(entry.title.replace(/>/g, "&gt;").replace(/</g, "&lt;"));
+	$("#headline").attr("href", entry.link);
+	$.ajax({
+		url: "markread.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			id: entry.ID,
+			feed: entry.feedID,
+		},
+		success: function(data){
+			if (!data){
+				return;
+			}
+			getSingleFeed(entry.feedID);
+		}
+	});
+}}}
+function showEntries(entries){{{
+	var ulEntries = $("#entries");
+	$.each(entries, function(key, entry){
+		var li = $("<li/>");
+		li.append(entry.title.replace(/>/g, "&gt;").replace(/</g, "&lt;"));
+		li.attr("id", "entry_"+entry.ID);
+		li.click(entry, showEntry);
+		li.addClass("hover new");
+		ulEntries.append(li);
+	});
+}}}
+function getFeed(data){{{
+	var feed = data.data;
+	var entries = $(".entries");
+	entries.spin();
+	$("ul#entries").empty();
+	$.ajax({
+		url: "entries.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			id: feed.ID,
+			showOnlyUnread: $("#showOnlyUnread").attr("checked") == "checked"
+		},
+		success: function(data){
+			if (!data){
+				return;
+			}
+			showEntries(data);
+			entries.spin(false);
+			getSingleFeed(feed.ID);
+		}
+	});
+}}}
+function parseFeeds(curparent, data){{{
+	$.each(data, function(key, feed){
+		if (parseInt(feed.startID) > parseInt(curparent.attr("endID"))){
+			return;
+		}
+		if (feed.done == 0){
+			var a;
+			var li;
+
+			data[key].done = 1;
+			li = $("<li/>");
+			curparent.append(li);
+
+			a = $("<a href='#'/>");
+			a.append("<img src='process-stop.png'/>");
+			a.click(feed, deleteFeed);
+			a.addClass("floatRight");
+			li.append(a);
+			li.attr("id", "feed_"+feed.ID);
+
+			if (feed.url == null || feed.url == ""){
+				li.attr("group", feed.ID);
+				li.attr("endID", feed.endID);
+				li.attr("startID", feed.startID);
+				li.addClass("hover group");
+
+				var ul = $("<ul/>");
+
+				ul.attr("endID", feed.endID);
+				ul.attr("startID", feed.startID);
+
+				li.append(feed.name);
+				a = $("<a/>");
+				a.addClass("numNewMessages");
+				li.append(a);
+
+				li.append(ul);
+
+				parseFeeds(ul, data);
+			} else {
+				li.attr("endID", feed.endID);
+				li.attr("startID", feed.startID);
+				li.addClass("hover feed");
+				li.click(feed, getFeed);
+
+				a = $("<a href='#'/>");
+				a.append("<img src='applications-system.png'/>");
+				a.click(feed, showEditFeed);
+				a.addClass("floatRight");
+				li.append(a);
+
+				a = $("<a href='#'/>");
+				a.append("<img src='mail-message-new.png'/>");
+				a.click(feed, markReadAll);
+				a.addClass("newmessage floatRight");
+				li.append(a);
+
+				a = $("<a/>");
+				a.attr("id", "spin_"+feed.ID);
+				a.addClass("floatRight");
+				li.append(a);
+
+				a = $("<a href='#'/>");
+				a.attr("id", "nameFeed_"+feed.ID);
+				a.addClass("nameFeed");
+				li.append(a);
+
+				a = $("<a/>");
+				a.attr("id", "numNew_"+feed.ID);
+				a.addClass("numNewMessages");
+				li.append(a);
+			}
+		}
+	});
+}}}
+function getSingleFeed(id){{{
+	$.ajax({
+		url: "feed.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			feedID: id
+		},
+		success: function(data){
+			if (!data){
+				return;
+			}
+			var feed = data[0];
+			$.each(globalFeeds, function(key, gFeed){
+				if (gFeed.ID == feed.ID){
+					globalFeeds[key] = feed;
+				}
+			});
+			updateFeed(feed);
+		}
+	});
+}}}
+function getFeeds(){{{
+	var rssfeeds = $("#rssfeeds");
+	rssfeeds.empty();
+	$(".sidebar").spin();
+	$.ajax({
+		url: "feed.php",
+		type: "post",
+		dataType: "json",
+		success: function(data){
+			if (!data){
+				return;
+			}
+			globalFeeds = data;
+			rssfeeds.attr("startID", "1");
+			rssfeeds.attr("endID", data[0].endID);
+			rssfeeds.attr("group", data[0].ID);
+			$.each(data, function(key, value){ value.done = 0; });
+			parseFeeds(rssfeeds, data);
+			$.each(data, function(key, feed){ updateFeed(feed); });
+			$(".sidebar").spin(false);
+		}
+	});
+}}}
+function saveOptions(){{{
+	var showOnlyUnread = $("#showOnlyUnread").attr("checked") == "checked";
+	var unreadOnChange = $("#unreadOnChange").attr("checked") == "checked";
+	var confirmReadAll = $("#confirmReadAll").attr("checked") == "checked";
+	var disableScripts = $("#disableScripts").attr("checked") == "checked";
+	var purgeAfter = $("#purgeAfter").val();
+
+	$.ajax({
+		url: "setoption.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			key: "showOnlyUnread",
+			value: showOnlyUnread
+		}
+	});
+	$.ajax({
+		url: "setoption.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			key: "unreadOnChange",
+			value: unreadOnChange
+		}
+	});
+	$.ajax({
+		url: "setoption.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			key: "confirmReadAll",
+			value: confirmReadAll
+		}
+	});
+	$.ajax({
+		url: "setoption.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			key: "purgeAfter",
+			value: purgeAfter
+		}
+	});
+	$.ajax({
+		url: "setoption.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			key: "disableScripts",
+			value: disableScripts
+		}
+	});
+	alert("Options saved!");
+}}}
+function showOptions(){{{
+	$("#dialogOptions").dialog({autoOpen: true, width: "95%", modal: true});
+}}}
+function createOptions(){{{
+	var dialog = $("#dialogOptions").dialog({title: "Options", autoOpen: false, "buttons": [
+		{ text: "Save", click: saveOptions },
+		{ text: "Close", click: function(){ $(this).dialog("close"); } }
+	]});
+	dialog.append("<table>"+
+		"<tr><td>Show only unread entries</td><td><input disabled type='checkbox' id='showOnlyUnread'></td></tr>"+
+		"<tr><td>Mark entry new when content changes</td><td><input disabled type='checkbox' id='unreadOnChange'></td></tr>"+
+		"<tr><td>Confirm marking all elements as read</td><td><input disabled type='checkbox' id='confirmReadAll'></td></tr>"+
+		"<tr><td>Try to disable scripts</td><td><input disabled type='checkbox' id='disableScripts'></td></tr>"+
+		"<tr><td>Purge messages after</td><td><select disabled id='purgeAfter'><option value='7'>1 Week</option><option value='31'>1 Month</option><option value='180'>6 Months</option><option value='365'>1 Year</option><option value='36135'>99 Years</option></select></td></tr>"+
+	"</table>");
+
+	$.ajax({
+		url: "getoption.php",
+		type: "post",
+		dataType: "json",
+		async: false,
+		data: {
+			key: "showOnlyUnread",
+			default: "true"
+		},
+		success: function(data){
+			if (data.error){
+				alert(data.error);
+			}
+			var el = $("#showOnlyUnread");
+			el.attr("checked", data.showOnlyUnread == "true");
+			el.attr("disabled", false);
+		}
+	});
+	$.ajax({
+		url: "getoption.php",
+		type: "post",
+		dataType: "json",
+		async: false,
+		data: {
+			key: "unreadOnChange",
+			default: "true"
+		},
+		success: function(data){
+			if (data.error){
+				alert(data.error);
+			}
+			var el = $("#unreadOnChange");
+			el.attr("checked", data.unreadOnChange == "true");
+			el.attr("disabled", false);
+		}
+	});
+	$.ajax({
+		url: "getoption.php",
+		type: "post",
+		dataType: "json",
+		async: false,
+		data: {
+			key: "confirmReadAll",
+			default: "true"
+		},
+		success: function(data){
+			if (data.error){
+				alert(data.error);
+			}
+			var el = $("#confirmReadAll");
+			el.attr("checked", data.confirmReadAll == "true");
+			el.attr("disabled", false);
+		}
+	});
+	$.ajax({
+		url: "getoption.php",
+		type: "post",
+		dataType: "json",
+		async: false,
+		data: {
+			key: "purgeAfter",
+			default: "36135"
+		},
+		success: function(data){
+			if (data.error){
+				alert(data.error);
+			}
+			var el = $("#purgeAfter");
+			el.val(data.purgeAfter);
+			el.attr("disabled", false);
+		}
+	});
+	$.ajax({
+		url: "getoption.php",
+		type: "post",
+		dataType: "json",
+		async: false,
+		data: {
+			key: "disableScripts",
+			default: "true"
+		},
+		success: function(data){
+			if (data.error){
+				alert(data.error);
+			}
+			var el = $("#disableScripts");
+			el.attr("checked", data.disableScripts == "true");
+			el.attr("disabled", false);
+		}
+	});
+}}}
+function saveEditFeed(){{{
+	var newName = $("#dialogEditFeed input#feedname").val();
+	var newURL = $("#dialogEditFeed input#feedurl").val();
+	var id = $("#dialogEditFeed input#feedID").val();
+	var moveAbove = $("#dialogEditFeed select#moveAbove").val();
+	var cacheimages = $("#dialogEditFeed select#cacheimages").val();
+
+	var filters = new Array();
+	$.each($("#dialogEditFeed tr#[id^=regexrow_]"), function(key, row){
+		var filterid = $(row).attr("id").replace(/^.*regexrow_/, "");
+		var e = new Object();
+		e.regex = $("#regex_"+filterid).val();
+		e.whiteorblack = $("#whiteorblack_"+filterid).val();
+		filters.push(e);
+	});
+
+	$.ajax({
+		url: "editfeed.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			id: id,
+			newName: newName,
+			newURL: newURL,
+			moveAbove: moveAbove,
+			cacheimages: cacheimages,
+			filters: JSON.stringify(filters)
+		},
+		success: function(data){
+			if (data.error){
+				alert(data.error);
+			} else {
+				alert(data.status);
+			}
+			getSingleFeed(id);
+		}
+	});
+}}}
+function deleteFilter(data){{{
+	var filter = data.data;
+	$("#dialogEditFeed table#filters tr#regexrow_"+filter.ID).remove();
+}}}
+function addFilter(){{{
+	var x = "new"+$("#dialogEditFeed table#filters tr").length;
+	$("#dialogEditFeed table#filters").append("<tr id='regexrow_"+x+"'><td><input type='text' id='regex_"+x+"'></td>"+
+		"<td><select id='whiteorblack_"+x+"'><option value='white'>white</option><option value='black'>black</option></select></td>"+
+		"<td><input type='button' value='Delete' id='deleteRegex_"+x+"'></td></tr>");
+	$("#deleteRegex_"+x).click({ID: x}, deleteFilter);
+}}}
+function showEditFeedParseFeeds(curparent, data, pL, endID){{{
+	pL += 5;
+	$.each(data, function(key, gFeed){
+		if (parseInt(gFeed.startID) > endID){
+			return;
+		}
+		if (gFeed.done == 0){
+			gFeed.done = 1;
+			if (gFeed.url == null || gFeed.url == ""){
+				var option = $("<option/>");
+				option.attr("endID", gFeed.endID);
+				option.attr("disabled", 1);
+				option.append(gFeed.name);
+				option.css("padding-left", pL);
+				curparent.append(option);
+				showEditFeedParseFeeds(curparent, data, pL, gFeed.endID);
+
+				var option = $("<option/>");
+				option.css("padding-left", pL);
+				option.val(gFeed.ID);
+				option.append("<i>End of "+gFeed.name+"</i>");
+				curparent.append(option);
+			} else {
+				var option = $("<option/>");
+				option.css("padding-left", pL);
+				option.val(gFeed.ID);
+				option.append(gFeed.name);
+				curparent.append(option);
+			}
+		}
+	});
+}}}
+function showEditFeed(data){{{
+	var feed=data.data;
+	$("#dialogEditFeed").dialog({autoOpen: true, width: "95%", maxHeight: window.innerHeight, modal: true});
+	$("#dialogEditFeed input#feedname").val(feed.name);
+	$("#dialogEditFeed input#feedurl").val(feed.url);
+	$("#dialogEditFeed input#feedID").val(feed.ID);
+	$("#dialogEditFeed select#cacheimages").val(feed.cacheimages);
+	var moveAbove = $("#dialogEditFeed select#moveAbove").empty();
+	$.each(globalFeeds, function(key, feed){ feed.done = 0; });
+	showEditFeedParseFeeds(moveAbove, globalFeeds, 0, globalFeeds[0].endID);
+	moveAbove.val(feed.ID);
+	$("#dialogEditFeed table#filters").empty().append("<tr>"+
+		"<td>Regex</td><td>Type</td><td>Action</td>"+
+		"</tr>");
+	$.ajax({
+		url: "getfilters.php",
+		type: "post",
+		dataType: "json",
+		data: {
+			id: feed.ID
+		},
+		success: function(data){
+			if (!data){
+				return;
+			}
+			$.each(data, function(key, regex){
+				$("#dialogEditFeed table#filters").append("<tr id='regexrow_"+regex.ID+"'><td><input type='text' id='regex_"+regex.ID+"'></td>"+
+					"<td><select id='whiteorblack_"+regex.ID+"'><option value='white'>white</option><option value='black'>black</option></select></td>"+
+					"<td><input type='button' value='Delete' id='deleteRegex_"+regex.ID+"'></td></tr>");
+				$("#dialogEditFeed table#filters input#regex_"+regex.ID).val(regex.regex);
+				$("#dialogEditFeed table#filters select#whiteorblack_"+regex.ID).val(regex.whiteorblack);
+				$("#dialogEditFeed table#filters input#deleteRegex_"+regex.ID).click(regex, deleteFilter);
+			});
+		}
+	});
+}}}
+function createEditFeed(){{{
+	var dialog = $("#dialogEditFeed").dialog({title: "Edit feed", autoOpen: false, "buttons": [
+		{ text: "Save", click: saveEditFeed },
+		{ text: "Close", click: function(){ $(this).dialog("close"); } }
+	]});
+	dialog.append("<table>"+
+		"<tr><td>Move above feed</td><td><select id='moveAbove' size='10' /></td></tr>"+
+		"<tr><td>Feed name</td><td><input type='text' size='80' id='feedname'></td></tr>"+
+		"<tr><td>Feed URL</td><td><input type='text' size='80' id='feedurl'></td></tr>"+
+		"<tr><td>Cache images in this feed:</td><td><select id='cacheimages'><option value='yes'>yes</option><option value='no'>no</option></select></td></tr>"+
+		"<tr><td>Filter:</td></tr>"+
+		"</table><table id='filters'>"+
+		"</table>"+
+		"<input type='button' value='Add Filter' id='addFilter'>"+
+	"</table>");
+	dialog.append("<input type='hidden' id='feedID'>");
+	$("input#addFilter").click(addFilter);
+}}}
+function addRSSHandler(){{{
+	var addDir = $("#dialogAddFeed #createInGroup :selected")
+	if (confirm("Add Feed handler to Firefox and place new feeds under "+addDir.text()+"?")){
+		var l = window.location;
+		var address = l.protocol+"/"+l.hostname+l.pathname.replace("index.html", "")+"add.php?url=%s&parentID="+addDir.val();
+		window.navigator.registerContentHandler('application/vnd.mozilla.maybe.feed',address,"blindRSS " + addDir.text().replace(/^.*\//, ""));
+	}
+}}}
+function saveAddFeed(){{{
+	var url = $("#dialogAddFeed #feedurl").val();
+	if ($("#dialogAddFeed #isGroup").attr("checked") == "checked"){
+		url = "";
+	}
+	$.ajax({
+		url: "addjson.php",
+		dataType: "json",
+		type: "post",
+		data: {
+			name: $("#dialogAddFeed #feedname").val(),
+			url: url,
+			parentID: $("#dialogAddFeed #createInGroup :selected").val()
+		},
+		success: function(data){
+			if (data.error){
+				alert(data.error);
+				return;
+			}
+			getFeeds();
+			$("#dialogAddFeed").dialog("close");
+		}
+	});
+}}}
+function showAddFeed(){{{
+	var dialog = $("#dialogAddFeed").dialog({title: "Add feed", autoOpen: true, modal: true});
+	var select = dialog.find("#createInGroup");
+	select.empty();
+	$.each(globalFeeds, function(key, gFeed){
+		if (gFeed.url == null || gFeed.url == ""){
+			var text = "";
+			var li = $("li.group[group='"+gFeed.ID+"']");
+			while (true){
+				var x = li.contents()[1];
+				text = "/" + x.data + text;
+				li = li.parent().parent();
+				if (li[0].nodeName != "LI"){
 					break;
 				}
 			}
-			document.getElementById("divNewMessages"+containers[x]).style.visibility=attr;
+			var option = $("<option/>");
+			option.val(gFeed.ID);
+			option.text(text);
+			select.append(option);
 		}
-	}
+	});
 }}}
-function markReadAllDirectory(feedid) {{{
-// Processes Requests for marking a whole directory as 'read'
-	if (confirm("Mark all entries in this directory as 'read'?")){
-		var contained = getContainedByIndex(feedid);
-		for (var x=0; x<contained.length; x++){
-			markReadAll(contained[x], true);
-		}
-	}
-}}}
-function markReadAll(feedid, force) {{{
-// Processes Requests for marking a whole feed as 'read'
-	if (!force){
-		if (!confirm("Mark all entries as 'read'?")){
-			return false;
-		}
-	}
-	request=ajaxManager();
-
-	request.open("GET", "markreadall.php?feedid=" + feedarray[feedid][0], true);
-	request.onreadystatechange = processMarkRead;
-	showstatus("Marking all entries as 'read'");
-	request.send(null);
-	for (itemid = 0; itemid < feedarray[feedid][5].length; itemid++){
-		feedarray[feedid][5][itemid][4] = 1;
-	}
-	showItems(feedid);
-	document.getElementById("divNewMessages"+feedid).style.visibility="hidden";
-	hideDirectoryNewMessages(feedid);
-}}}
-function showIframe(url){
-	var contentcontent=document.getElementById("contentcontent");
-	while (contentcontent.firstChild){
-		contentcontent.removeChild(contentcontent.firstChild);
-	}
-	var iframe=document.createElement("iframe");
-	contentcontent.appendChild(iframe);
-	var offleft=0;
-	var elemparent = document.getElementById("contentinner");
-	while (elemparent){
-		offleft += elemparent.offsetLeft;
-		elemparent = elemparent.offsetParent;
-	}
-	iframe.style.width=window.innerWidth-(offleft+15)+"px";
-	iframe.style.height=parseInt(document.getElementById("contentinner").style.height)-5+"px";
-	iframe.contentWindow.location.href=url;
-}
-
-function showDetails(feedid, itemid){{{
-// displays the details of a feed entry in the main display area and marks the entry as 'read'
-	var contentShowIframe=document.getElementById("contentShowIframe");
-	var contentheadline=document.getElementById("contentheadline");
-	var contentcontent=document.getElementById("contentcontent");
-
-	contentheadline.innerHTML=feedarray[feedid][5][itemid][0];
-	contentheadline.href=feedarray[feedid][5][itemid][2];
-	contentShowIframe.href="javascript:showIframe(\""+feedarray[feedid][5][itemid][2]+"\");";
-	var txt;
-	for (var i=0; i<feedarray[feedid][5][itemid][1].length; i++){
-		if (txt){
-			txt = txt + feedarray[feedid][5][itemid][1][i] + "<br>";
-		} else {
-			txt = feedarray[feedid][5][itemid][1][i] + "<br>";
-		}
-	}
-
-	contentcontent.innerHTML=txt;
-	request=ajaxManager();
-
-	request.open("GET", "markread.php?itemid="+feedarray[feedid][5][itemid][3], true);
-	feedarray[feedid][5][itemid][4] = 1;
-	showItems(feedid);
-	request.onreadystatechange = processMarkRead;
-	showstatus("Marking entry as 'read'");
-	request.send(null);
-	var newitems = 0;
-	for (var i=0; i<feedarray[feedid][5].length; i++){
-		if (feedarray[feedid][5][i][4] == 0){ // not read
-			newitems++;
-			break;
-		}
-	}
-	if (newitems == 0){
-		document.getElementById("divNewMessages"+feedid).style.visibility="hidden";
-	}
-	hideDirectoryNewMessages(feedid);
-}}}
-function showItems(id){{{
-// shows the items of a feed in the top display area
-// new ones are in bold
-	var feed;
-	feed = feedarray[id];
-
-	var div = document.getElementById("subnavigation");
-	div.style.marginLeft = "3px";
-	if (div.firstChild){
-		while(div.firstChild){
-			div.removeChild(div.firstChild);
-		}
-	}
-	for (var i=0; i < feed[5].length; i++){
-		var a=document.createElement("a");
-		a.href="javascript:showDetails("+id+","+i+");";
-		//a.appendChild(document.createTextNode(feed[5][i][0]));
-		a.innerHTML=feed[5][i][0];
-
-		if(feed[5][i][4] == 1){
-			div.appendChild(a);
-		} else {
-			var b = document.createElement("b");
-			b.appendChild(a);
-			div.appendChild(b);
-		}
-		div.appendChild(document.createElement("br"));
-	}
-}}}
-function processFeed() {{{
-// processes the update of a single feed and hides/unhides the 'new entries' image on demand
-	if (request.readyState == 4) {
-		if (request.status == 200){
-			showstatus("Reloading feed");
-			var feed = request.responseXML.firstChild;
-			var id = feed.firstChild;
-			var item = id.nextSibling;
-			var feedarrayptr;
-			var feedarrayid;
-			var feedarrayitem;
-			for (var i=0; i<feedarray.length; i++){
-				if (feedarray[i][0] == id.firstChild.nodeValue){
-					feedarrayid=i;
-					feedarrayptr=feedarray[i];
-					feedarrayitem=i;
-					i=feedarray.length;
-				}
-			}
-			if (!feedarrayptr){
-				showstatus("Couldn't find feed id " + id.firstChild.nodeValue);
-				return;
-			}
-			feedarrayptr[5] = new Array();
-			feedarrayptr = feedarrayptr[5];
-			while(item){
-				var itemid = item.firstChild;
-				var title = itemid.nextSibling;
-				var content = title.nextSibling;
-				var link = content.nextSibling;
-				var isread = link.nextSibling;
-
-				var newitem = feedarrayptr.length;
-
-				feedarrayptr[newitem] = new Object();
-				feedarrayptr[newitem][0] = title.firstChild.nodeValue;
-				feedarrayptr[newitem][1] = new Array();
-				var line = content.firstChild;
-				var ptr = feedarrayptr[newitem][1];
-				while (line && line.firstChild){
-					ptr[ptr.length] = line.firstChild.nodeValue;
-					line=line.nextSibling;
-				}
-				if (link.firstChild){
-					feedarrayptr[newitem][2] = link.firstChild.nodeValue;
-				}
-				if (itemid.firstChild){
-					feedarrayptr[newitem][3] = itemid.firstChild.nodeValue;
-				}
-				if (isread.firstChild){
-					feedarrayptr[newitem][4] = isread.firstChild.nodeValue;
-				}
-
-				if (isread.firstChild.nodeValue == 0){
-					var div = document.getElementById("divNewMessages"+feedarrayitem);
-					if (div){
-						div.style.visibility="";
-					}
-				}
-				item=item.nextSibling;
-			}
-			showstatus("Feed reloaded");
-			hideDirectoryNewMessages(feedarrayid);
-			request = null;
-			showItems(feedarrayitem);
-		} else {
-			showstatus("Error fetching Feed: " + request.status + " " + request.statustext);
-		}
-	}
-}}}
-function processAllFeeds() {{{
-// processes the update of a single feed and hides/unhides the 'new entries' image on demand
-	if (request.readyState == 4) {
-		if (request.status == 200){
-			var feeds = request.responseXML.firstChild;
-			if (!feeds.firstChild){
-				showstatus("No new messages.");
-				return;
-			} else {
-				showstatus("Reloading all feeds");
-			}
-			for (var feed = feeds.firstChild; feed; feed = feed.nextSibling){
-				var id = feed.firstChild;
-				var item = id.nextSibling;
-				var feedarrayptr;
-				var feedarrayid;
-				var feedarrayitem;
-				for (var i=0; i<feedarray.length; i++){
-					if (feedarray[i][0] == id.firstChild.nodeValue){
-						feedarrayid=i;
-						feedarrayptr=feedarray[i];
-						feedarrayitem=i;
-						i=feedarray.length;
-					}
-				}
-				if (!feedarrayptr){
-					showstatus("Couldn't find feed id " + id.firstChild.nodeValue);
-					return;
-				}
-				feedarrayptr[5] = new Array();
-				feedarrayptr = feedarrayptr[5];
-				while(item){
-					var itemid = item.firstChild;
-					var title = itemid.nextSibling;
-					var content = title.nextSibling;
-					var link = content.nextSibling;
-					var isread = link.nextSibling;
-
-					var newitem = feedarrayptr.length;
-
-					feedarrayptr[newitem] = new Object();
-					feedarrayptr[newitem][0] = title.firstChild.nodeValue;
-					feedarrayptr[newitem][1] = new Array();
-					var line = content.firstChild;
-					var ptr = feedarrayptr[newitem][1];
-					while (line && line.firstChild){
-						ptr[ptr.length] = line.firstChild.nodeValue;
-						line=line.nextSibling;
-					}
-					if (link.firstChild){
-						feedarrayptr[newitem][2] = link.firstChild.nodeValue;
-					}
-					if (itemid.firstChild){
-						feedarrayptr[newitem][3] = itemid.firstChild.nodeValue;
-					}
-					if (isread.firstChild){
-						feedarrayptr[newitem][4] = isread.firstChild.nodeValue;
-					}
-
-					if (isread.firstChild.nodeValue == 0){
-						var div = document.getElementById("divNewMessages"+feedarrayitem);
-						if (div){
-							div.style.visibility="";
-						}
-					}
-					item=item.nextSibling;
-				}
-				hideDirectoryNewMessages(feedarrayid);
-				request = null;
-			}
-		} else {
-			showstatus("Error fetching Feed: " + request.status + " " + request.statustext);
-		}
-		showstatus("All feeds reloaded");
-	}
-}}}
-function reloadFeed(i){{{
-// initiates the update of the entries of a single feed
-	showstatus("Loading contents of '" + feedarray[i][1] + "'");
-	request=ajaxManager();
-	if (document.getElementById("onlyunread").checked){
-		request.open("GET", "feed.php?id="+feedarray[i][0]+"&onlychecked=1", true);
+function toggleAddFeedIsGroup(){{{
+	var url = $("#dialogAddFeed #feedurl");
+	if ($(this).attr("checked") == "checked"){
+		url.attr("disabled", true);
 	} else {
-		request.open("GET", "feed.php?id="+feedarray[i][0], true);
-	}
-	request.onreadystatechange=processFeed;
-	request.send(null);
-}}}
-function reloadAllFeeds(){{{
-// initiates the update of the entries of all feeds
-	request=ajaxManager();
-	showstatus("Reloading All Feeds");
-	if (document.getElementById("onlyunread").checked){
-		request.open("GET", "allfeeds.php?onlychecked=1", true);
-	} else {
-		request.open("GET", "allfeeds.php", true);
-	}
-	request.onreadystatechange=processAllFeeds;
-	request.send(null);
-}}}
-function showNavigation() {{{
-	var i;
-	var parents = 0;
-	var navlist = document.getElementById("navlist");
-	for (i=0; i<feedarray.length; i++){
-		/* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread)) */
-		if (i > 0){
-			for (var x=0; x < feedarray[i][2] - feedarray[i-1][3] - 1; x++){
-				parents--;
-			}
-			if (feedarray[i][2] == feedarray[i-1][3] + 1 && (feedarray[i-1][4] == "NULL" || feedarray[i-1][4] == "")){
-				parents--;
-			}
-		}
-		if (feedarray[i][4] == "NULL" || feedarray[i][4] == ""){{{
-			var tr=document.createElement("tr");
-
-			var td=document.createElement("td");
-			td.appendChild(document.createTextNode(feedarray[i][1]));
-			td.style.marginBottom="1px";
-			td.style.width="*";
-			td.style.paddingLeft=parents*10+"px";
-			td.setAttribute("class", "feedgroup");
-			tr.appendChild(td);
-
-			td=document.createElement("td");
-			td.style.width="16px";
-			td.style.visibility="hidden";
-			td.id="divNewMessages"+i;
-			a=document.createElement("a");
-			a.href="javascript:markReadAllDirectory("+i+");";
-			var img=document.createElement("img");
-			img.title="New messages!";
-			img.src="mail-message-new.png";
-			img.border=0;
-			a.appendChild(img);
-			td.appendChild(a);
-			tr.appendChild(td);
-
-			td=document.createElement("td");
-			tr.appendChild(td);
-
-			td=document.createElement("td");
-			td.style.width="16px";
-			a=document.createElement("a");
-			var img=document.createElement("img");
-			a.href="javascript:showSettingsDirectory("+i+");";
-			img.title="Change Settings";
-			img.src="applications-system.png";
-			img.border=0;
-			a.appendChild(img);
-			td.appendChild(a);
-			tr.appendChild(td);
-
-			td=document.createElement("td");
-			/*td.style.width="16px";
-			a=document.createElement("a");
-			var img=document.createElement("img");
-			a.href="javascript:rollUp('"+i+"');";
-			a.id="arollUp"+i;
-			img.title="Close";
-			img.src="go-down.png";
-			img.border=0;
-			img.id="imgrollUp"+i;
-			a.appendChild(img);
-			td.appendChild(a);*/
-			tr.appendChild(td);
-
-			navlist.appendChild(tr);
-
-			parents++;
-			continue;
-		}}}
-		/* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread)) */
-		var tr=document.createElement("tr");
-		var a=document.createElement("a");
-		var td=document.createElement("td");
-
-		td.style.width="*";
-		a.href="javascript:showItems("+i+");";
-		a.appendChild(document.createTextNode(feedarray[i][1]));
-		td.appendChild(a);
-		td.style.marginBottom="1px";
-		td.style.paddingLeft=parents*10+"px";
-		td.setAttribute("class", "feed");
-		tr.appendChild(td);
-
-		td=document.createElement("td");
-		td.style.width="16px";
-		td.style.visibility="hidden";
-		td.id="divNewMessages"+i;
-		a=document.createElement("a");
-		a.href="javascript:markReadAll("+i+", false);";
-		var img=document.createElement("img");
-		img.title="New messages!";
-		img.src="mail-message-new.png";
-		img.border=0;
-		a.appendChild(img);
-		td.appendChild(a);
-		tr.appendChild(td);
-
-		td=document.createElement("td");
-		td.style.width="16px";
-		a=document.createElement("a");
-		var img=document.createElement("img");
-		a.href="javascript:reloadFeed("+i+");";
-		img.title="Reload this feed";
-		img.src="view-refresh.png";
-		img.border=0;
-		a.appendChild(img);
-		td.appendChild(a);
-		tr.appendChild(td);
-
-		td=document.createElement("td");
-		td.style.width="16px";
-		a=document.createElement("a");
-		var img=document.createElement("img");
-		a.href="javascript:showSettings("+i+");";
-		img.title="Change Feed";
-		img.src="applications-system.png";
-		img.border=0;
-		a.appendChild(img);
-		td.appendChild(a);
-		tr.appendChild(td);
-
-		td=document.createElement("td");
-		td.style.width="16px";
-		a=document.createElement("a");
-		a.href="javascript:removeFeed("+i+");";
-		img=document.createElement("img");
-		img.title="Delete this feed";
-		img.src="process-stop.png";
-		img.border=0;
-		a.appendChild(img);
-		td.appendChild(a);
-		tr.appendChild(td);
-
-		tr.setAttribute("id", "feed"+i);
-		navlist.appendChild(tr);
+		url.attr("disabled", false);
 	}
 }}}
-function getPathToParentIDByIndex(parentIndex) {{{
-	var retVal = "";
-	for (var i=0; i<=parentIndex; i++){
-		if (feedarray[i][2] <= feedarray[parentIndex][2] &&
-		    feedarray[i][3] >= feedarray[parentIndex][3] &&
-		    (feedarray[i][4] == "" || feedarray[i][4] == "NULL")){
-			retVal = retVal + "/" + feedarray[i][1];
-		}
-	}
-	return(retVal);
+function createAddFeed(){{{
+	var dialog = $("#dialogAddFeed").dialog({title: "Add feed", autoOpen: false, modal: true, width: "95%", "buttons": [
+		{ text: "Save", click: saveAddFeed },
+		{ text: "Close", click: function(){ $(this).dialog("close"); } }
+	]});
+	dialog.append("<table>"+
+			"<tr><td>Create Feed in Group:</td><td><select id='createInGroup'/></td></tr>"+
+			"<tr><td>Feed name</td><td><input type='text' size='80' id='feedname'></td><td><input type='checkbox' id='isGroup'> This is a group</td></tr>"+
+			"<tr><td>Feed URL</td><td><input type='text' size='80' id='feedurl'></td></tr>"+
+		"</table>"+
+		"<input type='button' onclick='javascript:addRSSHandler();' value='Add RSS Handler to Firefox'>");
+	dialog.find("#isGroup").click(toggleAddFeedIsGroup);
 }}}
-function processFeedList() {{{
-// processes the request for updating the feed list
-	if (request.readyState == 4) {
-		if (request.status == 200){
-			var navigation=document.getElementById("navigation");
-			var feeds;
+function searchEntry(){{{
+	$.ajax({
+		url: "search.php",
+		dataType: "json",
+		type: "post",
+		data: {
+			needle: $("#dialogSearch #searchNeedle").val()
+		},
+		success: function(data){
 			var feed;
-			var addDir = document.getElementById("addDir");
-			while (addDir.lastChild){
-				addDir.removeChild(addDir.lastChild);
-			}
-			feeds=request.responseXML.firstChild;
-			feed=feeds.firstChild;
-			while(feed){
-				/* childNode[0]: id
-				   childNode[1]: name 
-				   childNode[2]: startID
-				   childNode[3]: endID
-				   childNode[4]: url
-				   childNode[5]: filters
-				 	childNode[0]: ID
-				 	childNode[1]: regex
-				 	childNode[2]: whiteorblack */
-				var feedarraynewelement = feedarray.length;
-				var id;
-				var name;
-				var startID;
-				var endID;
-				var url;
-				var filters;
-				id=parseInt(feed.childNodes[0].firstChild.nodeValue);
-				name=feed.childNodes[1].firstChild.nodeValue;
-				startID=parseInt(feed.childNodes[2].firstChild.nodeValue);
-				endID=parseInt(feed.childNodes[3].firstChild.nodeValue);
-				url=feed.childNodes[4].firstChild.nodeValue;
-				filters=feed.childNodes[5];
-				if (name == "Searchresults"){
-					if (url == "SEARCHRESULTS"){
-						searchresultid = id;
-					}
+			$.each(globalFeeds, function(key, gFeed){
+				if (gFeed.url == "SEARCHRESULTS"){
+					feed = globalFeeds[key];
 				}
-
-				var i;
-				feedarray[feedarraynewelement] = new Object();
-				feedarray[feedarraynewelement][0] = id;
-				feedarray[feedarraynewelement][1] = name;
-				feedarray[feedarraynewelement][2] = startID;
-				feedarray[feedarraynewelement][3] = endID;
-				feedarray[feedarraynewelement][4] = url;
-				feedarray[feedarraynewelement][5] = new Object();
-				feedarray[feedarraynewelement][6] = new Array();
-				if (url == "NULL" || url == ""){
-					var option=document.createElement("option");
-					option.text=getPathToParentIDByIndex(feedarraynewelement);
-					option.value=id;
-					addDir.appendChild(option);
-				}
-				filters = filters.firstChild;
-				feedfilters = feedarray[feedarraynewelement][6];
-				while (filters){
-					newid = feedfilters.length;
-					feedfilters[newid] = new Object();
-					feedfilters[newid][0] = filters.childNodes[0].firstChild.nodeValue;
-					feedfilters[newid][1] = filters.childNodes[1].firstChild.nodeValue;
-					feedfilters[newid][2] = filters.childNodes[2].firstChild.nodeValue;
-					filters=filters.nextSibling;
-				}
-				feed=feed.nextSibling;
-			}
-			showstatus(feedarray.length + " Feeds loaded");
-			var navigation=document.getElementById("navigation");
-			showNavigation();
-			reloadAllFeeds();
-		} else {
-			showstatus("Error fetching FeedList: " + request.status + " " + request.statustext);
+			});
+			showEntries(data);
+			$("#dialogSearch").dialog("close");
 		}
-	}
+	});
 }}}
-function loadFeeds() {{{
-// loads all feeds at startup or upon request
-	var navigation=document.getElementById("navlist");
-
-	while (navigation.lastChild){
-		navigation.removeChild(navigation.lastChild);
-	}
-	feedarray = new Array();
-	showstatus("Loading Feeds");
-	request=ajaxManager();
-
-	request.open("GET", "feeds.php", true);
-	request.onreadystatechange = processFeedList;
-	request.send(null);
+function showSearch(){{{
+	var dialog = $("#dialogSearch").dialog({title: "Search entry", autoOpen: true, modal: true});
 }}}
-function processAddDelEditFeed() {{{
-// processes addition and deletion of feeds. really just outputs the text from the request
-// and calls loadFeeds
-	if (request.readyState == 4) {
-		if (request.status == 200){
-			status=request.responseXML.firstChild;
-			alert(status.firstChild.nodeValue);
-			loadFeeds();
-		}
-	}
+function createSearch(){{{
+	var dialog = $("#dialogSearch").dialog({title: "Search entry", autoOpen: false, modal: true, width: "95%", "buttons": [
+		{ text: "Search", click: searchEntry },
+		{ text: "Close", click: function(){ $(this).dialog("close"); } }
+	]});
+	dialog.append("<table>"+
+			"<tr><td>Search for: </td><td><input type='text' size='80' id='searchNeedle'></td></tr>"+
+		"</table>");
 }}}
-function addFeed(){{{
-// requests addition of a feed from the server
-	document.getElementById("addFeed").style.visibility="collapse";
-	request=ajaxManager();
-
-	request.open("GET", "add.php?url="+document.getElementById("addUrl").value+"&name="+document.getElementById("addName").value+"&parentID="+document.getElementById("addDir").value);
-	request.onreadystatechange = processAddDelEditFeed;
-	request.send(null);
-}}}
-function removeFeed(i){{{
-// requests deletion of a feed from the server
-	if (confirm("Really delete Feed?")){
-		request=ajaxManager();
-
-		request.open("GET", "del.php?id="+feedarray[i][0]);
-		request.onreadystatechange = processAddDelEditFeed;
-		request.send(null);
-	}
-}}}
-function getOption(key, def){{{
-	var x;
-	for (x=0; x<options.length; x++){
-		if (options[x][0] == key){
-			   return options[x][1];
-		}
-	}
-	x = options.length;
-	options[x] = new Object();
-	options[x][0] = key;
-	options[x][1] = -1;
-	showstatus("Loading Option '" + key + "'");
-	request=ajaxManager();
-
-	request.open("GET", "getoption.php?key="+key+"&default="+def);
-	request.onreadystatechange = getOptionFinal;
-	request.send(null);
-	return -1;
-}}}
-function getOptionFinal(){{{
-	if (request.readyState == 4) {
-		if (request.status == 200){
-			var k=request.responseXML.firstChild.firstChild;
-			var v=k.nextSibling;
-			var x;
-			for (x=0; x<options.length; x++){
-				if (options[x][0] == k.firstChild.nodeValue){
-					options[x][1] = v.firstChild.nodeValue;
-				}
-			}
-		}
-	}
-}}}
-function getOptionArray(){{{
-	var o;
-	o = getOption(optionarray[0][0], optionarray[0][1]);
-	if (o == -1){
-		setTimeout("getOptionArray()", 10);
-		return;
-	}
-	optionarray.shift();
-	if (optionarray[0]){
-		getOptionArray(optionarray);
-	} else {
-		showstatus("All Options loaded");
-		startupprocedure++;
-		startup();
-	}
+function showIframe(){{{
+	var content = $("#content");
+	content.empty();
+	var iframe = $("<iframe/>");
+	iframe.attr("src", $("#headline").attr("href"));
+	iframe.width("100%");
+	content.append(iframe);
+	iframe.height(window.innerHeight-(iframe.position().top+5));
 }}}
 function startup(){{{
-	if (startupprocedure == 0){
-		optionarray = new Array();
-		optionarray[0] = new Object();
-		optionarray[0][0] = "showOnlyUnread";
-		optionarray[0][1] = true;
-		optionarray[1] = new Object();
-		optionarray[1][0] = "purgeAfter";
-		optionarray[1][1] = "36135";
-		optionarray[2] = new Object();
-		optionarray[2][0] = "unreadOnChange";
-		optionarray[2][1] = true;
-		getOptionArray(optionarray);
-	}
-	if (startupprocedure == 1){
-		if (getOption("showOnlyUnread", true) == "true"){
-			document.getElementById("onlyunread").checked = true;
-		} else {
-			document.getElementById("onlyunread").checked = false;
-		}
-		if (getOption("unreadOnChange", true) == "true"){
-			document.getElementById("unreadOnChange").checked = true;
-		} else {
-			document.getElementById("unreadOnChange").checked = false;
-		}
-		document.getElementById("purgeafter").value = parseInt(getOption("purgeAfter", "36135"));
-		resize();
-		loadFeeds();
-	}
+	resize();
+	createOptions();
+	getFeeds();
+	createEditFeed();
+	createAddFeed();
+	createSearch();
 }}}
-function showOverlay(id){{{
-	var overlay = document.getElementById(id);
-	if (mouseX-5 + overlay.offsetWidth > Width ){
-		overlay.style.left = Width - overlay.offsetWidth - 5 + "px";
-	} else {
-		if (mouseX-5 < 0){
-			overlay.style.left = "5px";
-		} else {
-			overlay.style.left = mouseX - 5 + "px";
-		}
-	}
-	if (mouseY-5 + overlay.offsetHeight > Height ){
-		overlay.style.top = Height - overlay.offsetHeight - 5 + "px";
-	} else {
-		if (mouseY-5 < 0){
-			overlay.style.top = "5px";
-		} else {
-			overlay.style.top = mouseY - 5 + "px";
-		}
-	}
-	overlay.style.zIndex=9999;
-	overlay.style.visibility='visible';
-}}}
-function hideOverlay(id){{{
-	overlay = document.getElementById(id);
-	overlay.style.visibility="collapse";
-}}}
-function setOptionFinal(){{{
-	if (request.readyState == 4) {
-		if (request.status == 200){
-			var k=request.responseXML.firstChild.firstChild;
-			var v=k.nextSibling;
-			var x;
-			for (x=0; x<options.length; x++){
-				if (options[x][0] == k.firstChild.nodeValue){
-					options[x][1] = v.firstChild.nodeValue;
-					showstatus("Option '" + k.firstChild.nodeValue + "' set to '" + v.firstChild.nodeValue + "'");
-				}
-			}
-		}
-	}
-}}}
-function changeUnreadOnChange(){{{
-	var key = 'unreadOnChange';
-	var value = document.getElementById("unreadOnChange").checked;
-	showstatus("Setting Option '" + key + "' to '" + value + "'");
-	request=ajaxManager();
-
-	request.open("GET", "setoption.php?key="+key+"&value="+value);
-	request.onreadystatechange = setOptionFinal;
-	request.send(null);
-}}}
-function changeOnlyUnread(){{{
-	var key = 'showOnlyUnread';
-	var value = document.getElementById("onlyunread").checked;
-	showstatus("Setting Option '" + key + "' to '" + value + "'");
-	request=ajaxManager();
-
-	request.open("GET", "setoption.php?key="+key+"&value="+value);
-	request.onreadystatechange = setOptionFinal;
-	request.send(null);
-}}}
-function changePurgeAfter(){{{
-	var key = 'purgeAfter';
-	var value = document.getElementById("purgeafter").value;
-	showstatus("Setting Option '" + key + "' to '" + value + "'");
-	request=ajaxManager();
-
-	request.open("GET", "setoption.php?key="+key+"&value="+value);
-	request.onreadystatechange = setOptionFinal;
-	request.send(null);
-}}}
-function addRSSHandler(){{{
-	var addDir = document.getElementById("addDir");
-	if (confirm("Add Feed handler to Firefox and place new feeds under "+addDir.children[addDir.selectedIndex].text+"?")){
-		var l = window.location;
-		var address = l.protocol+"/"+l.hostname+l.pathname.replace("index.html", "")+"add.php?url=%s&parentID="+addDir.value;
-		window.navigator.registerContentHandler('application/vnd.mozilla.maybe.feed',address,"blindRSS " + addDir.children[addDir.selectedIndex].text.replace(/^.*\//, ""));
-	}
-}}}
-function startSearch(i){{{
-// initiates search and displays the results in the pseudo-feed Searchresults
-	var needle = document.getElementById("searchNeedle").value;
-	showstatus("Searching for " + needle);
-	request=ajaxManager();
-	request.open("GET", "search.php?q="+needle, true);
-	request.onreadystatechange=processFeed;
-	request.send(null);
-}}}
-window.onresize=resize;
-window.onmousemove=getMouseCoordinates;
+$(document).ready(startup);
 </script>
 </head>
 
-<body onLoad="javascript:startup();">
-	<!-- Overlays {{{ -->
-	<div class="menuOuter" id='menuOptions'> <!-- {{{ -->
-		<div class="menuInner">
-			<table>
-				<tr>
-					<td><nobr>Show only unread</nobr></td>
-					<td><input type='checkbox' id='onlyunread' name='onlyunread' onChange='javascript:changeOnlyUnread();' checked></td>
-					<td><a href="javascript:hideOverlay('menuOptions');"><img src='process-stop.png' border='0'></a></td>
-				</tr>
-				<tr>
-					<td><nobr>Mark as new on content change</nobr></td>
-					<td><input type='checkbox' id='unreadOnChange' name='unreadOnChange' onChange='javascript:changeUnreadOnChange();' checked></td>
-				</tr>
-				<tr>
-					<td><nobr>Purge messages after</nobr></td>
-					<td><select id='purgeafter' name='purgeafter' onChange='javascript:changePurgeAfter();'><option value='7'>1 Week</option><option value='31'>1 Month</option><option value='180'>6 Months</option><option value='365'>1 Year</option><option value='36135'>99 Years</option></select></td>
-				</tr>
-			</table>
-		</div>
-	</div> <!-- }}} -->
-	<div class='menuOuter' id="divSettings"> <!-- {{{ -->
-		<div class='menuInner' id="divSettingsInner">
-		</div>
-	</div> <!-- }}} -->
-	<div class='menuOuter' id="addFeed"> <!-- {{{ -->
-		<div class='menuInner'>
-			<table>
-				<tr>
-					<td colspan='3'><nobr>New Feed:</nobr></td>
-					<td><a href="javascript:hideOverlay('addFeed');"><img src='process-stop.png' border='0'></a></td>
-				</tr>
-				<tr>
-					<td><select id='addDir' width="80px"></select></td>
-					<td><input type='text' id='addName' value='Foobar RSS'></td>
-					<td><input type='text' id='addUrl' value='http://foo/bar.rss'></td>
-				</tr>
-				<tr>
-					<td colspan='4'><a href="javascript:addFeed();">Add Feed</a></td>
-				</tr>
-				<tr>
-					<td colspan='4'><nobr><a href='javascript:addRSSHandler();'>Add RSS Handler to FireFox</a></nobr></td>
-				</tr>
-			</table>
-		</div>
-	</div> <!-- }}} -->
-	<div class='menuOuter' id="searchForm"> <!-- {{{ -->
-		<div class='menuInner'>
-			<div>Search for: <div style="float: right;"><a href='javascript:hideOverlay("searchForm");'><img src='process-stop.png' border='0'></a></div><div style="float: right;"><input type="text" size="10" id="searchNeedle"></div></div>
-		</div>
-		<div class='menuInner'>
-			<a href="javascript:startSearch();">Search</a>
-		</div>
-	</div> <!-- }}} -->
-	<!-- }}} -->
-<table class="wrapper" width="100%">
+<body>
+<div class="navigation">
+	<ul>
+		<li class="hover" onclick="javascript:showSearch();">Search</li>
+		<li class="hover" onclick="javascript:showAddFeed();">add Feed</li>
+		<li class="hover" onclick="javascript:showOptions();">Options</li>
+		<li class="hover" onclick="javascript:getFeeds();">Refresh</li>
+	</ul>
+</div> <!-- navigation -->
+<div class="title">
+	<h1>blindRSS</h1>
+	<h2>blindcoders simple RSS reader</h2>
+	<!-- <h2 id='status'>Status: </h2> -->
+</div> <!-- title -->
+<table align="center" class="wrapper">
 	<tr>
-		<td id="title">
-			<h1>blindRSS</h1>
-			<h2>blindcoders simple RSS reader</h2>
-			<h2 id='statusline'>Status: </h2>
-		</td> <!-- title -->
-		<td id="navigation">
-			<ul>
-				<li><a href="javascript:reloadAllFeeds();">Reload&nbsp;Feeds</a></li>
-				<li><a href="javascript:showOverlay('menuOptions');">Options</a></li>
-				<li><a href="javascript:showOverlay('addFeed');">add Feed</a></li>
-				<li><a href="javascript:showOverlay('searchForm');">Search</a></li>
-			</ul>
-		</td> <!-- navigation -->
-	</tr>
-	<tr>
-		<td colspan='2' id="body">
-			<table width="100%">
-				<tr>
-			<td width="20%">
-				<div id="sidebar" dir="rtl" class="sidebar">
-					<div dir="ltr" class="sidebarinner">
-						<div class="content">
-							<table id="navlist" class="links">
-							</table>
-						</div> <!-- content -->
-					</div>
-				</div> <!-- sidebar -->
-			</td>
-			<td width="80%" valign='top'>
-				<table width="100%">
-					<tr>
-				<td colspan='2'>
-					<div id='subnavigationscrollouter' dir="rtl" style="height:85px; width:100%; overflow: auto;">
-						<div width="100%" dir="ltr" id="subnavigation">
-						</div>
-					</div>
-				</td>
-					</tr>
-					<tr>
-				<td class='contentheadline'>
-					<b><a href='#' target="_blank" id="contentheadline">Welcome to blindRSS</a></b>
-				</td>
-				<td align='right' class='contentheadline'>
-					<b><a href='javascript:showIframe();' id="contentShowIframe">IFrame</a></b>
-				</td>
-					</tr>
-					<tr>
-				<td colspan='2'>
-					<div id="contentinner" dir='rtl' style="height:265px; overflow: auto;">
-						<div id="contentcontent" dir="ltr">
-							blindRSS is a very simple browser-operated RSS reader.<br>
-							You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
-							It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
-							<br>
-							Enjoy :-)
-						</div>
-					</div>
-				</td>
-					</tr>
-				</table>
-			</td> <!-- maincontent -->
-				</tr>
-			</table>
-		</td> <!-- body -->
+		<td width="20%" class="printRemove">
+			<div class="headline">Navigation</div>
+			<div class="sidebar">
+				<ul id='rssfeeds'/>
+			</div> <!-- sidebar -->
+		</td>
+		<td width="80%" valign='top' style="padding: 0;" class="printShow">
+			<div class="headline printRemove">Feed-Elements</div>
+			<div class="entries printRemove">
+				<ul id='entries'/>
+			</div>
+			<div class="headline printShow">
+				<a href='javascript:showIframe();' id="iframe" class="printRemove">IFrame</a>
+				<a href='#' target="_blank" id="headline">Welcome to blindRSS</a>
+			</div>
+			<div class="content" id="content">
+				blindRSS is a very simple browser-operated RSS reader.<br>
+				You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
+				It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
+				<br>
+				Enjoy :-)
+			</div>
+		</td> <!-- maincontent -->
 	</tr>
 </table> <!-- content -->
+<div id='dialogOptions'/>
+<div id='dialogEditFeed'/>
+<div id='dialogAddFeed'/>
+<div id='dialogSearch'/>
 </body>
 </html>

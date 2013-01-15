@@ -12,7 +12,6 @@ All icons are from the Tango Icon Theme and licensed as
 	Creative Commons Attribution-ShareAlike 2.5 License Agreement
 This means the following files:
 	applications-system.png
-	bookmark-new.png
 	go-down.png
 	go-previous.png
 	go-up.png
@@ -20,5 +19,9 @@ This means the following files:
 	process-stop.png
 	view-refresh.png
 
-The images_Tidy_Blog directory is taken from the Tidy Blog design:
+The RSS logo is from the Mozilla foundation as made available at http://www.feedicons.com/
+This means the following file:
+	feed-icon-14x14.png
+
+Earlier versions included images from the Tidy Blog design:
 	http://www.oswd.org/design/information/id/3505
