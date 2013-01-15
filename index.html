@@ -33,19 +33,27 @@ function processMarkRead() {{{
 		}
 	}
 }}}
+function markReadAll(feedid) {{{
+	if (confirm("Mark all entries as 'read'?")){
+		request=ajaxManager();
+
+		request.open("GET", "markreadall.php?feedid=" + feedarray[feedid][0], true);
+		request.onreadystatechange = processMarkRead;
+		showstatus("Marking all entries as 'read'");
+		request.send(null);
+		for (itemid = 0; itemid < feedarray[feedid][2].length; itemid++){
+			feedarray[feedid][2][itemid][4] = 1;
+		}
+		showItems(feedid);
+		document.getElementById("imgNewMessages"+feedid).style.visibility="hidden";
+	}
+}}}
 function showDetails(feedid, itemid){{{
 	var contentheadline=document.getElementById("contentheadline");
 	var contentcontent=document.getElementById("contentcontent");
 
 	contentheadline.firstChild.nodeValue=feedarray[feedid][2][itemid][0];
 	contentheadline.href=feedarray[feedid][2][itemid][2];
-	/*while (contentcontent.hasChildNodes()){
-		contentcontent.removeChild(contentcontent.firstChild);
-	}
-	for (var i=0; i<feedarray[feedid][2][itemid][1].length; i++){
-		contentcontent.appendChild(document.createTextNode(feedarray[feedid][2][itemid][1][i]));
-		contentcontent.appendChild(document.createElement("br"));
-	}*/
 	var txt;
 	for (var i=0; i<feedarray[feedid][2][itemid][1].length; i++){
 		if (txt){
@@ -253,6 +261,8 @@ function processFeedList() {{{
 
 				divdiv=document.createElement("div");
 
+				a=document.createElement("a");
+				a.href="javascript:markReadAll("+newelement+");";
 				var img=document.createElement("img");
 				divdiv.style.position="absolute";
 				divdiv.style.right="48px";
@@ -263,11 +273,12 @@ function processFeedList() {{{
 				img.border=0;
 				img.id="imgNewMessages"+newelement;
 				img.style.visibility="hidden";
-				divdiv.appendChild(img);
+				a.appendChild(img);
+				divdiv.appendChild(a);
 				div.appendChild(divdiv);
 
 				a=document.createElement("a");
-				a.href="javascript:removeFeed("+id+");";
+				a.href="javascript:removeFeed("+newelement+");";
 				divdiv=document.createElement("div");
 				divdiv.style.position="absolute";
 				divdiv.style.right="0px";

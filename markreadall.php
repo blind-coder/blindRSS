@@ -10,7 +10,7 @@ if ($ISDEMO){
 	mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
 	mysql_select_db($MYSQL_DB);
 
-	$q = mysql_query("UPDATE entries SET isread='1', date=date WHERE ID='".$_GET['itemid']."'");
+	$q = mysql_query("UPDATE entries SET isread='1', date=date WHERE feedID='".$_GET['feedid']."'");
 	echo "<feeds>";
 	echo "</feeds>";
 }
