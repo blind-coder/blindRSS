@@ -342,8 +342,6 @@ function Feed(data){{{
 	if (this.isDirectory){
 		this.ul.addClass("group");
 	} else {
-		$(".noBottomBorder").removeClass("noBottomBorder");
-		$("ul.feed").last().addClass("noBottomBorder")
 		this.ul.addClass("feed");
 		this.nameFeed.parent().on("click", function(){
 			f.entry = 0;

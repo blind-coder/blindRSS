@@ -54,10 +54,6 @@ ul.feed li {
 	border-bottom: 1px solid #000000;
 }
 
-ul.noBottomBorder li {
-	border-bottom: 0px !important;
-}
-
 .content {
 	overflow-y: scroll;
 	overflow-x: hidden;
