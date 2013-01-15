@@ -9,7 +9,11 @@ if ($ISDEMO){
 	mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
 	mysql_select_db($MYSQL_DB);
 
-	$q = mysql_query("DELETE FROM feeds WHERE ID=".mysql_real_escape_string($_GET['id'])." LIMIT 1");
+	$q = mysql_query("SELECT * FROM feeds WHERE ID='".mysql_real_escape_string($_GET['id'])."'");
+	$feed = mysql_fetch_object($q);
+	mysql_query("DELETE FROM feeds WHERE ID = $feed->ID LIMIT 1");
+	mysql_query("UPDATE feeds SET endID=endID-2 WHERE endID >= $feed->endID");
+	mysql_query("UPDATE feeds SET startID=startID-2 WHERE startID >= $feed->endID"); # $r->endID is correct!
 	echo "<status>";
 	if (mysql_error()){
 		echo mysql_error();

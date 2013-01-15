@@ -1,11 +1,20 @@
+
+Thu Apr 16 14:19:20 CEST 2009 Benjamin 'blindCoder' Schieder <blindcoder@scavenger.homeip.net>
+
+ * Version: 0.5
+ * new sorting mechanism implemented
+ * fix hiding of nested areas
+ * edit feeds is now possible (name, sortorder, rss-url)
+
 Wed Apr  8 19:23:37 CEST 2009 Benjamin 'blindCoder' Schieder <blindcoder@scavenger.homeip.net>
 
+ * Version: 0.4
  * resize window also on browser window size change
  * ability to hide nested areas
  * hide <a> tag of 'mark all as read' instead of just the <img> tag containing
    the envelope symbol
 
-Thu Nov  8 19:23:37 CEST 2009 Benjamin 'blindCoder' Schieder <blindcoder@scavenger.homeip.net>
+Thu Nov  8 19:23:37 CET 2008 Benjamin 'blindCoder' Schieder <blindcoder@scavenger.homeip.net>
 
  * Version: 0.3
  * resizing window according to browser window size

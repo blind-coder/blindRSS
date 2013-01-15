@@ -6,14 +6,7 @@
 var feedarray = new Array();
 /*
  * feedarray
- * array = (ID, name, array = (title, array=(line), link, itemid, isread))
- *
- */
-var hierarchy = new Array();
-/*
- * hierarchy
- * array = (ID, enum(0=feed, 1=dir), feedarrayindex||name, 0||array=(hierarchy));
- * Yes, I know, this is somewhat brain damaged. If you have a better idea, I'm all ears.
+ * array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread))
  */
 var feedbeingreloaded = 0;
 var reloadall = 0;
@@ -21,7 +14,30 @@ var request;
 var Width = window.innerWidth;
 var Height = window.innerHeight;
 var rollUpHeightOriginals = new Array();
+var mouseX;
+var mouseY;
+var tmpselect;
 
+function getMouseCoordinates(event) {{{
+	var ev = event || window.event;
+	mouseX = ev.pageX;
+	mouseY = ev.pageY;
+	var divSettings = document.getElementById("divSettings");
+	if (divSettings.style.visibility != 'hidden'){
+		if (mouseX > parseInt(divSettings.style.left) + parseInt(divSettings.offsetWidth)){
+			divSettings.style.visibility='hidden';
+		}
+		if (mouseY > parseInt(divSettings.style.top) + parseInt(divSettings.offsetHeight)){
+			divSettings.style.visibility='hidden';
+		}
+		if (mouseY < parseInt(divSettings.style.top)){
+			divSettings.style.visibility='hidden';
+		}
+		if (mouseX < parseInt(divSettings.style.left)){
+			divSettings.style.visibility='hidden';
+		}
+	}
+}}}
 function resize(){{{
 	Width = window.innerWidth;
 	Height = window.innerHeight;
@@ -30,28 +46,298 @@ function resize(){{{
 		document.getElementById("contentinner").style.height=Height-302+"px";
 	}
 }}}
+function getContainersByIndex(feedIndex){{{
+	var retVal = new Array();
+	for (var i=0; i<feedarray.length; i++){
+		if (feedarray[i][2] < feedarray[feedIndex][2] && feedarray[feedIndex][3] < feedarray[i][3]){
+			retVal[retVal.length] = i;
+		}
+	}
+	return retVal;
+}}}
+function getContainersByID(feedID){{{
+	var feedIndex = -1;
+	var retVal = new Array();
+	for (var i=0; i<feedarray.length; i++){
+		if (feedarray[i][0] ==  feedID){
+			feedIndex = i;
+			break;
+		}
+	}
+	if (feedIndex == -1){
+		return retVal;
+	}
+	for (var i=0; i<feedarray.length; i++){
+		if (feedarray[i][2] < feedarray[feedIndex][2] && feedarray[feedIndex][3] < feedarray[i][3]){
+			retVal[retVal.length] = i;
+		}
+	}
+	return retVal;
+}}}
+function getContainedByIndex(feedIndex){{{
+	var retVal = new Array();
+	for (var i=0; i<feedarray.length; i++){
+		if (feedarray[i][2] > feedarray[feedIndex][2] && feedarray[feedIndex][3] > feedarray[i][3]){
+			retVal[retVal.length] = i;
+		}
+	}
+	return retVal;
+}}}
+function getContainedByID(feedID){{{
+	var feedIndex = -1;
+	var retVal = new Array();
+	for (var i=0; i<feedarray.length; i++){
+		if (feedarray[i][0] ==  feedID){
+			feedIndex = i;
+			break;
+		}
+	}
+	if (feedIndex == -1){
+		return retVal;
+	}
+	for (var i=0; i<feedarray.length; i++){
+		if (feedarray[i][2] > feedarray[feedIndex][2] && feedarray[feedIndex][3] > feedarray[i][3]){
+			retVal[retVal.length] = i;
+		}
+	}
+	return retVal;
+}}}
 function rollUp(x){{{
 	var a = document.getElementById("arollUp"+x);
 	var div = document.getElementById("divrollUp"+x);
 	var img = document.getElementById("imgrollUp"+x);
-	var ul = document.getElementById("subNavigation"+x);
 	rollUpHeightOriginals[x] = div.clientHeight;
 	div.style.visibility="collapse";
 	div.style.height=0;
 	a.href="javascript:rollDown('"+x+"');";
-	img.src="go-down.png";
+	img.src="go-previous.png";
 }}}
 function rollDown(x){{{
 	var a = document.getElementById("arollUp"+x);
 	var div = document.getElementById("divrollUp"+x);
 	var img = document.getElementById("imgrollUp"+x);
-	var ul = document.getElementById("subNavigation"+x);
-	div.style.visibility="visible";
+	div.style.visibility="";
 	div.style.height=rollUpHeightOriginals[x];
 	a.href="javascript:rollUp('"+x+"');";
-	img.src="go-up.png";
+	img.src="go-down.png";
 }}}
-window.onresize=resize;
+function showHierarchyInSelect(container, selectedID){{{
+	var parents = new Array();
+	parents[0] = new Array();
+	parents[0][0] = container;
+	parents[0][1] = 0;
+	for (var i=0; i<feedarray.length; i++){
+/* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread)) */
+		if (i > 0){
+			for (var x=0; x < feedarray[i][2] - feedarray[i-1][3] - 1; x++){
+				var option;
+				option = document.createElement("option");
+				option.value = parents[parents.length-1][1];
+				option.text = "(End of "+parents[parents.length-1][2]+")";
+				if (selectedID == option.value){
+					option.selected = true;
+				}
+				parents[parents.length-1][0].appendChild(option);
+				parents.pop();
+			}
+			if (feedarray[i][2] == feedarray[i-1][3] + 1 && (feedarray[i-1][4] == "NULL" || feedarray[i-1][4] == "")){
+				var option;
+				option = document.createElement("option");
+				option.value = parents[parents.length-1][1];
+				option.text = "(End of "+parents[parents.length-1][2]+")";
+				if (selectedID == option.value){
+					option.selected = true;
+				}
+				parents[parents.length-1][0].appendChild(option);
+				parents.pop();
+			}
+		}
+		if (feedarray[i][4] == "NULL" || feedarray[i][4] == ""){
+			var optgroup = document.createElement("optgroup");
+			optgroup.label = feedarray[i][1];
+			parents[parents.length-1][0].appendChild(optgroup);
+			parents[parents.length] = new Array();
+			parents[parents.length-1][0]=optgroup;
+			parents[parents.length-1][1]=feedarray[i][0];
+			parents[parents.length-1][2]=feedarray[i][1];
+			continue;
+		}
+		var option;
+		option = document.createElement("option");
+		option.value = feedarray[i][0];
+		option.text = feedarray[i][1];
+		if (selectedID == option.value){
+			option.selected = true;
+		}
+		parents[parents.length-1][0].appendChild(option);
+	}
+}}}
+function submitFeedChanges(x){{{
+	var feedTitle = document.getElementById("inputFeedTitle").value;
+	var feedURL;
+	var moveAbove = document.getElementById("selMoveAbove").value;
+
+	if (document.getElementById("inputFeedURL"))
+		feedURL = document.getElementById("inputFeedURL").value;
+	else
+		feedURL = "";
+	if (confirm("Make these changes to the feed?")){
+		request=ajaxManager();
+
+		request.open("GET", "editfeed.php?feedid="+x+"&newtitle="+feedTitle+"&newurl="+feedURL+"&moveabove="+moveAbove, true);
+		request.onreadystatechange = processAddDelEditFeed;
+		showstatus("Changing feed");
+		request.send(null);
+	}
+
+}}}
+function showSettings(feedID){{{
+	var divSettings = document.getElementById("divSettings");
+	var divSettingsInner = document.getElementById("divSettingsInner");
+	var feed = feedarray[feedID];
+
+	while (divSettingsInner.lastChild){
+		divSettingsInner.removeChild(divSettingsInner.lastChild);
+	}
+
+	var table = document.createElement("table");
+	var tbody = document.createElement("tbody");
+	var tr = document.createElement("tr");
+	var td = document.createElement("td");
+
+	td.appendChild(document.createTextNode(feed[1]));
+	tr.appendChild(td);
+	tbody.appendChild(tr);
+
+	tr = document.createElement("tr");
+	td = document.createElement("td");
+	td.appendChild(document.createTextNode("Move above feed: "));
+	tr.appendChild(td);
+	td = document.createElement("td");
+	var select = document.createElement("select");
+	select.id = "selMoveAbove";
+	select.size = 5;
+	showHierarchyInSelect(select, feed[0]);
+
+	td.appendChild(select);
+	tr.appendChild(td);
+	tbody.appendChild(tr);
+
+ /* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread))*/
+
+	tr = document.createElement("tr");
+	td = document.createElement("td");
+	td.appendChild(document.createTextNode("Feedtitle: "));
+	tr.appendChild(td);
+	td = document.createElement("td");
+	var input = document.createElement("input");
+	input.id = "inputFeedTitle";
+	input.value = feed[1];
+	td.appendChild(input);
+	tr.appendChild(td);
+	tbody.appendChild(tr);
+
+	tr = document.createElement("tr");
+	td = document.createElement("td");
+	td.appendChild(document.createTextNode("FeedURL: "));
+	tr.appendChild(td);
+	td = document.createElement("td");
+	var input = document.createElement("input");
+	input.id = "inputFeedURL";
+	input.value = feed[4];
+	td.appendChild(input);
+	tr.appendChild(td);
+	tbody.appendChild(tr);
+
+	tr = document.createElement("tr");
+	td = document.createElement("td");
+	tr.appendChild(td);
+	td = document.createElement("td");
+	var a = document.createElement("a");
+	a.href="javascript:submitFeedChanges("+feedarray[feedID][0]+");";
+	a.appendChild(document.createTextNode("Submit Changes"));
+	td.appendChild(a);
+	tr.appendChild(td);
+	tbody.appendChild(tr);
+
+	table.appendChild(tbody);
+	divSettingsInner.appendChild(table);
+	divSettings.style.left = mouseX-5;
+	if (mouseY + divSettings.offsetHeight > Height){
+		divSettings.style.top = Height - divSettings.offsetHeight - 5;
+	} else {
+		divSettings.style.top = mouseY-5;
+	}
+	divSettings.style.zIndex=9999;
+	divSettings.style.visibility="";
+}}}
+function showSettingsDirectory(feedID){{{
+	var divSettings = document.getElementById("divSettings");
+	var divSettingsInner = document.getElementById("divSettingsInner");
+	var feed = feedarray[feedID];
+
+	while (divSettingsInner.lastChild){
+		divSettingsInner.removeChild(divSettingsInner.lastChild);
+	}
+
+	var table = document.createElement("table");
+	var tbody = document.createElement("tbody");
+	var tr = document.createElement("tr");
+	var td = document.createElement("td");
+
+	td.appendChild(document.createTextNode(feed[1]));
+	tr.appendChild(td);
+	tbody.appendChild(tr);
+
+	tr = document.createElement("tr");
+	td = document.createElement("td");
+	td.appendChild(document.createTextNode("Move above feed: "));
+	tr.appendChild(td);
+	td = document.createElement("td");
+	var select = document.createElement("select");
+	select.id = "selMoveAbove";
+	select.size = 5;
+	showHierarchyInSelect(select, feed[0]);
+
+	td.appendChild(select);
+	tr.appendChild(td);
+	tbody.appendChild(tr);
+
+	tr = document.createElement("tr");
+	td = document.createElement("td");
+	td.appendChild(document.createTextNode("Directoryname: "));
+	tr.appendChild(td);
+	td = document.createElement("td");
+	var input = document.createElement("input");
+	input.id = "inputFeedTitle";
+ /* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread))*/
+	input.value = feed[1];
+	td.appendChild(input);
+	tr.appendChild(td);
+	tbody.appendChild(tr);
+
+	tr = document.createElement("tr");
+	td = document.createElement("td");
+	tr.appendChild(td);
+	td = document.createElement("td");
+	var a = document.createElement("a");
+	a.href="javascript:submitFeedChanges("+feed[0]+");";
+	a.appendChild(document.createTextNode("Submit Changes"));
+	td.appendChild(a);
+	tr.appendChild(td);
+	tbody.appendChild(tr);
+
+	table.appendChild(tbody);
+	divSettingsInner.appendChild(table);
+	divSettings.style.left = mouseX-5;
+	if (mouseY + divSettings.offsetHeight > Height){
+		divSettings.style.top = Height - divSettings.offsetHeight - 5;
+	} else {
+		divSettings.style.top = mouseY-5;
+	}
+	divSettings.style.zIndex=9999;
+	divSettings.style.visibility="";
+}}}
 function showstatus(stat){{{
 // Changes the text of the status line at the top to 'stat'
 	var statline=document.getElementById("statusline");
@@ -75,62 +361,93 @@ function ajaxManager() {{{
 function processMarkRead() {{{
 // Processes Requests for marking a feed entry as 'read'
 	if (request.readyState == 4) {
-		if (request.status == 200){
-		} else {
+		if (request.status != 200){
 			showstatus("Error marking entry as 'read': " + request.status + " " + request.statusText);
 		}
 	}
 }}}
-function markReadAll(feedid) {{{
-// Processes Requests for marking a whole feed as 'read'
-	if (confirm("Mark all entries as 'read'?")){
-		request=ajaxManager();
-
-		request.open("GET", "markreadall.php?feedid=" + feedarray[feedid][0], true);
-		request.onreadystatechange = processMarkRead;
-		showstatus("Marking all entries as 'read'");
-		request.send(null);
-		for (itemid = 0; itemid < feedarray[feedid][2].length; itemid++){
-			feedarray[feedid][2][itemid][4] = 1;
+function hideDirectoryNewMessages(feedIndex){{{
+	var containers = getContainersByIndex(feedIndex);
+	for (var x=0; x<containers.length; x++){
+		var contained = getContainedByIndex(containers[x]);
+		var attr = "hidden";
+		for (var y=0; y<contained.length; y++){
+			for (var z=0; z<feedarray[contained[y]][5].length; z++){
+/* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread)) */
+				if (feedarray[contained[y]][5][z][4] == 0){
+					attr = "";
+					break;
+				}
+			}
+			document.getElementById("divNewMessages"+containers[x]).style.visibility=attr;
 		}
-		showItems(feedid);
-		document.getElementById("aNewMessages"+feedid).style.visibility="hidden";
 	}
+}}}
+function markReadAllDirectory(feedid) {{{
+// Processes Requests for marking a whole directory as 'read'
+	if (confirm("Mark all entries in this directory as 'read'?")){
+		var contained = getContainedByIndex(feedid);
+		for (var x=0; x<contained.length; x++){
+			markReadAll(contained[x], true);
+		}
+	}
+}}}
+function markReadAll(feedid, force) {{{
+// Processes Requests for marking a whole feed as 'read'
+	if (!force){
+		if (!confirm("Mark all entries as 'read'?")){
+			return false;
+		}
+	}
+	request=ajaxManager();
+
+	request.open("GET", "markreadall.php?feedid=" + feedarray[feedid][0], true);
+	request.onreadystatechange = processMarkRead;
+	showstatus("Marking all entries as 'read'");
+	request.send(null);
+	for (itemid = 0; itemid < feedarray[feedid][5].length; itemid++){
+		feedarray[feedid][5][itemid][4] = 1;
+	}
+	showItems(feedid);
+	document.getElementById("divNewMessages"+feedid).style.visibility="hidden";
+	hideDirectoryNewMessages(feedid);
 }}}
 function showDetails(feedid, itemid){{{
 // displays the details of a feed entry in the main display area and marks the entry as 'read'
 	var contentheadline=document.getElementById("contentheadline");
 	var contentcontent=document.getElementById("contentcontent");
 
-	contentheadline.firstChild.nodeValue=feedarray[feedid][2][itemid][0];
-	contentheadline.href=feedarray[feedid][2][itemid][2];
+	contentheadline.firstChild.nodeValue=feedarray[feedid][5][itemid][0];
+	contentheadline.href=feedarray[feedid][5][itemid][2];
 	var txt;
-	for (var i=0; i<feedarray[feedid][2][itemid][1].length; i++){
+	for (var i=0; i<feedarray[feedid][5][itemid][1].length; i++){
 		if (txt){
-			txt = txt + feedarray[feedid][2][itemid][1][i] + "<br>";
+			txt = txt + feedarray[feedid][5][itemid][1][i] + "<br>";
 		} else {
-			txt = feedarray[feedid][2][itemid][1][i] + "<br>";
+			txt = feedarray[feedid][5][itemid][1][i] + "<br>";
 		}
 	}
 
 	contentcontent.innerHTML=txt;
 	request=ajaxManager();
 
-	request.open("GET", "markread.php?itemid="+feedarray[feedid][2][itemid][3], true);
-	feedarray[feedid][2][itemid][4] = 1;
+	request.open("GET", "markread.php?itemid="+feedarray[feedid][5][itemid][3], true);
+	feedarray[feedid][5][itemid][4] = 1;
 	showItems(feedid);
 	request.onreadystatechange = processMarkRead;
 	showstatus("Marking entry as 'read'");
 	request.send(null);
 	var newitems = 0;
-	for (var i=0; i<feedarray[feedid][2].length; i++){
-		if (feedarray[feedid][2][i][4] == 0){ // not read
+	for (var i=0; i<feedarray[feedid][5].length; i++){
+		if (feedarray[feedid][5][i][4] == 0){ // not read
 			newitems++;
+			break;
 		}
 	}
 	if (newitems == 0){
-		document.getElementById("aNewMessages"+feedid).style.visibility="hidden";
+		document.getElementById("divNewMessages"+feedid).style.visibility="hidden";
 	}
+	hideDirectoryNewMessages(feedid);
 }}}
 function showItems(id){{{
 // shows the items of a feed in the top display area
@@ -145,12 +462,12 @@ function showItems(id){{{
 			div.removeChild(div.firstChild);
 		}
 	}
-	for (var i=0; i < feed[2].length; i++){
+	for (var i=0; i < feed[5].length; i++){
 		var a=document.createElement("a");
 		a.href="javascript:showDetails("+id+","+i+");";
-		a.appendChild(document.createTextNode(feed[2][i][0]));
+		a.appendChild(document.createTextNode(feed[5][i][0]));
 
-		if(feed[2][i][4] == 1){
+		if(feed[5][i][4] == 1){
 			div.appendChild(a);
 		} else {
 			var b = document.createElement("b");
@@ -183,8 +500,8 @@ function processFeed() {{{
 				showstatus("Couldn't find feed id " + id.firstChild.nodeValue);
 				return;
 			}
-			feedarrayptr[2] = new Array();
-			feedarrayptr = feedarrayptr[2];
+			feedarrayptr[5] = new Array();
+			feedarrayptr = feedarrayptr[5];
 			while(item){
 				var itemid = item.firstChild;
 				var title = itemid.nextSibling;
@@ -214,14 +531,15 @@ function processFeed() {{{
 				}
 
 				if (isread.firstChild.nodeValue == 0){
-					var a = document.getElementById("aNewMessages"+feedarrayitem);
-					if (a){
-						a.style.visibility="visible";
+					var div = document.getElementById("divNewMessages"+feedarrayitem);
+					if (div){
+						div.style.visibility="";
 					}
 				}
 				item=item.nextSibling;
 			}
 			showstatus("Feed reloaded");
+			hideDirectoryNewMessages(feedarrayid);
 			request = null;
 			if (reloadall == 1){
 				reloadAllFeeds();
@@ -266,11 +584,21 @@ function reloadAllFeeds(){{{
 		return;
 	}
 }}}
-function showNavigation(hierarchyLevel, parentNavigation) {{{
+function showNavigation() {{{
 	var i;
-	for (i=0; i<hierarchyLevel.length; i++){
-		/* array = (ID, enum(0=feed, 1=dir), feedarrayindex||name, 0||array=(hierarchy)); */
-		if (hierarchyLevel[i][1] == 1){
+	var parents = new Array();
+	parents[0] = document.getElementById("navigation");
+	for (i=0; i<feedarray.length; i++){
+		/* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread)) */
+		if (i > 0){
+			for (var x=0; x < feedarray[i][2] - feedarray[i-1][3] - 1; x++){
+				parents.pop();
+			}
+			if (feedarray[i][2] == feedarray[i-1][3] + 1 && (feedarray[i-1][4] == "NULL" || feedarray[i-1][4] == "")){
+				parents.pop();
+			}
+		}
+		if (feedarray[i][4] == "NULL" || feedarray[i][4] == ""){{{
 			var table=document.createElement("table");
 			var tbody=document.createElement("tbody");
 			var tr=document.createElement("tr");
@@ -279,7 +607,7 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 
 			td.setAttribute("class", "navigationheadline");
 
-			div.appendChild(document.createTextNode(hierarchyLevel[i][2]));
+			div.appendChild(document.createTextNode(feedarray[i][1]));
 			div.style.position="relative";
 			div.style.top="0px";
 			div.style.left="0px";
@@ -294,10 +622,44 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 			divdiv.style.right="0px";
 			divdiv.style.top="0px";
 			img.title="Close";
-			img.src="go-up.png";
+			img.src="go-down.png";
 			img.border=0;
 			img.border=0;
 			img.id="imgrollUp"+i;
+			a.appendChild(img);
+			divdiv.appendChild(a);
+			div.appendChild(divdiv);
+
+			divdiv=document.createElement("div");
+
+			a=document.createElement("a");
+			var img=document.createElement("img");
+			a.href="javascript:showSettingsDirectory("+i+");";
+			divdiv.style.position="absolute";
+			divdiv.style.right="16px";
+			divdiv.style.top="0px";
+			img.title="Change Settings";
+			img.src="applications-system.png";
+			img.border=0;
+			img.border=0;
+			a.appendChild(img);
+			divdiv.appendChild(a);
+			div.appendChild(divdiv);
+
+			divdiv=document.createElement("div");
+
+			a=document.createElement("a");
+			a.href="javascript:markReadAllDirectory("+i+");";
+			var img=document.createElement("img");
+			divdiv.style.position="absolute";
+			divdiv.style.right="48px";
+			divdiv.style.top="0px";
+			divdiv.style.visibility="hidden";
+			divdiv.id="divNewMessages"+i;
+			img.title="New messages!";
+			img.src="mail-message-new.png";
+			img.border=0;
+			img.border=0;
 			a.appendChild(img);
 			divdiv.appendChild(a);
 			div.appendChild(divdiv);
@@ -306,7 +668,7 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 			tr.appendChild(td);
 			tbody.appendChild(tr);
 			table.appendChild(tbody);
-			parentNavigation.appendChild(table);
+			parents[parents.length-1].appendChild(table);
 
 			div=document.createElement("div");
 			div.id="divrollUp"+i;
@@ -320,16 +682,11 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 			ul.id="subNavigation"+i;
 
 			div.appendChild(ul);
-			parentNavigation.appendChild(div);
-			showNavigation(hierarchyLevel[i][3], ul);
+			parents[parents.length-1].appendChild(div);
+			parents[parents.length] = ul;
 			continue;
-		}
-
-		/* array = (ID, name, array = (title, array=(line), link, itemid, isread)) */
-		var feedarrayindex = hierarchyLevel[i][2];
-		var name = feedarray[feedarrayindex][1];
-		var id = feedarray[feedarrayindex][0];
-
+		}}}
+		/* array = (ID, name, startID, endID, url, array = (title, array=(line), link, itemid, isread)) */
 		var table=document.createElement("table");
 		var tbody=document.createElement("tbody");
 		var tr=document.createElement("tr");
@@ -339,8 +696,8 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 
 		td.setAttribute("class", "navigationheadline");
 		var a = document.createElement("a");
-		a.href="javascript:showItems("+feedarrayindex+");";
-		a.appendChild(document.createTextNode(name));
+		a.href="javascript:showItems("+i+");";
+		a.appendChild(document.createTextNode(feedarray[i][1]));
 		div.appendChild(a);
 		div.style.position="relative";
 		div.style.top="0px";
@@ -350,7 +707,7 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 
 		a=document.createElement("a");
 		var img=document.createElement("img");
-		a.href="javascript:reloadFeed("+feedarrayindex+");";
+		a.href="javascript:reloadFeed("+i+");";
 		divdiv.style.position="absolute";
 		divdiv.style.right="32px";
 		divdiv.style.top="0px";
@@ -365,23 +722,39 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 		divdiv=document.createElement("div");
 
 		a=document.createElement("a");
-		a.href="javascript:markReadAll("+feedarrayindex+");";
+		var img=document.createElement("img");
+		a.href="javascript:showSettings("+i+");";
+		divdiv.style.position="absolute";
+		divdiv.style.right="16px";
+		divdiv.style.top="0px";
+		img.title="Change Feed";
+		img.src="applications-system.png";
+		img.border=0;
+		img.border=0;
+		a.appendChild(img);
+		divdiv.appendChild(a);
+		div.appendChild(divdiv);
+
+		divdiv=document.createElement("div");
+
+		a=document.createElement("a");
+		a.href="javascript:markReadAll("+i+", false);";
 		var img=document.createElement("img");
 		divdiv.style.position="absolute";
 		divdiv.style.right="48px";
 		divdiv.style.top="0px";
+		divdiv.style.visibility="hidden";
+		divdiv.id="divNewMessages"+i;
 		img.title="New messages!";
 		img.src="mail-message-new.png";
 		img.border=0;
 		img.border=0;
 		a.appendChild(img);
-		a.id="aNewMessages"+feedarrayindex;
-		a.style.visibility="hidden";
 		divdiv.appendChild(a);
 		div.appendChild(divdiv);
 
 		a=document.createElement("a");
-		a.href="javascript:removeFeed("+feedarrayindex+");";
+		a.href="javascript:removeFeed("+i+");";
 		divdiv=document.createElement("div");
 		divdiv.style.position="absolute";
 		divdiv.style.right="0px";
@@ -399,47 +772,20 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 
 		tbody.appendChild(tr);
 		table.appendChild(tbody);
-		table.setAttribute("id", "feed"+id);
-		parentNavigation.appendChild(table);
+		table.setAttribute("id", "feed"+i);
+		parents[parents.length-1].appendChild(table);
 	}
 }}}
-function recursiveHierarchySearchForParentID(hierarchyLevel, parentID){{{
-	var i;
-	for (i=0; i < hierarchyLevel.length; i++){
-		if (hierarchyLevel[i][0] == parentID){
-			/* array = (ID, enum(0=feed, 1=dir), feedarrayindex||name, 0||array=(hierarchy)); */
-			return hierarchyLevel[i];
-		}
-		if (hierarchyLevel[i][1] == 1){
-			var retVal = recursiveHierarchySearchForParentID(hierarchyLevel[i][3], parentID);
-			if (retVal != -1){
-				return retVal;
-			}
+function getPathToParentIDByIndex(parentIndex) {{{
+	var retVal = "";
+	for (var i=0; i<=parentIndex; i++){
+		if (feedarray[i][2] <= feedarray[parentIndex][2] &&
+		    feedarray[i][3] >= feedarray[parentIndex][3] &&
+		    (feedarray[i][4] == "" || feedarray[i][4] == "NULL")){
+			retVal = retVal + "/" + feedarray[i][1];
 		}
 	}
-	return -1;
-}}}
-function getHierarchyPtrToParentID(parentID) {{{
-	return recursiveHierarchySearchForParentID(hierarchy, parentID);
-}}}
-function recursivePathToParentID(hierarchyLevel, parentID){{{
-	var i;
-	for (i=0; i < hierarchyLevel.length; i++){
-		if (hierarchyLevel[i][0] == parentID){
-			/* array = (ID, enum(0=feed, 1=dir), feedarrayindex||name, 0||array=(hierarchy)); */
-			return "/"+hierarchyLevel[i][2];
-		}
-		if (hierarchyLevel[i][1] == 1){
-			var retVal = recursivePathToParentID(hierarchyLevel[i][3], parentID);
-			if (retVal != -1){
-				return "/"+hierarchyLevel[i][2]+retVal;
-			}
-		}
-	}
-	return -1;
-}}}
-function getPathToParentID(parentID) {{{
-	return recursivePathToParentID(hierarchy, parentID);
+	return(retVal);
 }}}
 function processFeedList() {{{
 // processes the request for updating the feed list
@@ -448,60 +794,49 @@ function processFeedList() {{{
 			var navigation=document.getElementById("navigation");
 			var feeds;
 			var feed;
+			var addDir = document.getElementById("addDir");
+			while (addDir.lastChild){
+				addDir.removeChild(addDir.lastChild);
+			}
 			feeds=request.responseXML.firstChild;
 			feed=feeds.firstChild;
 			while(feed){
 				/* childNode[0]: id
 				   childNode[1]: name 
-				   childNode[2]: isdir
-				   childNode[3]: parentID */
+				   childNode[2]: startID
+				   childNode[3]: endID
+				   childNode[4]: url */
 				var feedarraynewelement = feedarray.length;
-				var hierarchynewelement = hierarchy.length;
 				var id;
 				var name;
-				var isdir;
-				var parentID;
-				id=feed.childNodes[0].firstChild.nodeValue;
+				var startID;
+				var endID;
+				var url;
+				id=parseInt(feed.childNodes[0].firstChild.nodeValue);
 				name=feed.childNodes[1].firstChild.nodeValue;
-				isdir=feed.childNodes[2].firstChild.nodeValue;
-				parentID=feed.childNodes[3].firstChild.nodeValue;
+				startID=parseInt(feed.childNodes[2].firstChild.nodeValue);
+				endID=parseInt(feed.childNodes[3].firstChild.nodeValue);
+				url=feed.childNodes[4].firstChild.nodeValue;
 
-				var hierarchyptr;
 				var i;
-				if (parentID == 0){
-					hierarchy[hierarchynewelement] = new Object();
-					hierarchyptr = hierarchy[hierarchynewelement];
-				} else {
-					hierarchyptr = getHierarchyPtrToParentID(parentID);
-					hierarchyptr = hierarchyptr[3];
-					var hptrnewelement = hierarchyptr.length;
-					hierarchyptr[hptrnewelement] = new Object();
-					hierarchyptr = hierarchyptr[hptrnewelement];
-				}
-				if (isdir == 0){
-					feedarray[feedarraynewelement] = new Object();
-					feedarray[feedarraynewelement][0] = id;
-					feedarray[feedarraynewelement][1] = name;
-
-					hierarchyptr[0] = id;
-					hierarchyptr[1] = 0;
-					hierarchyptr[2] = feedarraynewelement;
-					hierarchyptr[3] = 0;
-				} else {
-					hierarchyptr[0] = id;
-					hierarchyptr[1] = 1;
-					hierarchyptr[2] = name;
-					hierarchyptr[3] = new Array();
+				feedarray[feedarraynewelement] = new Object();
+				feedarray[feedarraynewelement][0] = id;
+				feedarray[feedarraynewelement][1] = name;
+				feedarray[feedarraynewelement][2] = startID;
+				feedarray[feedarraynewelement][3] = endID;
+				feedarray[feedarraynewelement][4] = url;
+				feedarray[feedarraynewelement][5] = new Object();
+				if (url == "NULL" || url == ""){
 					var option=document.createElement("option");
-					option.text=getPathToParentID(id);
+					option.text=getPathToParentIDByIndex(feedarraynewelement);
 					option.value=id;
-					document.getElementById("addDir").appendChild(option);
+					addDir.appendChild(option);
 				}
 				feed=feed.nextSibling;
 			}
 			showstatus(feedarray.length + " Feeds loaded");
 			var navigation=document.getElementById("navigation");
-			showNavigation(hierarchy, navigation);
+			showNavigation();
 			reloadAllFeeds();
 		} else {
 			showstatus("Error fetching FeedList: " + request.status + " " + request.statustext);
@@ -516,7 +851,6 @@ function loadFeeds() {{{
 		navigation.removeChild(navigation.lastChild);
 	}
 	feedarray = new Array();
-	hierarchy = new Array();
 	showstatus("Loading Feeds");
 	request=ajaxManager();
 
@@ -524,7 +858,7 @@ function loadFeeds() {{{
 	request.onreadystatechange = processFeedList;
 	request.send(null);
 }}}
-function processAddDelFeed() {{{
+function processAddDelEditFeed() {{{
 // processes addition and deletion of feeds. really just outputs the text from the request
 // and calls loadFeeds
 	if (request.readyState == 4) {
@@ -540,7 +874,7 @@ function addFeed(){{{
 	request=ajaxManager();
 
 	request.open("GET", "add.php?url="+document.getElementById("addUrl").value+"&name="+document.getElementById("addName").value+"&parentID="+document.getElementById("addDir").value);
-	request.onreadystatechange = processAddDelFeed;
+	request.onreadystatechange = processAddDelEditFeed;
 	request.send(null);
 }}}
 function removeFeed(i){{{
@@ -549,13 +883,16 @@ function removeFeed(i){{{
 		request=ajaxManager();
 
 		request.open("GET", "del.php?id="+feedarray[i][0]);
-		request.onreadystatechange = processAddDelFeed;
+		request.onreadystatechange = processAddDelEditFeed;
 		request.send(null);
 	}
 }}}
+window.onresize=resize;
+window.onmousemove=getMouseCoordinates;
 </script>
 </head>
 <body onLoad="javascript:resize();loadFeeds();">
+<div id="divSettings" style="position: absolute; left; 0px; top: 0px; background-color: #000000; visibility: hidden;"><div id="divSettingsInner" style="margin: 1px; border: 1px; background-color: #8080FF;"></div></div>
 <table class='main'>
 	<tr class='headline'>
 		<td colspan='2'>
@@ -563,7 +900,7 @@ function removeFeed(i){{{
 				<tr>
 					<td width='50%' class='headline' align='left'>blindRSS</td>
 					<td width='50%' valign='top' align='right'>
-						<nobr><form><input type='text' id='addUrl' value='http://foo/bar.rss'> <input type='text' id='addName' value='Foobar RSS'><select id='addDir'><option value='0'>/</option></select><input type='button' value='add feed' onclick="javascript:addFeed();"></form></nobr><br>
+						<nobr><form><input type='text' id='addUrl' value='http://foo/bar.rss'> <input type='text' id='addName' value='Foobar RSS'><select id='addDir'></select><input type='button' value='add feed' onclick="javascript:addFeed();"></form></nobr><br>
 						<a href='javascript:reloadAllFeeds();'><img src='view-refresh.png' border='0'></a><br>
 						Show only unread <input type='checkbox' id='onlyunread' name='onlyunread' checked>
 					</td>
