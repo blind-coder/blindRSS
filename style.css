@@ -46,13 +46,16 @@ li.hover:hover {
 	list-style: none;
 	list-style-image: none;
 }
+.wrapper td ul#feed_1 {
+	padding: 0;
+}
 
-.wrapper td ul li {
+ul.feed li {
 	border-bottom: 1px solid #000000;
 }
 
-.wrapper td ul li:last-child {
-	border-bottom: 0px;
+ul.noBottomBorder li {
+	border-bottom: 0px !important;
 }
 
 .content {
@@ -207,10 +210,10 @@ ul#entries {
 .floatLeft {
 	float: left;
 }
-.floatLeft, .spin {
-	padding-top: 1px;
-	min-width: 13px;
-	min-height: 15px;
+.spin {
+	padding-top: 0px;
+	min-width: 16px;
+	min-height: 16px;
 }
 .loadMore {
 	padding-left: 25px;

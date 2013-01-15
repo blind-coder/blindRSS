@@ -309,7 +309,7 @@ function Feed(data){{{
 
 	this.ul = $("#feed_"+this.data.startID);
 	this.li = $("<li id='details_"+this.data.startID+"' class='hover' />");
-	this.spin = $("<div class='floatLeft spin' id='spinFeed_"+this.data.startID+"'>&nbsp;</div>");
+	this.spin = $("<span class='floatLeft spin' id='spinFeed_"+this.data.startID+"'>&nbsp;</span>");
 	this.nameFeed = $("<a class='nameFeed'>"+this.data.name+"</a>");
 	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
 
@@ -326,12 +326,12 @@ function Feed(data){{{
 	this.li.append(
 		$("<div class='floatRight'>").append(this.buttons.settings)
 		.append(this.buttons.newMessage)
+		.append(this.spin)
 	);
-	this.li.append(this.spin)
-		.append(
-			$("<div class='nameFeed'>").append(this.nameFeed)
-			.append(this.numNew)
-		);
+	this.li.append(
+		$("<div class='nameFeed'>").append(this.nameFeed)
+		.append(this.numNew)
+	);
 
 	this.ul.attr("startID", this.data.startID)
 	       .attr("endID",   this.data.endID)
@@ -342,6 +342,8 @@ function Feed(data){{{
 	if (this.isDirectory){
 		this.ul.addClass("group");
 	} else {
+		$(".noBottomBorder").removeClass("noBottomBorder");
+		$("ul.feed").last().addClass("noBottomBorder")
 		this.ul.addClass("feed");
 		this.nameFeed.parent().on("click", function(){
 			f.entry = 0;
