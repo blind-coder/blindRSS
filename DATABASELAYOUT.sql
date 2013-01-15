@@ -1,26 +1,25 @@
 -- phpMyAdmin SQL Dump
--- phpMyAdmin SQL Dump
--- version 2.6.1-pl3
+-- version 3.1.3
 -- http://www.phpmyadmin.net
--- 
+--
 -- Host: localhost
--- Erstellungszeit: 13. November 2008 um 12:05
--- Server Version: 5.0.51
--- PHP-Version: 5.2.4-2ubuntu5.3
--- 
--- Datenbank: `blindrss`
--- 
+-- Generation Time: Apr 08, 2009 at 07:12 PM
+
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+
+--
+-- Database: `blindrss`
+--
 
 -- --------------------------------------------------------
 
--- 
--- Tabellenstruktur für Tabelle `entries`
--- 
+--
+-- Table structure for table `entries`
+--
 
-DROP TABLE IF EXISTS `entries`;
-CREATE TABLE IF NOT EXISTS `entries` (
+CREATE TABLE `entries` (
   `ID` bigint(20) NOT NULL auto_increment,
-  `feedID` bigint(20) NOT NULL default '0',
+  `feedID` bigint(20) unsigned NOT NULL default '0',
   `title` text character set latin1 NOT NULL,
   `link` text character set latin1 NOT NULL,
   `description` longtext character set latin1 NOT NULL,
@@ -30,20 +29,50 @@ CREATE TABLE IF NOT EXISTS `entries` (
   UNIQUE KEY `link` (`link`(512),`feedID`),
   KEY `isread` (`isread`),
   KEY `feedID` (`feedID`)
-) ENGINE=MyISAM AUTO_INCREMENT=64592 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
--- Tabellenstruktur für Tabelle `feeds`
--- 
+--
+-- Table structure for table `feeds`
+--
 
-DROP TABLE IF EXISTS `feeds`;
-CREATE TABLE IF NOT EXISTS `feeds` (
+CREATE TABLE `feeds` (
   `ID` bigint(20) unsigned NOT NULL auto_increment,
   `name` text character set latin1 NOT NULL,
   `url` varchar(255) collate utf8_unicode_ci default NULL,
-  `parentID` bigint(20) NOT NULL default '0',
+  `parentID` bigint(20) unsigned NOT NULL default '0',
   PRIMARY KEY  (`ID`),
-  KEY `url` (`url`)
-) ENGINe=mYISAM AUTO_INCREMENT=84 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  KEY `url` (`url`),
+  KEY `parentID` (`parentID`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Default entries for dumped tables
+--
+
+--
+-- Default entries for table `entries`
+--
+
+-- Default entries for table `feeds`
+--
+
+INSERT INTO `feeds` ( `ID` , `name` , `url` , `parentID`) VALUES ( '0', 'TOP LEVEL CONTAINER', NULL , '0' );
+UPDATE `feeds` SET ID='0' WHERE ID = LAST_INSERT_ID();
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `entries`
+--
+ALTER TABLE `entries`
+  ADD CONSTRAINT `entries_ibfk_1` FOREIGN KEY (`feedID`) REFERENCES `feeds` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `feeds`
+--
+ALTER TABLE `feeds`
+  ADD CONSTRAINT `feeds_ibfk_1` FOREIGN KEY (`parentID`) REFERENCES `feeds` (`ID`) ON UPDATE CASCADE;

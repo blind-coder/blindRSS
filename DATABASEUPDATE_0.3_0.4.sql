@@ -1,0 +1,9 @@
+ALTER TABLE `entries`  ENGINE = InnoDB;
+ALTER TABLE `feeds`  ENGINE = InnoDB;
+ALTER TABLE `entries` CHANGE `feedID` `feedID` BIGINT( 20 ) UNSIGNED NOT NULL DEFAULT '0';
+DELETE FROM `entries` WHERE NOT EXISTS (SELECT * FROM `feeds` WHERE `feeds`.`ID` = `entries`.`feedID`);
+ALTER TABLE `entries` ADD FOREIGN KEY ( `feedID` ) REFERENCES `feeds` ( `ID` ) ON DELETE CASCADE ON UPDATE CASCADE ;
+ALTER TABLE `feeds` CHANGE `parentID` `parentID` BIGINT( 20 ) UNSIGNED NOT NULL DEFAULT '0';
+INSERT INTO `feeds` ( `ID` , `name` , `url` , `parentID`) VALUES ( '0', 'TOP LEVEL CONTAINER', NULL , '0' );
+UPDATE `feeds` SET ID='0' WHERE ID = LAST_INSERT_ID();
+ALTER TABLE `feeds` ADD FOREIGN KEY ( `parentID` ) REFERENCES `blindrss`.`feeds` ( `ID` ) ON DELETE RESTRICT ON UPDATE CASCADE ;

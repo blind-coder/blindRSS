@@ -1,3 +1,17 @@
+Wed Apr  8 19:23:37 CEST 2009 Benjamin 'blindCoder' Schieder <blindcoder@scavenger.homeip.net>
+
+ * resize window also on browser window size change
+ * ability to hide nested areas
+ * hide <a> tag of 'mark all as read' instead of just the <img> tag containing
+   the envelope symbol
+
+Thu Nov  8 19:23:37 CEST 2009 Benjamin 'blindCoder' Schieder <blindcoder@scavenger.homeip.net>
+
+ * Version: 0.3
+ * resizing window according to browser window size
+ * nested feeds
+ * more indexing of the database
+ * small syntax error fixed
 
 Wed Apr 16 10:44:50 CEST 2008 Benjamin 'blindCoder' Schieder <blindcoder@scavenger.homeip.net>
 

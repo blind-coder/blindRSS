@@ -1,5 +1,6 @@
 <html>
 <head>
+<title>blindRSS</title>
 <link rel='stylesheet' href='style.css'>
 <script type="text/javascript">
 var feedarray = new Array();
@@ -19,11 +20,38 @@ var reloadall = 0;
 var request;
 var Width = window.innerWidth;
 var Height = window.innerHeight;
+var rollUpHeightOriginals = new Array();
 
-function resize(){
-	document.getElementById("subnavigationscrollouter").style.height=Height-167+"px";
-	document.getElementById("contentinner").style.height=Height-302+"px";
-}
+function resize(){{{
+	Width = window.innerWidth;
+	Height = window.innerHeight;
+	if (document.getElementById("subnavigationscrollouter")){
+		document.getElementById("subnavigationscrollouter").style.height=Height-167+"px";
+		document.getElementById("contentinner").style.height=Height-302+"px";
+	}
+}}}
+function rollUp(x){{{
+	var a = document.getElementById("arollUp"+x);
+	var div = document.getElementById("divrollUp"+x);
+	var img = document.getElementById("imgrollUp"+x);
+	var ul = document.getElementById("subNavigation"+x);
+	rollUpHeightOriginals[x] = div.clientHeight;
+	div.style.visibility="collapse";
+	div.style.height=0;
+	a.href="javascript:rollDown('"+x+"');";
+	img.src="go-down.png";
+}}}
+function rollDown(x){{{
+	var a = document.getElementById("arollUp"+x);
+	var div = document.getElementById("divrollUp"+x);
+	var img = document.getElementById("imgrollUp"+x);
+	var ul = document.getElementById("subNavigation"+x);
+	div.style.visibility="visible";
+	div.style.height=rollUpHeightOriginals[x];
+	a.href="javascript:rollUp('"+x+"');";
+	img.src="go-up.png";
+}}}
+window.onresize=resize;
 function showstatus(stat){{{
 // Changes the text of the status line at the top to 'stat'
 	var statline=document.getElementById("statusline");
@@ -66,7 +94,7 @@ function markReadAll(feedid) {{{
 			feedarray[feedid][2][itemid][4] = 1;
 		}
 		showItems(feedid);
-		document.getElementById("imgNewMessages"+feedid).style.visibility="hidden";
+		document.getElementById("aNewMessages"+feedid).style.visibility="hidden";
 	}
 }}}
 function showDetails(feedid, itemid){{{
@@ -101,7 +129,7 @@ function showDetails(feedid, itemid){{{
 		}
 	}
 	if (newitems == 0){
-		document.getElementById("imgNewMessages"+feedid).style.visibility="hidden";
+		document.getElementById("aNewMessages"+feedid).style.visibility="hidden";
 	}
 }}}
 function showItems(id){{{
@@ -186,9 +214,9 @@ function processFeed() {{{
 				}
 
 				if (isread.firstChild.nodeValue == 0){
-					var img = document.getElementById("imgNewMessages"+feedarrayitem);
-					if (img){
-						img.style.visibility="visible";
+					var a = document.getElementById("aNewMessages"+feedarrayitem);
+					if (a){
+						a.style.visibility="visible";
 					}
 				}
 				item=item.nextSibling;
@@ -256,18 +284,43 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 			div.style.top="0px";
 			div.style.left="0px";
 
+			divdiv=document.createElement("div");
+
+			a=document.createElement("a");
+			var img=document.createElement("img");
+			a.href="javascript:rollUp('"+i+"');";
+			a.id="arollUp"+i;
+			divdiv.style.position="absolute";
+			divdiv.style.right="0px";
+			divdiv.style.top="0px";
+			img.title="Close";
+			img.src="go-up.png";
+			img.border=0;
+			img.border=0;
+			img.id="imgrollUp"+i;
+			a.appendChild(img);
+			divdiv.appendChild(a);
+			div.appendChild(divdiv);
+
 			td.appendChild(div);
 			tr.appendChild(td);
 			tbody.appendChild(tr);
 			table.appendChild(tbody);
 			parentNavigation.appendChild(table);
 
+			div=document.createElement("div");
+			div.id="divrollUp"+i;
+			div.style.position="relative";
+			div.style.top="0px";
+			div.style.left="0px";
 			var ul=document.createElement("ul");
 			ul.style.paddingLeft="10px";
 			ul.style.marginTop="0px";
 			ul.style.marginBottom="0px";
+			ul.id="subNavigation"+i;
 
-			parentNavigation.appendChild(ul);
+			div.appendChild(ul);
+			parentNavigation.appendChild(div);
 			showNavigation(hierarchyLevel[i][3], ul);
 			continue;
 		}
@@ -321,9 +374,9 @@ function showNavigation(hierarchyLevel, parentNavigation) {{{
 		img.src="mail-message-new.png";
 		img.border=0;
 		img.border=0;
-		img.id="imgNewMessages"+feedarrayindex;
-		img.style.visibility="hidden";
 		a.appendChild(img);
+		a.id="aNewMessages"+feedarrayindex;
+		a.style.visibility="hidden";
 		divdiv.appendChild(a);
 		div.appendChild(divdiv);
 
