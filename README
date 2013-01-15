@@ -1,11 +1,3 @@
-blindRSS
-========
-
-Simple Web-based RSS reader writtin in PHP.
-
-Licenses
-========
-
 This program is in the public domain.
 
 The feedParser and xmlParser files are licensed under the GPL.

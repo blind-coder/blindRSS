@@ -1,0 +1,423 @@
+<html>
+<head>
+<link rel='stylesheet' href='style.css'>
+<script type="text/javascript">
+var feedarray = new Array();
+var feedbeingreloaded = 0;
+var reloadall = 0;
+var request;
+
+function showstatus(stat){{{
+	var statline=document.getElementById("statusline");
+
+	statline.firstChild.nodeValue="Status: " + stat;
+}}}
+function ajaxManager() {{{
+	var r;
+	if (document.getElementById) {
+		if (window.XMLHttpRequest) {
+			r=new XMLHttpRequest();
+		}
+	}
+	if (r){
+		return r;
+	} else {
+		alert ("Too cool for IE!");
+	}
+}}}
+function processMarkRead() {{{
+	if (request.readyState == 4) {
+		if (request.status == 200){
+		} else {
+			showstatus("Error marking entry as 'read': " + request.status + " " + request.statusText);
+		}
+	}
+}}}
+function showDetails(feedid, itemid){{{
+	var contentheadline=document.getElementById("contentheadline");
+	var contentcontent=document.getElementById("contentcontent");
+
+	contentheadline.firstChild.nodeValue=feedarray[feedid][2][itemid][0];
+	contentheadline.href=feedarray[feedid][2][itemid][2];
+	/*while (contentcontent.hasChildNodes()){
+		contentcontent.removeChild(contentcontent.firstChild);
+	}
+	for (var i=0; i<feedarray[feedid][2][itemid][1].length; i++){
+		contentcontent.appendChild(document.createTextNode(feedarray[feedid][2][itemid][1][i]));
+		contentcontent.appendChild(document.createElement("br"));
+	}*/
+	var txt;
+	for (var i=0; i<feedarray[feedid][2][itemid][1].length; i++){
+		if (txt){
+			txt = txt + feedarray[feedid][2][itemid][1][i] + "<br>";
+		} else {
+			txt = feedarray[feedid][2][itemid][1][i] + "<br>";
+		}
+	}
+
+	contentcontent.innerHTML=txt;
+	request=ajaxManager();
+
+	request.open("GET", "markread.php?itemid="+feedarray[feedid][2][itemid][3], true);
+	feedarray[feedid][2][itemid][4] = 1;
+	showItems(feedid);
+	request.onreadystatechange = processMarkRead;
+	showstatus("Marking entry as 'read'");
+	request.send(null);
+	var newitems = 0;
+	for (var i=0; i<feedarray[feedid][2].length; i++){
+		if (feedarray[feedid][2][i][4] == 0){ // not read
+			newitems++;
+		}
+	}
+	if (newitems == 0){
+		document.getElementById("imgNewMessages"+feedid).style.visibility="hidden";
+	}
+}}}
+function showItems(id){{{
+	var feed;
+	feed = feedarray[id];
+
+	var div = document.getElementById("subnavigation");
+	if (div.firstChild){
+		while(div.firstChild){
+			div.removeChild(div.firstChild);
+		}
+	}
+	for (var i=0; i < feed[2].length; i++){
+		var a=document.createElement("a");
+		a.href="javascript:showDetails("+id+","+i+");";
+		a.appendChild(document.createTextNode(feed[2][i][0]));
+
+		if(feed[2][i][4] == 1){
+			div.appendChild(a);
+		} else {
+			var b = document.createElement("b");
+			b.appendChild(a);
+			div.appendChild(b);
+		}
+		div.appendChild(document.createElement("br")); *
+	}
+}}}
+function processFeed() {{{
+	if (request.readyState == 4) {
+		if (request.status == 200){
+			showstatus("Reloading feed");
+			var feed = request.responseXML.firstChild;
+			var id = feed.firstChild;
+			var item = id.nextSibling;
+			var feedarrayptr;
+			var feedarrayid;
+			var feedarrayitem;
+			for (var i=0; i<feedarray.length; i++){
+				if (feedarray[i][0] == id.firstChild.nodeValue){
+					feedarrayid=i;
+					feedarrayptr=feedarray[i];
+					feedarrayitem=i;
+					i=feedarray.length;
+				}
+			}
+			if (!feedarrayptr){
+				showstatus("Couldn't find feed id " + id.firstChild.nodeValue);
+				return;
+			}
+			feedarrayptr[2] = new Array();
+			feedarrayptr = feedarrayptr[2];
+			while(item){
+				var itemid = item.firstChild;
+				var title = itemid.nextSibling;
+				var content = title.nextSibling;
+				var link = content.nextSibling;
+				var isread = link.nextSibling;
+
+				var newitem = feedarrayptr.length;
+
+				feedarrayptr[newitem] = new Object();
+				feedarrayptr[newitem][0] = title.firstChild.nodeValue;
+				feedarrayptr[newitem][1] = new Array();
+				var line = content.firstChild;
+				var ptr = feedarrayptr[newitem][1];
+				while (line && line.firstChild){
+					ptr[ptr.length] = line.firstChild.nodeValue;
+					line=line.nextSibling;
+				}
+				if (link.firstChild){
+					feedarrayptr[newitem][2] = link.firstChild.nodeValue;
+				}
+				if (itemid.firstChild){
+					feedarrayptr[newitem][3] = itemid.firstChild.nodeValue;
+				}
+				if (isread.firstChild){
+					feedarrayptr[newitem][4] = isread.firstChild.nodeValue;
+				}
+
+				if (isread.firstChild.nodeValue == 0){
+					var img = document.getElementById("imgNewMessages"+feedarrayitem);
+					if (img){
+						img.style.visibility="visible";
+					}
+				}
+				item=item.nextSibling;
+			}
+			showstatus("Feed reloaded");
+			request = null;
+			if (reloadall == 1){
+				reloadAllFeeds();
+			} else {
+				showItems(feedarrayitem);
+			}
+		} else {
+			showstatus("Error fetching Feed: " + request.status + " " + request.statustext);
+		}
+	}
+}}}
+function reloadFeed(i){{{
+	showstatus("Loading contents of '" + feedarray[i][1] + "'");
+	request=ajaxManager();
+	if (document.getElementById("onlyunread").checked){
+		request.open("GET", "feed.php?id="+feedarray[i][0]+"&onlychecked=1", true);
+	} else {
+		request.open("GET", "feed.php?id="+feedarray[i][0], true);
+	}
+	request.onreadystatechange=processFeed;
+	request.send(null);
+}}}
+function reloadAllFeeds(){{{
+	reloadall = 1;
+	if(feedarray[feedbeingreloaded]){
+		request=ajaxManager();
+		showstatus("Reloading Feed '" + feedarray[feedbeingreloaded][1] + "'");
+		if (document.getElementById("onlyunread").checked){
+			request.open("GET", "feed.php?id="+feedarray[feedbeingreloaded][0]+"&onlychecked=1", true);
+		} else {
+			request.open("GET", "feed.php?id="+feedarray[feedbeingreloaded][0], true);
+		}
+		request.onreadystatechange=processFeed;
+		request.send(null);
+		feedbeingreloaded++;
+	} else {
+		feedbeingreloaded = 0;
+		reloadall = 0;
+		showstatus("All feeds (re)loaded");
+		return;
+	}
+}}}
+function processFeedList() {{{
+	if (request.readyState == 4) {
+		if (request.status == 200){
+			var navigation=document.getElementById("navigation");
+			var feeds;
+			var feed;
+			feeds=request.responseXML.firstChild;
+			feed=feeds.firstChild;
+			while(feed){
+				/* childNode[0]: id
+				   childNode[1]: name */
+				var newelement = feedarray.length;
+				var id;
+				var name;
+				id=feed.childNodes[0].firstChild.nodeValue;
+				name=feed.childNodes[1].firstChild.nodeValue;
+
+				var table=document.createElement("table");
+				var tbody=document.createElement("tbody");
+				var tr=document.createElement("tr");
+				var td=document.createElement("td");
+				var div=document.createElement("div");
+				var divdiv=document.createElement("div");
+
+				td.setAttribute("class", "navigationheadline");
+				var a = document.createElement("a");
+				a.href="javascript:showItems("+newelement+");";
+				a.appendChild(document.createTextNode(name));
+				div.appendChild(a);
+				div.style.position="relative";
+				div.style.top="0px";
+				div.style.left="0px";
+
+				divdiv=document.createElement("div");
+
+				a=document.createElement("a");
+				var img=document.createElement("img");
+				a.href="javascript:reloadFeed("+newelement+");";
+				divdiv.style.position="absolute";
+				divdiv.style.right="32px";
+				divdiv.style.top="0px";
+				img.title="Reload this feed";
+				img.src="view-refresh.png";
+				img.border=0;
+				img.border=0;
+				a.appendChild(img);
+				divdiv.appendChild(a);
+				div.appendChild(divdiv);
+
+				divdiv=document.createElement("div");
+
+				var img=document.createElement("img");
+				divdiv.style.position="absolute";
+				divdiv.style.right="48px";
+				divdiv.style.top="0px";
+				img.title="New messages!";
+				img.src="mail-message-new.png";
+				img.border=0;
+				img.border=0;
+				img.id="imgNewMessages"+newelement;
+				img.style.visibility="hidden";
+				divdiv.appendChild(img);
+				div.appendChild(divdiv);
+
+				a=document.createElement("a");
+				a.href="javascript:removeFeed("+id+");";
+				divdiv=document.createElement("div");
+				divdiv.style.position="absolute";
+				divdiv.style.right="0px";
+				divdiv.style.top="0px";
+				img=document.createElement("img");
+				img.title="Delete this feed";
+				img.src="process-stop.png";
+				img.border=0;
+				img.border=0;
+				a.appendChild(img);
+				divdiv.appendChild(a);
+				div.appendChild(divdiv);
+				td.appendChild(div);
+				tr.appendChild(td);
+
+				tbody.appendChild(tr);
+				table.appendChild(tbody);
+				table.setAttribute("id", "feed"+id);
+				navigation.appendChild(table);
+
+				feedarray[newelement] = new Object();
+				feedarray[newelement][0] = id;
+				feedarray[newelement][1] = name;
+				feed=feed.nextSibling;
+			}
+			showstatus(feedarray.length + " Feeds loaded");
+			reloadAllFeeds();
+		} else {
+			showstatus("Error fetching FeedList: " + request.status + " " + request.statustext);
+		}
+	}
+}}}
+function loadFeeds() {{{
+	var navigation=document.getElementById("navigation");
+
+	while (navigation.lastChild){
+		navigation.removeChild(navigation.lastChild);
+	}
+	feedarray = new Array();
+	showstatus("Loading Feeds");
+	request=ajaxManager();
+
+	request.open("GET", "feeds.php", true);
+	request.onreadystatechange = processFeedList;
+	request.send(null);
+}}}
+function processAddDelFeed() {{{
+	if (request.readyState == 4) {
+		if (request.status == 200){
+			status=request.responseXML.firstChild;
+			alert(status.firstChild.nodeValue);
+			loadFeeds();
+		}
+	}
+}}}
+function addFeed(){{{
+	request=ajaxManager();
+
+	request.open("GET", "add.php?url="+document.getElementById("addUrl").value+"&name="+document.getElementById("addName").value);
+	request.onreadystatechange = processAddDelFeed;
+	request.send(null);
+}}}
+function removeFeed(feedid){{{
+	if (confirm("Really delete Feed?")){
+		request=ajaxManager();
+
+		request.open("GET", "del.php?id="+feedid);
+		request.onreadystatechange = processAddDelFeed;
+		request.send(null);
+	}
+}}}
+</script>
+</head>
+<body onLoad="javascript:loadFeeds();">
+<table class='main'>
+	<tr class='headline'>
+		<td colspan='2'>
+			<table width='100%'>
+				<tr>
+					<td width='50%' class='headline' align='left'>blindRSS</td>
+					<td width='50%' valign='top' align='right'>
+						<nobr><form><input type='text' id='addUrl' value='http://foo/bar.rss'> <input type='text' id='addName' value='Foobar RSS'><input type='button' value='add feed' onclick="javascript:addFeed();"></form></nobr><br>
+						<a href='javascript:reloadAllFeeds();'><img src='view-refresh.png' border='0'></a><br>
+						Show only unread <input type='checkbox' id='onlyunread' name='onlyunread' checked>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<tr class='subheadline'>
+		<td class='subheadline' colspan='2'>blindcoders simple RSS Reader</td>
+	</tr>
+	<tr class='statusline'>
+		<td id='statusline' class='statusline' colspan='2'>Status: </td>
+	</tr>
+	<tr class='main'>
+		<td class='left' valign='top'>
+			<div id='subnavigationscroll' dir="rtl" style="height: 400px; width:100%; overflow: auto;">
+				<div width="100%" dir="ltr">
+					<table class='navigation'>
+						<tr class='navigation'>
+							<td id='navigation' class='navigation'>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</td>
+		<td class='right' valign='top'>
+			<table class='content'>
+				<tr class='content'>
+					<td class='content'>
+						<div id='subnavigationscroll' dir="rtl" style="height:80px; width:100%; overflow: auto;">
+							<div width="100%" dir="ltr" id='subnavigation'>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<hr>
+					</td>
+				</tr>
+				<tr class='content'>
+					<td class='content'>
+						<div dir='rtl' style="height:295px; width:100%; overflow: auto;">
+							<div width="100%" dir="ltr">
+								<table>
+									<tr>
+										<td class='contentheadline'>
+											<b><a href='#' id="contentheadline">Welcome to blindRSS</a></b>
+										</td>
+									</tr>
+									<tr>
+										<td id="contentcontent" class='contentcontent'>
+											blindRSS is a very simple browser-operated RSS reader.<br>
+											You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
+											It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
+											<br>
+											Enjoy :-)
+										</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+</body>
+</html>

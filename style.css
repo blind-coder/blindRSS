@@ -1,0 +1,45 @@
+body {
+	background-color: #ffffff;
+	color: #000000;
+	text-align: center;
+}
+
+a {
+	text-decoration: none;
+	color: #C00000;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+td.navigation a {
+	color: #0000FF;
+	font-weight: normal;
+}
+table {
+	width: 100%;
+}
+
+table.main {
+	width: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+
+td {
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+}
+
+td.left {
+	width: 20%;
+}
+
+td.headline {
+	font-size: 24pt;
+}
+td.navigationheadline, td.contentheadline, td.headline {
+	background: #ffffff url(background.jpg) repeat-x; 
+}
