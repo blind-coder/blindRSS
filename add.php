@@ -9,6 +9,16 @@ if ($ISDEMO){
 	mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
 	mysql_select_db($MYSQL_DB);
 
+	if ($_GET["name"] == ""){
+		$f = fopen($_GET["url"], "rb");
+		$stream = stream_get_contents($f);
+		fclose($f);
+		$stream = preg_replace("/\n/", "", $stream);
+		preg_match("/<title>([^<]*)<\/title>/", $stream, $matches);
+		$_GET["name"] = $matches[1];
+		if ($_GET["name"] == "")
+			$_GET["name"] = "Unknown feed";
+	}
 	foreach (Array("name", "url", "parentID") as $x)
 		$_GET[$x] = mysql_real_escape_string($_GET[$x]);
 	$q = mysql_query("SELECT * FROM feeds WHERE `url` = '".$_GET['url']."' AND `url` != ''");

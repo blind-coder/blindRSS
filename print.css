@@ -7,26 +7,29 @@ html
 
 body
 {
+  background: #FFF;
   height: 100%;
   margin: 0;
   padding: 0;
-  /*font-family: "Myraid Pro", "Trebuchet", "Trebuchet MS", Verdana, Arial, sans-serif;*/
-  background: #d9e5ef;
-  overflow: hidden;
+  font-family: "Myraid Pro", "Trebuchet", "Trebuchet MS", Verdana, Arial, sans-serif;
 }
 .wrapper
 {
-  background: url(images_Tidy_Blog/bg.gif) top left repeat-x;
-  width: 100% !important;
-  height: 100% !important;
+  background: #FFF;
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  position: relative;
 }
 .container
 {
+  width: 980px;
   margin: 0;
   padding: 0;
 }
 #searchBar
 {
+  width: 250px;
   float: right;
   margin: 0 10px 0 0;
   padding: 0;
@@ -35,12 +38,12 @@ body
 {
   margin: 2px 0 0;
   padding: 0;
-  color: #FFF;
   font-weight: bold;
   line-height: .8em;
 }
 #searchBar .content
 {
+  background: #FFF;
   margin: 0;
   padding: 0;
   height: 18px;
@@ -53,7 +56,7 @@ form
 #searchBar .content form input.search
 {
   background: #FFF;
-  border: 0 none;
+  border: 1px solid #333;
   margin: 0;
   padding: 0;
   width: 220px;
@@ -67,34 +70,19 @@ form
   float: right;
 }
 
-.searchMatch
-{
-  color: #FFFFFF !important;
-  font-weight: bold;
-  background-color: #FF0000;
-}
-.menuOuter
-{
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  background-color: #000000;
-  visibility: hidden;
-}
-
 .icon
 {
-  width: 306px;
+  width: 206px;
   height: 164px;
   margin: 0 15px 0 38px !important;
   margin: 0 15px 0 19px;
   padding: 0 ;
-/* background: #b2c979; */
+  background: #b2c979;
   float: left;
   text-align: center;
   vertical-align: middle;
-/*  border: #FFF solid;
- border-width: 0 2px 2px;*/
+  border: #FFF solid;
+  border-width: 0 2px 2px;
 }
 
 .icon img
@@ -103,12 +91,9 @@ form
 }
 #title
 {
-  height: 85px;
   margin: 0;
-  padding: 5px 0 0 5px;
+  padding: 5px 0 0;
   clear: right;
-  color: #e5ebdf;
-  color: #FFF;
 }
 #title h1
 {
@@ -121,7 +106,7 @@ form
 {
   font-size: 1.3em;
   line-height: .8em;
-  margin: 0 0 10px 0;
+  margin: 0;
   padding: 0;
   font-weight: normal;
 }
@@ -129,8 +114,8 @@ form
 #navigation
 {
   position: absolute;
-  top: 0px;
-  left: 360px;
+  top: 122px;
+  left: 260px;
   width: 700px;
 }
 
@@ -146,7 +131,7 @@ form
 #navigation ul li
 {
   float: left;
-  margin: 0 0px 0 0;
+  margin: 0 12px 0 0;
   padding: 0;
   width: 119px;
   height: 34px;
@@ -162,23 +147,6 @@ form
   margin: 0;
   padding: 10px 0 0;
   text-align: center;
-  color: #7c8c9b;
-  text-decoration: none;
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.menuInner
-{
-  margin: 1px 1px 1px 1px;
-  border: 1px 1px 1px 1px;
-  background: #d9e5ef;
-}
-
-.menuInner a
-{
-  display: block;
-  color: #7c8c9b;
   text-decoration: none;
   font-weight: bold;
   text-transform: uppercase;
@@ -186,13 +154,10 @@ form
 
 #navigation ul li a:hover
 {
-  color: #93a6b7;
-  color: #EEE;
 }
 
 #navigation ul li a.selected, #navigation ul li a.selected:hover
 {
-  color: #343434;
 }
 
 #navigation ul li a.selected:hover
@@ -204,36 +169,33 @@ form
 #body
 {
   float: left;
-  margin-bottom: 0px;
+  margin-bottom: 220px;
 }
 
 #body .sidebar
 {
-  margin: 0px 0 0 0px;
+  margin: 10px 0 0 50px !important;
+  margin: 10px 0 0 25px;
+  width: 170px;
+  float: left;
   font-size: .9em;
-  color: #465052;
-  overflow: auto;
 }
 
 #body .sidebar h3
 {
-  color: #465052;
 }
 
 #body .sidebar .content
 {
-  margin: 0px 0 0px 0px !important;
+  margin: 3px 0 3px 10px !important;
   padding: 0;
   width: auto;
   float: none;
-  color: #465052;
 }
 
 #body form input, #body form textarea, #body .sidebar select
 {
   border: 1px solid #465052;
-  background: #e0edf7;
-  color: #465052;
   width: 100%;
 }
 
@@ -247,38 +209,35 @@ form
 {
   list-style: none;
   padding: 0;
+  margin: 0;
   border: none;
   list-style-image: none;
 }
 
-#body .sidebar td.feedgroup
-{
-  padding: 0;
-  font-weight: bold;
-}
-
-#body .sidebar td.feed
+#body .sidebar ul.links li
 {
   padding: 0;
   border-bottom: #7c8c9b solid 1px;
+  height: 1.7em;
 }
 
-#body .sidebar td.feed a
+#body .sidebar ul.links li a
 {
-  color: #465052;
+  padding: 2px 6px;
+  display: block;
   text-decoration: none;
 }
 
 #body .sidebar ul.links li a:hover
 {
-  background: #e0edf7;
+
 }
  
 #body .content
 {
   float: left;
-  width: 910px;
-  margin: 0px 0 0 0px;
+  width: 710px;
+  margin: 10px 0 0 30px;
   padding: 0;
   color: #59452a;
 }
@@ -319,9 +278,8 @@ form
 
 #body .content .comments .comment
 {
-  margin: 0 0 0 0px;
+  margin: 0 0 0 10px;
   font-size: 10pt;
-  background: url(images_Tidy_Blog/comment_corner.gif) top left no-repeat;
   padding: 20px 0 0 27px;
 }
 
@@ -380,9 +338,7 @@ h4
 #footer
 {
   clear: both;
-  position: absolute;
-  bottom: 0 !important;
-  bottom: -1px;
+
   width: 100%;
   margin: 0;
   padding: 0;
@@ -393,7 +349,6 @@ h4
   clear: both;
   margin: 0;
   padding: 0;
-  background:url(images_Tidy_Blog/footer_bg.gif) bottom left repeat-x;
 }
 
 #footHead .head
@@ -424,7 +379,6 @@ h4
 {
   clear: both;
   width: 100%;
-  background: #59452a;
   margin: 0;
   padding: 0;
 }
@@ -441,7 +395,6 @@ h4
   float: left;
   margin: 0;
   padding: 0;
-  color: #FFFFCC;
 }
 
 .clear
@@ -481,34 +434,106 @@ h4
 
 #footer #footBody ul li a
 {
-  color: #DDA;
   text-decoration: none;
+  color: #59452a;
   display: block;
   padding: 3px;
 }
 
 #footer #footBody ul li a:hover
 {
-  background: #705735;
+
 }
 
 #copyright
 {
-  background: #372b1a;
-  color: #DDA;
   border-top: 1px solid;
   height: 1.7em;
 }
 
 #copyright a
 {
-  color: #DDA;
 }
 
 #copyright .container
 {
 
   text-align: right;
+}
+
+
+
+
+
+
+
+
+/*  Calendar  */
+
+#calendar a {
+	color: #DF9496;
+}
+
+#calendar {
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	border-left: 1px solid #A2ADBC;
+	font: normal 12px/20px;
+	color: #616B76;
+	text-align: center;
+}
+
+#calendar .nav, #calendar .nav a {
+	font: bold 18px;
+	color: #fff;	
+	text-align: center;
+	text-decoration: none;
+}	
+
+
+#calendar caption {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	color: #fff;	 
+	font: bold 12px;
+	text-align: center;
+}
+
+#calendar th {
+	font: bold 11px/20px;
+	color: #616B76;
+	border-right: 1px solid #A2ADBC;
+	border-bottom: 1px solid #A2ADBC;
+	border-top: 1px solid #A2ADBC;
+}
+
+#calendar .today, #calendar td.today a, #calendar td.today a:link, #calendar td.today a:visited {
+	color: #F6F4DA;
+	font-weight: bold;
+}
+
+#calendar td {
+	border-right: 1px solid #A2ADBC;
+	border-bottom: 1px solid #A2ADBC;
+	width: 20px;
+	height: 20px;
+	text-align: center;
+}
+
+#calendar td a {
+	text-decoration: none;
+	font-weight: bold;
+	display: block;
+}
+
+#calendar td a:link, #calendar td a:visited {	
+	color: #608194;
+}
+
+#calendar td a:hover, #calendar td a:active {
+	color: #6aa3ae;
 }
 
 /*  General Elements  */
@@ -533,7 +558,6 @@ code
 
 blockquote
 {
-  background: #ecf2e6 url(images_Tidy_Blog/quote.gif) top left no-repeat;
   margin: 5px 20px;
   padding: 5px 5px 5px 43px;
   border: 1px solid #d3d9ce;
@@ -551,7 +575,7 @@ ol li ol li ol
 
 ul
 {
-  list-style-image: url(images_Tidy_Blog/arrow.gif);
+  list-style-image: url(../images/arrow.gif);
   padding-left: 30px;
 }
 

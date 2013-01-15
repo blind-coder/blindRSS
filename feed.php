@@ -1,8 +1,8 @@
 <?
 include("config.php");
 header ("Content-Type: text/xml");
-echo "<?xml version=\"1.0\"?>\n\n";
-echo "<feed><id>".$_GET['id']."</id>";
+echo utf8_encode("<?xml version=\"1.0\"?>\n\n");
+echo utf8_encode("<feed><id>".$_GET['id']."</id>");
 mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
 mysql_select_db($MYSQL_DB);
 if ($_GET['onlychecked'] == 1){
@@ -14,15 +14,15 @@ while ($r = mysql_fetch_object($q)){
 	if ($r->title == ""){
 		$r->title="no title";
 	}
-	echo "<item><id>$r->ID</id><title>".htmlspecialchars($r->title)."</title><content>";
+	echo utf8_encode("<item><id>$r->ID</id><title>".htmlspecialchars($r->title)."</title><content>");
 	foreach (split("\n", str_replace("<p>", "\n", str_replace("<br>", "\n", $r->description))) as $key => $value){
 		$value = htmlspecialchars(($value));
 		if ($value == ""){
 			$value = "&amp;nbsp;";
 		}
-		echo "<line>".$value."</line>";
+		echo utf8_encode("<line>".$value."</line>");
 	}
-	echo "</content><link>".htmlspecialchars($r->link)."</link><isread>$r->isread</isread></item>";
+	echo utf8_encode("</content><link>".htmlspecialchars($r->link)."</link><isread>$r->isread</isread></item>");
 }
-echo "</feed>";
+echo utf8_encode("</feed>");
 ?>

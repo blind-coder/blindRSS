@@ -11,9 +11,13 @@ if ($ISDEMO){
 
 	$q = mysql_query("SELECT * FROM feeds WHERE ID='".mysql_real_escape_string($_GET['id'])."'");
 	$feed = mysql_fetch_object($q);
+	if ($feed->url == "SPECIAL"){
+		echo "<status>Refusing to delete special feed!</status>";
+		exit;
+	}
 	mysql_query("DELETE FROM feeds WHERE ID = $feed->ID LIMIT 1");
 	mysql_query("UPDATE feeds SET endID=endID-2 WHERE endID >= $feed->endID");
-	mysql_query("UPDATE feeds SET startID=startID-2 WHERE startID >= $feed->endID"); # $r->endID is correct!
+	mysql_query("UPDATE feeds SET startID=startID-2 WHERE startID >= $feed->endID"); # $feed->endID is correct!
 	echo "<status>";
 	if (mysql_error()){
 		echo mysql_error();
