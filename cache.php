@@ -1,5 +1,5 @@
 <?
-include("config.php");
+include("etc/config.php");
 header ("Content-Type: application/octet-stream");
 #header ("Content-Type: text/plain");
 

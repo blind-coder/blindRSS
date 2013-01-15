@@ -1,11 +1,12 @@
 <?
-include("config.php");
+include("etc/config.php");
 define("MAGPIE_CACHE_ON", FALSE);
 define('MAGPIE_USER_AGENT', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.1) Gecko/2008070208 Firefox/3.0.1');
-require_once("rss_fetch.inc");
+require_once("etc/rss_fetch.inc");
 
 mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS) || die (mysql_error());
 mysql_select_db($MYSQL_DB) || die (mysql_error());
+mysql_query("SET NAMES 'utf8';");
 
 /* Purge old entries */
 mysql_query("SELECT `value` INTO @x FROM options WHERE `key` = 'purgeAfter'; DELETE FROM `entries` WHERE `date` < SUBDATE(CURDATE(), INTERVAL @x DAY);");
@@ -132,7 +133,7 @@ while ($feed = mysql_fetch_object($query_feeds)){
 							fwrite($fd, $content);
 							fclose($fd);
 						}
-						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"cache.php?q=".base64_encode($url)."\"", $desc);
+						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"rest.php/cache/".base64_encode($url)."\"", $desc);
 					} else {
 						$query = sprintf("SELECT * FROM cache WHERE sha1_link='%s'", $url_sha1);
 						$query_cache = my_mysql_query($query);
@@ -143,7 +144,7 @@ while ($feed = mysql_fetch_object($query_feeds)){
 								$url, $url_sha1, $content);
 							my_mysql_query($query);
 						}
-						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"cache.php?q=".$url_sha1."\"", $desc);
+						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"rest.php/cache/".$url_sha1."\"", $desc);
 					}
 				}
 			}
