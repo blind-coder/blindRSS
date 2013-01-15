@@ -1,8 +1,6 @@
 <?
 include("etc/config.php");
-define("MAGPIE_CACHE_ON", FALSE);
-define('MAGPIE_USER_AGENT', 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.1) Gecko/2008070208 Firefox/3.0.1');
-require_once("etc/rss_fetch.inc");
+require_once("autoloader.php");
 
 mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS) || die (mysql_error());
 mysql_select_db($MYSQL_DB) || die (mysql_error());
@@ -42,8 +40,12 @@ function my_mysql_query($query){
 $query_feeds = my_mysql_query("SELECT * FROM feeds WHERE `url` != '' AND `url` IS NOT NULL AND `url` != 'SEARCHRESULTS'");
 while ($feed = mysql_fetch_object($query_feeds)){
 	echo "Fetching $feed->url\n";
-	$magpie = fetch_rss($feed->url);
-	if (!$magpie){ continue; }
+	$SimplePie = new SimplePie();
+	$SimplePie->set_feed_url($feed->url);
+	$SimplePie->set_useragent("blindRSS");
+	$SimplePie->init();
+	$SimplePie->handle_content_type();
+	if (!$SimplePie){ continue; }
 	$feedfilter = array();
 	$query = sprintf("SELECT * FROM filter WHERE feedID = '%s'", $feed->ID);
 	$query_filter = my_mysql_query($query);
@@ -52,56 +54,30 @@ while ($feed = mysql_fetch_object($query_feeds)){
 			$feedfilter[] = $filter;
 		}
 	}
-	foreach ($magpie->items as $feedEntry){
-		/* Sanitize some Umlauts */
-		$feedEntry['title'] = sanitize($feedEntry['title']);
-		if (!array_key_exists("description", $feedEntry)){
-			$feedEntry["description"] = "no content";
+	foreach ($SimplePie->get_items() as $feedEntry){
+		$title = $feedEntry->get_title();
+		$content = $feedEntry->get_content();
+		$timestamp = $feedEntry->get_local_date("U");
+		$guid = $feedEntry->get_id();
+		$link = $feedEntry->get_link();
+		if ($timestamp == null){
+			$timestamp = time();
 		}
-		$feedEntry['description'] = sanitize($feedEntry['description']);
-
-		/* We only deal in UTF8 */
-		foreach ($feedEntry AS $key => $value){
-			if (is_string($value)){
-				$feedEntry[$key] = utf8_encode($value);
-			}
-		}
-
-		/* Make sure we have a valid timestamp */
-		if (array_key_exists("date_timestamp", $feedEntry)){
-			if ($feedEntry['date_timestamp'] == ""){
-				$feedEntry['date_timestamp']=time();
-			}
-		} else {
-			$feedEntry['date_timestamp']=time();
-		}
-
-		/* Make sure we have a valid description */
-		if (!array_key_exists("description", $feedEntry)){
-			$feedEntry['description'] = "No description.";
-		}
-
-		/* Check for GUID */
-		if (array_key_exists("guid", $feedEntry)){
-			if (preg_match('/^http/', $feedEntry['guid']) && $feedEntry['guid'] != $feedEntry['link']){
-				$feedEntry['link'] = $feedEntry['guid'];
-			}
-		} elseif (!array_key_exists("link", $feedEntry)){
-			/* huh?! */
-			$feedEntry["link"] = $feedEntry["title"];
+		if ("x$content" == "x"){
+			$content = "No content.";
 		}
 
 		/* Set one last default */
-		$feedEntry['isread'] = '0';
+		$isread = 0;
 
 		/* Check filter lists */
 		foreach ($feedfilter AS $key => $value){
-			if (preg_match("/".$value->regex."/i", $feedEntry["title"]) ||
-			    preg_match("/".$value->regex."/i", $feedEntry["description"])){
+			if (preg_match("/{$value->regex}/i", $title) ||
+			    preg_match("/{$value->regex}/i", $content)){
 				if ($value->whiteorblack == "white"){
-					$feedEntry['isread'] = "0";
+					$isread = "0";
 				} else {
-					$feedEntry['isread'] = "1";
+					$isread = "1";
 				}
 			}
 		}
@@ -109,7 +85,7 @@ while ($feed = mysql_fetch_object($query_feeds)){
 		if ($feed->cacheimages == "yes"){
 			$url_base = preg_replace(",/[^/]*$,", "/", $feed->url);
 			$url_domain = preg_replace(",^(https?://[^/]*/).*$,", "$1", $feed->url);
-			$desc = $feedEntry["description"];
+			$desc = $content;
 			if (preg_match_all(",<img.*?src=[\"\']?(.*?)[\"\']?[ >],i", $desc, $match) > 0){
 				foreach ($match[1] AS $key => $value){
 					$url = $value;
@@ -148,46 +124,50 @@ while ($feed = mysql_fetch_object($query_feeds)){
 					}
 				}
 			}
-			$feedEntry["description"] = $desc;
+			$content = $desc;
 		}
 
 		/* Finally update the database */
-		$query = sprintf("SELECT * FROM entries WHERE feedID = '%s' AND sha1_link = '%s'", $feed->ID, sha1($feedEntry['link']));
+		$query = sprintf("SELECT * FROM entries WHERE feedID = '%s' AND sha1_link = '%s'", $feed->ID, sha1($link));
 		$query_oldentry = my_mysql_query($query);
 		if (mysql_num_rows($query_oldentry) > 0){
 			$oldFeedEntry = mysql_fetch_array($query_oldentry);
 			/* We have an old entry in this feed with this URL, now check if it's new */
-			if ($oldFeedEntry["title"] != $feedEntry["title"] ||
-			    $oldFeedEntry["description"] != $feedEntry["description"]){
+			if ($oldFeedEntry["title"] != $title ||
+			    $oldFeedEntry["description"] != $content){
 				$query = sprintf("UPDATE entries SET title='%s', description='%s' WHERE ID = '%s'",
-					mysql_real_escape_string($feedEntry["title"]),
-					mysql_real_escape_string($feedEntry["description"]),
+					mysql_real_escape_string($title),
+					mysql_real_escape_string($content),
 					$oldFeedEntry["ID"]);
 				$query_oldFeedEntry = my_mysql_query($query);
+				echo "\tUPDATE: $title";
 				/* Reset isread? */
-				if ($feedEntry["isread"] == 1){ // forced read by blacklist
+				if ($isread == 1){ // forced read by blacklist
 					$query = sprintf("UPDATE entries SET isread='1' WHERE ID = '%s'",
 						$oldFeedEntry["ID"]);
 					my_mysql_query($query);
 				}
 				elseif ($unreadOnChange){
-					if ($oldFeedEntry["isread"] == "1" && $feedEntry["isread"] == "0"){
+					if ($oldFeedEntry["isread"] == "1" && $isread == "0"){
 						$query = sprintf("UPDATE entries SET isread='0' WHERE ID = '%s'",
 							$oldFeedEntry["ID"]);
 						my_mysql_query($query);
+						echo "and mark UNREAD";
 					}
 				}
+				echo "\n";
 			}
 		} else {
 			$query = sprintf("INSERT INTO entries (feedID, title, link, sha1_link, description, date, isread) ".
 				"VALUES ('%s', '%s', '%s', '%s', '%s', FROM_UNIXTIME('%s'), '%s')",
 				$feed->ID,
-				mysql_real_escape_string($feedEntry["title"]),
-				mysql_real_escape_string($feedEntry["link"]),
-				sha1(mysql_real_escape_string($feedEntry["link"])),
-				mysql_real_escape_string($feedEntry["description"]),
-				mysql_real_escape_string($feedEntry["date_timestamp"]),
-				$feedEntry["isread"]);
+				mysql_real_escape_string($title),
+				mysql_real_escape_string($link),
+				sha1(mysql_real_escape_string($link)),
+				mysql_real_escape_string($content),
+				mysql_real_escape_string($timestamp),
+				$isread);
+			echo "\t   NEW: $title\n";
 			my_mysql_query($query);
 		}
 	}
