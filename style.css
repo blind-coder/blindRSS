@@ -29,7 +29,7 @@ ul li a {
 ul.group>li>div>a.editButton, ul.feed>li>div>a.editButton {
 	visibility: hidden;
 }
-ul.group:hover>li>div>a.editButton, ul.feed:hover>li>div>a.editButton {
+ul.group>li:hover>div>a.editButton, ul.feed>li:hover>div>a.editButton {
 	visibility: visible;
 }
 ul#feed_1 {
