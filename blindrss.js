@@ -179,7 +179,7 @@ function FeedGetEntries(){{{
 				return;
 			}
 
-			var scrollTop = e.parent().scrollTop();
+			var scrollTop = e.parent().parent().scrollTop();
 			if (f.entry == 0){
 				e.empty();
 				e.append("<li class='nav-header'>Feedentries</li>");
@@ -204,9 +204,9 @@ function FeedGetEntries(){{{
 			e.append(li);
 
 			if (f.entry == 0){
-				e.parent().scrollTop(0);
+				e.parent().parent().scrollTop(0);
 			} else {
-				e.parent().scroll(scrollTop);
+				e.parent().parent().scroll(scrollTop);
 			}
 		},
 		complete: function(){ f.spin.spin(false); globalUlEntries.parent().spin(false); }
