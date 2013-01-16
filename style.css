@@ -23,6 +23,12 @@ ul li a {
 .inactive :hover {
 	background-color: #EEEEEE;
 }
+ul.group>li>div>a.icon-pencil, ul.feed>li>div>a.icon-pencil {
+	visibility: hidden;
+}
+ul.group:hover>li>div>a.icon-pencil, ul.feed:hover>li>div>a.icon-pencil {
+	visibility: visible;
+}
 ul#feed_1 {
 	padding: 0;
 }
