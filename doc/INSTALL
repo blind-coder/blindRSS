@@ -2,7 +2,7 @@ Installation should be quite simple:
 
 Put the complete extracted directory where your webserver can find it. Your webserver must support PHP.
 Create a database and run the SQL file DATABASELAYOUT.sql on it.
-Edit config.php to match the database.
+Copy etc/config.example.php to etc/config.php and edit to match the database.
 Create a cronjob that runs the file blindrss.php every once in a while.
 To run it every 15 minutes, it could look like this:
 
