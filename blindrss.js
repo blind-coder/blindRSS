@@ -170,6 +170,7 @@ function FeedGetEntries(){{{
 		dataType: "json",
 		success: function(data){
 			var e = globalUlEntries;
+
 			$("ul.feed li.active").toggleClass("inactive active");
 			f.li.toggleClass("inactive active");
 			if (data.length == 0){
@@ -177,6 +178,7 @@ function FeedGetEntries(){{{
 				e.append("<li class='loadMore inactive'>[ No more entries ]</li>");
 				return;
 			}
+
 			var scrollTop = e.parent().scrollTop();
 			if (f.entry == 0){
 				e.empty();
@@ -187,27 +189,10 @@ function FeedGetEntries(){{{
 				e.find(".loadMore").remove();
 			}
 			$.each(data, function(k, v){
-				var li = $("<li class='inactive' id='entry_"+v.ID+"' />");
-				if (v.isread == "0"){
-					li.addClass("new");
-				}
 				v.feed = f;
 				f.entries[v.ID] = new Entry(v);
-				li.append(
-					$("<a href='#' class='floatLeft icon-"+(v.isread == "0" ? "heart" : "star")+"'>&nbsp;</a>") /* bug in bootstraps .css? */
-					.on("click", function(){
-						f.entries[v.ID].toggleRead();
-					})
-				);
-				li.append(
-					$("<a href='#'></a>")
-					.append(v.title)
-					.on("click", function(){
-						f.entries[v.ID].show();
-					})
-				);
-				e.append(li);
 			});
+
 			var li = $("<li class='loadMore inactive' />");
 			li.append(
 				$("<a href='#'>[ Load 25 more entries ]</a>")
@@ -217,6 +202,7 @@ function FeedGetEntries(){{{
 				})
 			);
 			e.append(li);
+
 			if (f.entry == 0){
 				e.parent().scrollTop(0);
 			} else {
@@ -460,6 +446,25 @@ function Entry(data){{{
 	this.markRead = EntryMarkRead;
 	this.toggleRead = EntryToggleRead;
 	this.render = EntryRender;
+
+	var li = $("<li class='inactive' id='entry_"+this.data.ID+"' />");
+	if (this.data.isread == "0"){
+		li.addClass("new");
+	}
+	li.append(
+		$("<a href='#' class='floatLeft icon-"+(this.data.isread == "0" ? "heart" : "star")+"'>&nbsp;</a>") /* bug in bootstraps .css? */
+		.on("click", function(){
+			f.entries[this.data.ID].toggleRead();
+		})
+	);
+	li.append(
+		$("<a href='#'></a>")
+		.append(this.data.title)
+		.on("click", function(){
+			f.entries[this.data.ID].show();
+		})
+	);
+	globalUlEntries.append(li);
 }}}
 
 function getFeeds(){{{
