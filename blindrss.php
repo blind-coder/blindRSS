@@ -57,7 +57,7 @@ while ($feed = mysql_fetch_object($query_feeds)){
 	foreach ($SimplePie->get_items() as $feedEntry){
 		$title = $feedEntry->get_title();
 		$content = $feedEntry->get_content();
-		$timestamp = $feedEntry->get_local_date("U");
+		$timestamp = $feedEntry->get_date("U");
 		$guid = $feedEntry->get_id();
 		$link = $feedEntry->get_link();
 		if ($timestamp == null){
@@ -135,9 +135,10 @@ while ($feed = mysql_fetch_object($query_feeds)){
 			/* We have an old entry in this feed with this URL, now check if it's new */
 			if ($oldFeedEntry["title"] != $title ||
 			    $oldFeedEntry["description"] != $content){
-				$query = sprintf("UPDATE entries SET title='%s', description='%s' WHERE ID = '%s'",
+				$query = sprintf("UPDATE entries SET title='%s', description='%s', date=FROM_UNIXTIME(%s) WHERE ID = '%s'",
 					mysql_real_escape_string($title),
 					mysql_real_escape_string($content),
+					$timestamp,
 					$oldFeedEntry["ID"]);
 				$query_oldFeedEntry = my_mysql_query($query);
 				echo "\tUPDATE: $title";
@@ -159,7 +160,7 @@ while ($feed = mysql_fetch_object($query_feeds)){
 			}
 		} else {
 			$query = sprintf("INSERT INTO entries (feedID, title, link, sha1_link, description, date, isread) ".
-				"VALUES ('%s', '%s', '%s', '%s', '%s', FROM_UNIXTIME('%s'), '%s')",
+				"VALUES ('%s', '%s', '%s', '%s', '%s', FROM_UNIXTIME(%s), '%s')",
 				$feed->ID,
 				mysql_real_escape_string($title),
 				mysql_real_escape_string($link),
