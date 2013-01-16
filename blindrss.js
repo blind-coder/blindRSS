@@ -20,8 +20,8 @@ function max(a, b){{{
 	return b;
 }}}
 function resize(){{{
-	$(".sidebar").height(window.innerHeight-($(".sidebar").position().top + 25));
-	$("#content").height(window.innerHeight-($("#content").position().top + 25));
+	$("#navigation").height(window.innerHeight-($("#navigation").position().top + 40));
+	$("#content").height(window.innerHeight-($("#content").position().top + 60));
 }}}
 window.onresize=resize;
 
@@ -170,38 +170,46 @@ function FeedGetEntries(){{{
 		dataType: "json",
 		success: function(data){
 			var e = globalUlEntries;
+			$("ul.feed li.active").toggleClass("inactive active");
+			f.li.toggleClass("inactive active");
 			if (data.length == 0){
 				e.find(".loadMore").remove();
-				e.append("<li class='loadMore hover'>[ No more entries ]</li>");
+				e.append("<li class='loadMore inactive'>[ No more entries ]</li>");
 				return;
 			}
 			var scrollTop = e.parent().scrollTop();
 			if (f.entry == 0){
-				globalUlEntries.empty().parent().spin();
 				e.empty();
+				e.append("<li class='nav-header'>Feedentries</li>");
 				scrollTop = 0;
 				f.entries = new Array();
 			} else {
 				e.find(".loadMore").remove();
 			}
 			$.each(data, function(k, v){
-				var li = $("<li class='hover' id='entry_"+v.ID+"' />")
-					  .html(v.title.replace(/</, "&lt;").replace(/>/, "&gt;"));
+				var li = $("<li class='inactive' id='entry_"+v.ID+"' />");
 				if (v.isread == "0"){
 					li.addClass("new");
 				}
 				v.feed = f;
 				f.entries[v.ID] = new Entry(v);
-				li.on("click", function(){
-					f.entries[v.ID].show();
-				});
+				li.append(
+					$("<a href='#'></a>")
+					.append(v.title)
+					.on("click", function(){
+						f.entries[v.ID].show();
+					})
+				);
 				e.append(li);
 			});
-			var li = $("<li class='loadMore hover'>[ Load 25 more entries ]</li>");
-			li.on("click", function(){
-				f.entry += 25;
-				f.getEntries();
-			});
+			var li = $("<li class='loadMore inactive' />");
+			li.append(
+				$("<a href='#'>[ Load 25 more entries ]</a>")
+				.on("click", function(){
+					f.entry += 25;
+					f.getEntries();
+				})
+			);
 			e.append(li);
 			if (f.entry == 0){
 				e.parent().scrollTop(0);
@@ -322,7 +330,6 @@ function FeedDeleteFeed(){{{
 		}
 	});
 }}}
-
 function Feed(data){{{
 	var f = this;
 	globalFeeds[parseInt(data.ID)] = this;
@@ -345,7 +352,7 @@ function Feed(data){{{
 	}
 
 	this.ul = $("#feed_"+this.data.startID);
-	this.li = $("<li id='details_"+this.data.startID+"' class='hover' />");
+	this.li = $("<li id='details_"+this.data.startID+"' class='inactive' />");
 	this.spin = $("<span class='floatLeft spin' id='spinFeed_"+this.data.startID+"'>&nbsp;</span>");
 	this.nameFeed = $("<a class='nameFeed'>"+this.data.name+"</a>");
 	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
@@ -373,9 +380,7 @@ function Feed(data){{{
 	this.ul.attr("startID", this.data.startID)
 	       .attr("endID",   this.data.endID)
 	       .attr("group",   this.data.ID)
-	       .empty()
-	       .append(this.li)
-	       .addClass("hover");
+	       .append(this.li);
 	if (this.isDirectory){
 		this.ul.addClass("group");
 	} else {
@@ -415,6 +420,9 @@ function EntryMarkRead(){{{
 function EntryShow(){{{
 	$("#headline").empty().attr("href", this.data.link).html(this.data.title.replace(/</, "&lt;").replace(/>/, "&gt;"));
 	$("#content").empty().html(this.data.description.replace(/<(\/?)script/, "<$1disabledscript"));
+	$("ul#entries li.active").toggleClass("inactive active");
+	$("ul#entries li#entry_"+this.data.ID).toggleClass("inactive active");
+
 	this.markRead();
 }}}
 function Entry(data){{{
@@ -425,8 +433,8 @@ function Entry(data){{{
 
 function getFeeds(){{{
 	var feed_1 = $("#feed_1");
-	feed_1.empty();
-	$(".sidebar").spin();
+	//feed_1.empty();
+	$(".sidebar-nav").spin();
 	$.ajax({
 		url: "rest.php/feeds",
 		type: "GET",
@@ -440,7 +448,7 @@ function getFeeds(){{{
 			globalRootFeed = new Feed(data[0]);
 			globalRootFeed.getDetails();
 		},
-		complete: function(){ $(".sidebar").spin(false); }
+		complete: function(){ $(".sidebar-nav").spin(false); }
 	});
 }}}
 function startup(){{{

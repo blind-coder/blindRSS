@@ -1,54 +1,82 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<title>blindRSS</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf8" />
-<link rel="stylesheet" href="jquery/css/smoothness/jquery-ui-1.9.0.custom.css" />
-<link rel="icon" type="image/png" href="images/feed-icon-14x14.png" />
-<script src="jquery/js/jquery-1.8.2.js"></script>
-<script src="jquery/js/jquery-ui-1.9.0.custom.js"></script>
-<script src="spin.js"></script>
-<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
-<link rel="stylesheet" type="text/css" href="print.css" media="print" />
-<script src="blindrss.js"></script>
-</head>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>blindRSS</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf8" />
+		<link rel="icon" type="image/png" href="images/feed-icon-14x14.png" />
 
-<body>
-<div class="navigation">
-	<ul>
-		<li><input type='button' value='add Feed' onclick="javascript:showAddFeed();"></li>
-		<li><input type='button' value='Refresh' onclick="javascript:globalRootFeed.updateCount();"></li>
-	</ul>
-</div> <!-- navigation -->
-<div class="title">
-	<h1>blindRSS</h1>
-</div> <!-- title -->
-<table align="center" class="wrapper">
-	<tr>
-		<td width="20%" class="printRemove">
-			<div class="headline">Navigation</div>
-			<div class="sidebar">
-				<ul id='feed_1'/>
-			</div> <!-- sidebar -->
-		</td>
-		<td width="80%" valign='top' style="padding: 0;" class="printShow">
-			<div class="headline printRemove">Feed-Elements</div>
-			<div class="entries printRemove">
-				<ul id='entries'/>
+		<link rel="stylesheet" href="jquery/css/smoothness/jquery-ui-1.9.0.custom.css" />
+
+		<link rel="stylesheet" href="bootstrap/css/bootstrap.css" />
+		<link rel="stylesheet" href="bootstrap/css/bootstrap-responsive.css" />
+		<style type="text/css">
+			body {
+				padding-top: 60px;
+				padding-bottom: 40px;
+			}
+			.sidebar-nav {
+				padding: 9px 0;
+			}
+		</style>
+
+		<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+		<link rel="stylesheet" type="text/css" href="print.css" media="print" />
+
+		<script src="jquery/js/jquery-1.8.2.js"></script>
+		<script src="jquery/js/jquery-ui-1.9.0.custom.js"></script>
+		<script src="spin.js"></script>
+
+		<script src="bootstrap/js/bootstrap.js"></script>
+
+		<script src="blindrss.js"></script>
+	</head>
+
+	<body>
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container-fluid">
+					<a class="brand" href="#">blindRSS</a>
+					<div class="nav-collapse collapse">
+						<ul class="nav">
+							<li><a href="javascript:globalRootFeed.updateCount();">Refresh</a></li>
+							<li><a href="javascript:showAddFeed();">Add Feed</a></li>
+						</ul>
+					</div>
+				</div>
 			</div>
-			<br />
-			<div class="headline printShow">
-				<a href='#' target="_blank" id="headline">Welcome to blindRSS</a>
-			</div>
-			<div class="content" id="content">
-				blindRSS is a very simple browser-operated RSS reader.<br>
-				You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
-				It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
-				<br>
-				Enjoy :-)
-			</div>
-		</td> <!-- maincontent -->
-	</tr>
-</table> <!-- content -->
-</body>
+		</div>
+
+		<div class="container-fluid">
+			<div class="row-fluid">
+				<div class="span3">
+					<div id="navigation" class="well sidebar-nav">
+						<ul id="feed_1" class="nav nav-list">
+							<li class="nav-header">Navigation</li>
+						</ul>
+					</div><!--/.well -->
+				</div><!--/span-->
+				<div class="span9">
+					<div class="row-fluid entries well sidebar-nav">
+						<div class="span12">
+							<ul id='entries' class='nav nav-list'>
+								<li class="nav-header">Feedentries</li>
+							</ul>
+						</div>
+					</div>
+					<div class="row-fluid">
+						<div class="span12">
+							<div id="content" class="well">
+								<h3><a href='#' target="_blank" id="headline">Welcome to blindRSS</a></h3>
+								blindRSS is a very simple browser-operated RSS reader.<br>
+								You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
+								It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
+								<br>
+								Enjoy :-)
+							</div>
+						</div><!--/span-->
+					</div><!--/row-->
+				</div><!--/span-->
+			</div><!--/row-->
+		</div><!--/.fluid-container-->
+	</body>
 </html>
