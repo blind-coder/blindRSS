@@ -198,7 +198,11 @@ function FeedGetEntries(){{{
 }}}
 function FeedMarkAllRead(){{{
 	var f = this;
-	var maxID = 0;
+	var maxID;
+
+	if (!(maxID = parseInt(f.data.maxID))){
+		maxID = 0;
+	}
 
 	f.spin.spin("tiny");
 	if (f.entries){
