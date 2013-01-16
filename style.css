@@ -20,6 +20,9 @@ ul li a {
 	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
 	color: #FFFFFF;
 }
+.nav-list > li > a {
+	padding: 0px 15px;
+}
 .inactive :hover {
 	background-color: #EEEEEE;
 }
@@ -72,7 +75,7 @@ ul.feed li {
 	min-height: 16px;
 }
 
-.sidebar-nav ul li div.nameFeed {
+.sidebar-nav ul li a.nameFeed {
 	min-height: 16px;
 }
 
@@ -96,7 +99,7 @@ ul.feed li {
 	display: block;
 }
 
-.sidebar-nav ul.new>li:first-child>div a.nameFeed {
+.sidebar-nav ul.new>li:first-child a.nameFeed {
 	font-weight: bold;
 }
 
@@ -104,7 +107,9 @@ ul.feed li {
 	font-size: 10px;
 	color: #808080;
 }
-
+.numNewMessages:hover {
+	text-decoration: none;
+}
 .headline {
 	width: 100%;
 	color: #000000;

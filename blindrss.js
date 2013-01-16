@@ -294,7 +294,7 @@ function FeedGetDetails(){{{
 					return true; // continue
 				}
 
-				f.ul.append("<li><ul id='feed_"+v.startID+"' /></li>");
+				f.ul.append("<li><ul class='nav nav-list' id='feed_"+v.startID+"' /></li>");
 				var nF = new Feed(v);
 				nF.parent = f;
 				f.children[f.children.length] = nF;
@@ -346,8 +346,9 @@ function Feed(data){{{
 	this.ul = $("#feed_"+this.data.startID);
 	this.li = $("<li id='details_"+this.data.startID+"' class='inactive' />");
 	this.spin = $("<span class='floatLeft spin' id='spinFeed_"+this.data.startID+"'>&nbsp;</span>");
-	this.nameFeed = $("<a class='nameFeed'>"+this.data.name+"</a>");
+	this.nameFeed = $("<a href='#' class='nameFeed'>"+this.data.name+"</a>");
 	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
+	this.nameFeed.append(this.numNew)
 
 	this.buttons = new Object();
 	this.buttons.settings = $("<a class='floatRight icon-pencil' href='#'></a>")
@@ -364,10 +365,9 @@ function Feed(data){{{
 		.append(this.buttons.newMessage)
 		.append(this.spin)
 	);
-	this.li.append(
-		$("<div class='nameFeed'>").append(this.nameFeed)
-		.append(this.numNew)
-	);
+	this.li.append(this.nameFeed);
+		//$("<div class='nameFeed'>").append(this.nameFeed)
+	//);
 
 	this.ul.attr("startID", this.data.startID)
 	       .attr("endID",   this.data.endID)
@@ -441,6 +441,7 @@ function EntryRender(){{{
 	}
 }}}
 function Entry(data){{{
+	var that = this;
 	this.data = data;
 	this.show = EntryShow;
 	this.markRead = EntryMarkRead;
@@ -454,14 +455,14 @@ function Entry(data){{{
 	li.append(
 		$("<a href='#' class='floatLeft icon-"+(this.data.isread == "0" ? "heart" : "star")+"'>&nbsp;</a>") /* bug in bootstraps .css? */
 		.on("click", function(){
-			f.entries[this.data.ID].toggleRead();
+			that.toggleRead();
 		})
 	);
 	li.append(
 		$("<a href='#'></a>")
 		.append(this.data.title)
 		.on("click", function(){
-			f.entries[this.data.ID].show();
+			that.show();
 		})
 	);
 	globalUlEntries.append(li);
