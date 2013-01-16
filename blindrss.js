@@ -194,6 +194,12 @@ function FeedGetEntries(){{{
 				v.feed = f;
 				f.entries[v.ID] = new Entry(v);
 				li.append(
+					$("<a href='#' class='floatLeft icon-"+(v.isread == "0" ? "heart" : "star")+"'>&nbsp;</a>") /* bug in bootstraps .css? */
+					.on("click", function(){
+						f.entries[v.ID].toggleRead();
+					})
+				);
+				li.append(
 					$("<a href='#'></a>")
 					.append(v.title)
 					.on("click", function(){
@@ -397,18 +403,30 @@ function EntryMarkRead(){{{
 	if (e.data.isread == "1"){
 		return;
 	}
-	e.data.isread = "1";
+	e.toggleRead();
+}}}
+function EntryToggleRead(){{{
+	var e = this;
+	if (e.data.isread == "1"){
+		e.data.isread = "0";
+	} else {
+		e.data.isread = "1";
+	}
+	e.render();
 	$.ajax({
 		url: "rest.php/entry/"+this.data.ID,
 		type: "PUT",
 		dataType: "json",
-		data: JSON.stringify({ isread: 1 }),
+		data: JSON.stringify({ isread: e.data.isread }),
 		success: function(data){
 			if (data.status == "OK"){
-				$("#entry_"+e.data.ID).removeClass("new");
 				var f;
 				for (f = e.data.feed; f; f=f.parent){
-					f.data.unreadCount--;
+					if (e.data.isread == "0"){
+						f.data.unreadCount++;
+					} else {
+						f.data.unreadCount--;
+					}
 					f.renderCount();
 				}
 			} else {
@@ -421,14 +439,27 @@ function EntryShow(){{{
 	$("#headline").empty().attr("href", this.data.link).html(this.data.title.replace(/</, "&lt;").replace(/>/, "&gt;"));
 	$("#content").empty().html(this.data.description.replace(/<(\/?)script/, "<$1disabledscript"));
 	$("ul#entries li.active").toggleClass("inactive active");
-	$("ul#entries li#entry_"+this.data.ID).toggleClass("inactive active");
-
+	li = $("ul#entries li#entry_"+this.data.ID);
+	li.toggleClass("inactive active");
 	this.markRead();
+}}}
+function EntryRender(){{{
+	var e = this;
+	li = $("ul#entries li#entry_"+e.data.ID);
+	if (e.data.isread == "1"){
+		li.removeClass("new");
+		li.find("a.icon-heart").toggleClass("icon-heart icon-star");
+	} else {
+		li.addClass("new");
+		li.find("a.icon-star").toggleClass("icon-heart icon-star");
+	}
 }}}
 function Entry(data){{{
 	this.data = data;
 	this.show = EntryShow;
 	this.markRead = EntryMarkRead;
+	this.toggleRead = EntryToggleRead;
+	this.render = EntryRender;
 }}}
 
 function getFeeds(){{{
