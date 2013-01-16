@@ -132,6 +132,35 @@ switch ($path[0]){
 			$data["status"] = "OK";
 			$data["msg"] = "";
 		} # }}}
+		elseif ($method == "DELETE"){{{
+			# DELETE /feed/1
+			$q = mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
+			$feed = mysql_fetch_object($q);
+			mysql_query("DELETE FROM feeds WHERE ID = $feed->ID LIMIT 1");
+
+			if (mysql_error()){
+				$data["status"] = "error";
+				$data["msg"] = mysql_error();
+				break;
+			}
+
+			mysql_query("UPDATE feeds SET endID=endID-2 WHERE endID >= {$feed->endID}");
+			if (mysql_error()){
+				$data["status"] = "error";
+				$data["msg"] = mysql_error();
+				break;
+			}
+
+			mysql_query("UPDATE feeds SET startID=startID-2 WHERE startID >= $feed->endID"); # $feed->endID is correct!
+			if (mysql_error()){
+				$data["status"] = "error";
+				$data["msg"] = mysql_error();
+				break;
+			}
+
+			$data["status"] = "OK";
+			$data["msg"] = "";
+		}}}
 		break;
 		// }}}
 	case "entry": // {{{

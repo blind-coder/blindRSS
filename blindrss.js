@@ -80,7 +80,9 @@ function FeedShowSettings(){{{
 		"<tr><td>Is a group:</td><td><input type='radio' id='isgroupno' name='isgroup' value='0'><label for='isgroupno'>No</label> <input type='radio' id='isgroupyes' name='isgroup' value='1'><label for='isgroupyes'>Yes</label></td></tr>"+
 		"<tr><td>Cache images:</td><td><input type='radio' id='cacheimagesno' name='cacheimages' value='no'><label for='cacheimagesno'>No</label> <input type='radio' id='cacheimagesyes' name='cacheimages' value='yes'><label for='cacheimagesyes'>Yes</label></td></tr>"+
 		"<tr><td>Filter:</td><td><table id='filter'></table></td></tr>"+
+		"<tr><td>Delete Feed:</td><td><a id='deleteFeed' href='#'>Delete Feed</a></td></tr>"+
 		"</table>");
+
 	d.find("#name").val(f.data.name);
 	d.find("#url").val(f.data.url).attr("disabled", f.isDirectory);
 	d.find("#isgroupyes")
@@ -91,6 +93,20 @@ function FeedShowSettings(){{{
 		.on("change", function(){ d.find("#url").attr("disabled", !$(this).attr("checked")); });
 	d.find("#cacheimagesyes").attr("checked", f.data.cacheimages == "yes");
 	d.find("#cacheimagesno").attr("checked", f.data.cacheimages == "no");
+	d.find("#deleteFeed").button().on("click", function(){
+		if (confirm("Really delete feed? This cannot be undone!")){
+			if (parseInt(f.data.startID) == 1){
+				alert("Cowardly refusing to delete root category '"+f.data.name+"'");
+			}
+			else if (parseInt(f.data.endID) - 1 != parseInt(f.data.startID)){ // non-empty category
+				alert("Cowardly refusing to delete non-empty category!");
+			} else {
+				d.dialog("close");
+				f.deleteFeed();
+			}
+		}
+	});
+
 	var filter = d.find("#filter");
 	filter.spin();
 	$.ajax({
@@ -292,6 +308,21 @@ function FeedGetDetails(){{{
 		complete: function(){ f.spin.spin(false); }
 	});
 }}}
+function FeedDeleteFeed(){{{
+	var f = this;
+	f.spin.spin("tiny");
+
+	$.ajax({
+		url: "rest.php/feed/"+f.data.ID,
+		type: "DELETE",
+		dataType: "json",
+		success: function(data){
+			f.spin.spin(false);
+			f.ul.parent().remove();
+		}
+	});
+}}}
+
 function Feed(data){{{
 	var f = this;
 	globalFeeds[parseInt(data.ID)] = this;
@@ -302,7 +333,9 @@ function Feed(data){{{
 	this.markAllRead=FeedMarkAllRead;
 	this.renderCount=FeedRenderCount;
 	this.showSettings=FeedShowSettings;
+	this.deleteFeed=FeedDeleteFeed;
 
+	/* unfortunately, any of these tend to be sent from the server */
 	if ("x"+this.data.url == "x" ||
 		"x"+this.data.url == "xnull" ||
 		"x"+this.data.url == "xundefined"){
