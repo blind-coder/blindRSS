@@ -84,7 +84,12 @@ switch ($path[0]){
 			if ($_POST["maxID"] > 0){
 				$maxID = "AND ID <= ".mres($_POST["maxID"]);
 			}
-			$q = mysql_query("UPDATE entries SET date=date, isread='1' WHERE feedID = ".mres($path[1])." AND isread='0' $maxID");
+			$q = mysql_query("SELECT startID, endID FROM feeds WHERE ID = ".mres($path[1]));
+			$feed = mysql_fetch_object($q);
+
+			$q = mysql_query("UPDATE entries SET date=date, isread='1'
+				WHERE feedID IN (SELECT ID FROM feeds WHERE startID >= {$feed->startID} AND endID <= {$feed->endID})
+				AND isread='0' $maxID");
 			if (mysql_error()){
 				$data["status"] = "error";
 				$data["msg"] = mysql_error();
