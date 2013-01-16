@@ -26,10 +26,10 @@ ul li a {
 .inactive :hover {
 	background-color: #EEEEEE;
 }
-ul.group>li>div>a.icon-pencil, ul.feed>li>div>a.icon-pencil {
+ul.group>li>div>a.editButton, ul.feed>li>div>a.editButton {
 	visibility: hidden;
 }
-ul.group:hover>li>div>a.icon-pencil, ul.feed:hover>li>div>a.icon-pencil {
+ul.group:hover>li>div>a.editButton, ul.feed:hover>li>div>a.editButton {
 	visibility: visible;
 }
 ul#feed_1 {

@@ -351,11 +351,11 @@ function Feed(data){{{
 	this.nameFeed.append(this.numNew)
 
 	this.buttons = new Object();
-	this.buttons.settings = $("<a class='floatRight icon-pencil' href='#'></a>")
+	this.buttons.settings = $("<a class='floatRight editButton' href='#'><i class='icon-pencil' /></a>")
 		.on("click", function(){
 			f.showSettings();
 		});
-	this.buttons.newMessage = $("<a id='newMessage_"+this.data.startID+"' class='newmessage floatRight icon-envelope' href='#'></a>")
+	this.buttons.newMessage = $("<a id='newMessage_"+this.data.startID+"' class='newmessage floatRight' href='#'><i class='icon-envelope' /></a>")
 		.on("click", function() {
 			f.markAllRead();
 		});
@@ -434,10 +434,10 @@ function EntryRender(){{{
 	li = $("ul#entries li#entry_"+e.data.ID);
 	if (e.data.isread == "1"){
 		li.removeClass("new");
-		li.find("a.icon-heart").toggleClass("icon-heart icon-star");
+		li.find("i.icon-star").toggleClass("icon-star icon-star-empty");
 	} else {
 		li.addClass("new");
-		li.find("a.icon-star").toggleClass("icon-heart icon-star");
+		li.find("i.icon-star-empty").toggleClass("icon-star icon-star-empty");
 	}
 }}}
 function Entry(data){{{
@@ -453,7 +453,7 @@ function Entry(data){{{
 		li.addClass("new");
 	}
 	li.append(
-		$("<a href='#' class='floatLeft icon-"+(this.data.isread == "0" ? "heart" : "star")+"'>&nbsp;</a>") /* bug in bootstraps .css? */
+		$("<a href='#' class='floatLeft'><i class='icon-"+(this.data.isread == "0" ? "star" : "star-empty")+"'/></a>") /* bug in bootstraps .css? */
 		.on("click", function(){
 			that.toggleRead();
 		})
