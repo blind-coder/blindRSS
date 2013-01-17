@@ -377,7 +377,7 @@ function Feed(data){{{
 		this.ul.addClass("group");
 	} else {
 		this.ul.addClass("feed");
-		this.nameFeed.parent().on("click", function(){
+		this.nameFeed.on("click", function(){
 			f.entry = 0;
 			f.getEntries();
 		});
