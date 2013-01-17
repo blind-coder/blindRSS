@@ -27,72 +27,12 @@ window.onresize=resize;
 
 function FeedShowSettings(){{{
 	var f = this;
-	var d = $("<div />").dialog({
-		width: "800px",
-		modal: true,
-		title: f.data.name,
-		close: function(event, ui){
-			$(this).remove();
-			return true;
-		},
-		buttons: {
-			"Commit": function() {
-				d.find("input[type=button]").attr("disabled", true);
-				var filter = new Array();
-				$.each(d.find("[name^=regex_]"), function(k,v){
-					var id = v.name.split("_")[1];
-					var regex = v.value;
-					var wob = d.find("input[name=whiteorblack_"+id+"]:checked").val();
-					var del = d.find("input[name=delete_"+id+"]").attr("checked") == "checked" ? "true" : "false";
-					filter[filter.length] = {ID: id, regex: regex, whiteorblack: wob, delete: del};
-				});
-				$.ajax({
-					url: "rest.php/feed/"+f.data.ID,
-					type: "PUT",
-					dataType: "json",
-					data: JSON.stringify({
-						name: d.find("#name").val(),
-						url: (d.find("input[name=isgroup]:checked").val() == "1" ? "" : d.find("#url").val()),
-						cacheimages: d.find("input[name=cacheimages]:checked").val(),
-						filter: filter
-					}),
-					success: function(data){
-						if (data.status != "OK"){
-							alert(data.msg);
-							return;
-						}
-						f.data.name = d.find("#name").val();
-						f.data.cacheimages = d.find("input[name=cacheimages]:checked").val();
-						f.data.url = d.find("input[name=isgroup]:checked").val() == "1" ? "" : d.find("#url").val();
-						f.nameFeed.empty().append(d.find("#name").val());
-					},
-					complete: function(){
-						d.dialog("close");
-					}
-				});
-			},
-			"Cancel": function(){ d.dialog("close"); }
-		}
-	});
-	d.html("<table>"+
-		"<tr><td>Name:</td><td><input type='text' size='60' id='name'></td></tr>"+
-		"<tr><td>Feed URL:</td><td><input type='text' id='url' size='60'></td></tr>"+
-		"<tr><td>Is a group:</td><td><input type='radio' id='isgroupno' name='isgroup' value='0'><label for='isgroupno'>No</label> <input type='radio' id='isgroupyes' name='isgroup' value='1'><label for='isgroupyes'>Yes</label></td></tr>"+
-		"<tr><td>Cache images:</td><td><input type='radio' id='cacheimagesno' name='cacheimages' value='no'><label for='cacheimagesno'>No</label> <input type='radio' id='cacheimagesyes' name='cacheimages' value='yes'><label for='cacheimagesyes'>Yes</label></td></tr>"+
-		"<tr><td>Filter:</td><td><table id='filter'></table></td></tr>"+
-		"<tr><td>Delete Feed:</td><td><a id='deleteFeed' href='#'>Delete Feed</a></td></tr>"+
-		"</table>");
 
+	var d = $("#feedSettings");
 	d.find("#name").val(f.data.name);
 	d.find("#url").val(f.data.url).attr("disabled", f.isDirectory);
-	d.find("#isgroupyes")
-		.attr("checked", f.isDirectory)
-		.on("change", function(){ d.find("#url").attr("disabled", $(this).attr("checked")); });
-	d.find("#isgroupno")
-		.attr("checked", !f.isDirectory)
-		.on("change", function(){ d.find("#url").attr("disabled", !$(this).attr("checked")); });
-	d.find("#cacheimagesyes").attr("checked", f.data.cacheimages == "yes");
-	d.find("#cacheimagesno").attr("checked", f.data.cacheimages == "no");
+	d.find("#isgroup").on("change", function(){ d.find("#url").attr("disabled", $(this).val() == "1"); }).val(f.isDirectory ? "1" : "0");
+	d.find("#cacheimages").val(f.data.cacheimages);
 	d.find("#deleteFeed").button().on("click", function(){
 		if (confirm("Really delete feed? This cannot be undone!")){
 			if (parseInt(f.data.startID) == 1){
@@ -108,7 +48,7 @@ function FeedShowSettings(){{{
 	});
 
 	var filter = d.find("#filter");
-	filter.spin();
+	filter.empty().spin("tiny");
 	$.ajax({
 		url: "rest.php/feed/"+f.data.ID+"/filter",
 		type: "GET",
@@ -118,19 +58,59 @@ function FeedShowSettings(){{{
 			data[data.length] = {ID: 0, regex: "", whiteorblack: "white"};
 			$.each(data, function(k,v){
 				s += "<tr><td>"+
-					"<input type='radio' value='white' id='white_"+v.ID+"' name='whiteorblack_"+v.ID+"' "+(v.whiteorblack == "white" ? "checked" : "")+">"+
-					"<label for='white_"+v.ID+"'>Whitelist</label>"+
-					"<input type='radio' value='black' id='black_"+v.ID+"' name='whiteorblack_"+v.ID+"' "+(v.whiteorblack == "black" ? "checked" : "")+">"+
-					"<label for='black_"+v.ID+"'>Blacklist</label>"+
+					"<select name='whiteorblack_"+v.ID+"' id='whiteorblack_"+v.ID+"'>"+
+					"<option value='white' "+(v.whiteorblack == "white" ? "selected" : "")+">Whitelist</option>"+
+					"<option value='black' "+(v.whiteorblack == "black" ? "selected" : "")+">Blacklist</option>"+
+					"</select>"+
 					"</td><td>"+
 					"<input type='text' value='"+v.regex+"' name='regex_"+v.ID+"'>"+
 					"</td><td>"+
-					"<input type='checkbox' name='delete_"+v.ID+"' id='delete_"+v.ID+"'><label for='delete_"+v.ID+"'>Delete?</label>"+
+					"<label class='checkbox'><input type='checkbox' name='delete_"+v.ID+"' id='delete_"+v.ID+"'>Delete?</label>"+
 					"</td></tr>";
 			});
 			filter.append(s).spin(false);
 		},
 		complete: function(){ d.find("input[type=radio]").button(); d.find("input[type=checkbox]").button(); }
+	});
+
+	$("#buttonSaveChanges").unbind("click");
+	$("#buttonSaveChanges").bind("click", function(){ f.updateFeed(); });
+	$("#feedSettings").modal();
+}}}
+function FeedUpdateFeed(){{{
+	var f = this;
+	var d = $("#feedSettings");
+	var filter = new Array();
+	$.each(d.find("[name^=regex_]"), function(k,v){
+		var id = v.name.split("_")[1];
+		var regex = v.value;
+		var wob = d.find("input[name=whiteorblack_"+id+"]").val();
+		var del = d.find("input[name=delete_"+id+"]").attr("checked") == "checked" ? "true" : "false";
+		filter[filter.length] = {ID: id, regex: regex, whiteorblack: wob, delete: del};
+	});
+	$.ajax({
+		url: "rest.php/feed/"+f.data.ID,
+		type: "PUT",
+		dataType: "json",
+		data: JSON.stringify({
+			name: d.find("#name").val(),
+			url: (d.find("#isgroup").val() == "1" ? "" : d.find("#url").val()),
+			cacheimages: d.find("#cacheimages").val(),
+			filter: filter
+		}),
+		success: function(data){
+			if (data.status != "OK"){
+				alert(data.msg);
+				return;
+			}
+			f.data.name = d.find("#name").val();
+			f.data.cacheimages = d.find("input[name=cacheimages]:checked").val();
+			f.data.url = d.find("input[name=isgroup]:checked").val() == "1" ? "" : d.find("#url").val();
+			f.nameFeed.empty().append(d.find("#name").val());
+		},
+		complete: function(){
+			d.modal("hide");
+		}
 	});
 }}}
 function FeedRenderCount(){{{
@@ -333,6 +313,7 @@ function Feed(data){{{
 	this.renderCount=FeedRenderCount;
 	this.showSettings=FeedShowSettings;
 	this.deleteFeed=FeedDeleteFeed;
+	this.updateFeed=FeedUpdateFeed;
 
 	/* unfortunately, any of these tend to be sent from the server */
 	if ("x"+this.data.url == "x" ||

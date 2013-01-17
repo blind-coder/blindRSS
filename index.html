@@ -80,5 +80,27 @@
 				</div><!--/span-->
 			</div><!--/row-->
 		</div><!--/.fluid-container-->
+
+		<!-- Modal -->
+		<div id="feedSettings" class="modal hide fade" style="width: 800px;" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h3 id="feedSettingsLabel">Feedsettings</h3>
+			</div>
+			<div class="modal-body">
+				<table>
+					<tr><td>Name:</td><td><input type='text' class='input-xxlarge' id='name'></td></tr>
+					<tr><td>Feed URL:</td><td><input type='text' id='url' class='input-xxlarge'></td></tr>
+					<tr><td>Is a group:</td><td><select id='isgroup' name='isgroup'><option value='0'>No</option><option value='1'>Yes</option></select></td></tr>
+					<tr><td>Cache images:</td><td><select id='cacheimages' name='cacheimages'><option value='no'>No</option><option values='yes'>Yes</option></select></td></tr>
+					<tr><td>Filter:</td><td><table id='filter'></table></td></tr>
+					<tr><td>Delete Feed:</td><td><a id='deleteFeed' class='btn' href='#'>Delete Feed</a></td></tr>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+				<button class="btn btn-primary" id="buttonSaveChanges">Save changes</button>
+			</div>
+		</div>
 	</body>
 </html>
