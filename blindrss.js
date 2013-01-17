@@ -25,6 +25,80 @@ function resize(){{{
 }}}
 window.onresize=resize;
 
+function rearrangeFeeds(){
+	var d = $("#rearrangeFeeds");
+	var dBody = d.find(".modal-body");
+	var sortedFeeds = globalFeeds.sort(function(a,b){return parseInt(a.data.startID) < parseInt(b.data.startID) ? -1 : 1;}); /* sort by startID ASC */
+	/* this sort will leave undefined entries at the end */
+
+	dBody.empty();
+	for (var i = 0; i <= sortedFeeds.length; i++){
+		var ptr = sortedFeeds[i];
+		if (!ptr){
+			break;
+		}
+		if (ptr.isDirectory){
+			/* new category */
+			var x = $("<li feedID='"+ptr.data.ID+"'>"+ptr.data.name+"<ul id='category_"+ptr.data.ID+"' /></li>").draggable({revert: "invalid"});
+			x.find("ul").append($("<div into='"+ptr.data.ID+"'>&nbsp;</div>")
+				   .droppable({
+					hoverClass: "ui-droppable-hover", 
+					greedy: true, 
+					tolerance: "pointer",
+					drop: function(event, ui){
+						$.ajax({
+							url: "rest.php/feed/"+ui.draggable.attr("feedID"),
+							type: "MOVE",
+							dataType: "json",
+							data: JSON.stringify({
+								moveToBeginningOfCategory: $(this).attr("into")
+							}),
+							success: function(data){
+							},
+							complete: function(){
+								getFeeds();
+								rearrangeFeeds();
+							}
+						});
+				   	}
+				   })
+			);
+			if (i == 0){
+				dBody.append(x);
+			} else {
+				$("#category_"+ptr.parent.data.ID).append(x);
+			}
+		} else {
+			var li = $("<li feedID='"+ptr.data.ID+"'>"+ptr.data.name+"</li>").draggable({revert: "invalid"});
+			$("#category_"+ptr.parent.data.ID).append(li);
+			li.after($("<div after='"+ptr.data.ID+"'>&nbsp;</div>")
+			  .droppable({
+				hoverClass: "ui-droppable-hover",
+				greedy: true,
+				tolerance: "pointer",
+				drop: function(event, ui){
+					$.ajax({
+						url: "rest.php/feed/"+ui.draggable.attr("feedID")+"/move",
+						type: "POST",
+						dataType: "json",
+						data: JSON.stringify({
+							moveAfterFeed: $(this).attr("after")
+						}),
+						success: function(data){
+						},
+						complete: function(){
+							getFeeds();
+							rearrangeFeeds();
+						}
+					});
+				}
+			  })
+			);
+		}
+	}
+
+	d.modal();
+}
 function FeedShowSettings(){{{
 	var f = this;
 
@@ -253,41 +327,6 @@ function FeedUpdateCount(){{{
 		}
 	});
 }}}
-function FeedGetDetails(){{{
-	var f = this;
-	if (!f.isDirectory){
-		alert("getDetails called on non-directory element!");
-	}
-	f.spin.spin("tiny");
-	$.ajax({
-		url: "rest.php/feed/"+this.data.ID+"/children.json",
-		type: "GET",
-		dataType: "json",
-		success: function(data){
-			var skipUntil = parseInt(f.data.startID);
-			f.children = new Array();
-			$.each(data, function(k,v){
-				if (parseInt(v.startID) < skipUntil){
-					return true; // continue
-				}
-				if ($("#feed_"+v.startID).length){
-					return true; // continue
-				}
-
-				f.ul.append("<li><ul class='nav nav-list' id='feed_"+v.startID+"' /></li>");
-				var nF = new Feed(v);
-				nF.parent = f;
-				f.children[f.children.length] = nF;
-
-				if (nF.isDirectory){
-					skipUntil = max(parseInt(skipUntil), parseInt(v.endID));
-					nF.getDetails();
-				}
-			});
-		},
-		complete: function(){ f.spin.spin(false); }
-	});
-}}}
 function FeedDeleteFeed(){{{
 	var f = this;
 	f.spin.spin("tiny");
@@ -306,7 +345,6 @@ function Feed(data){{{
 	var f = this;
 	globalFeeds[parseInt(data.ID)] = this;
 	this.data = data;
-	this.getDetails=FeedGetDetails;
 	this.getEntries=FeedGetEntries;
 	this.updateCount=FeedUpdateCount;
 	this.markAllRead=FeedMarkAllRead;
@@ -314,6 +352,7 @@ function Feed(data){{{
 	this.showSettings=FeedShowSettings;
 	this.deleteFeed=FeedDeleteFeed;
 	this.updateFeed=FeedUpdateFeed;
+	this.children = new Array();
 
 	/* unfortunately, any of these tend to be sent from the server */
 	if ("x"+this.data.url == "x" ||
@@ -451,22 +490,36 @@ function Entry(data){{{
 
 function getFeeds(){{{
 	var feed_1 = $("#feed_1");
-	//feed_1.empty();
-	$(".sidebar-nav").spin();
+	feed_1.empty();
 	$.ajax({
 		url: "rest.php/feeds",
 		type: "GET",
 		dataType: "json",
+		async: false,
 		success: function(data){
 			if (!data){
 				return;
 			}
 			/* We're cheating a bit to get the first feed */
 			globalFeeds = new Array();
-			globalRootFeed = new Feed(data[0]);
-			globalRootFeed.getDetails();
+			$.each(data, function(k,v){
+				if (k == 0){
+					globalRootFeed = new Feed(v);
+					return true; // continue; // already initialized in static HTML
+				}
+				var parentFeed = $("ul").filter(function(){
+					return  $(this).attr("startID") <= parseInt(v.startID) &&
+						$(this).attr("endID")   >= parseInt(v.endID)   &&
+						globalFeeds[parseInt($(this).attr("group"))].isDirectory;
+				}).last().attr("group");
+				parentFeed = globalFeeds[parseInt(parentFeed)];
+
+				parentFeed.ul.append("<li><ul class='nav nav-list' id='feed_"+v.startID+"' /></li>");
+				var f = new Feed(v);
+				f.parent = parentFeed;
+				parentFeed.children[parentFeed.children.length] = f;
+			});
 		},
-		complete: function(){ $(".sidebar-nav").spin(false); }
 	});
 }}}
 function startup(){{{

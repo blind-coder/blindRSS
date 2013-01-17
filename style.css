@@ -141,3 +141,21 @@ ul.feed li {
 	padding-left: 25px;
 	font-style: italic;
 }
+.ui-draggable {
+	border: 1px black solid;
+	color: black;
+	padding: 5px;
+}
+.ui-droppable {
+	padding: 5px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+.ui-droppable-hover {
+	border: 1px blue solid;
+	background-color: lightyellow;
+	color: lightblue;
+	padding: 5px;
+	margin-top: 5px;
+	margin-bottom: 5px;
+}

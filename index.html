@@ -41,6 +41,7 @@
 						<ul class="nav">
 							<li><a href="javascript:globalRootFeed.updateCount();">Refresh</a></li>
 							<li><a href="javascript:showAddFeed();">Add Feed</a></li>
+							<li><a href="javascript:rearrangeFeeds();">rearrange Feeds</a></li>
 						</ul>
 					</div>
 				</div>
@@ -81,7 +82,7 @@
 			</div><!--/row-->
 		</div><!--/.fluid-container-->
 
-		<!-- Modal -->
+		<!-- Modal feedSettings -->
 		<div id="feedSettings" class="modal hide fade" style="width: 800px;" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -96,6 +97,20 @@
 					<tr><td>Filter:</td><td><table id='filter'></table></td></tr>
 					<tr><td>Delete Feed:</td><td><a id='deleteFeed' class='btn' href='#'>Delete Feed</a></td></tr>
 				</table>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+				<button class="btn btn-primary" id="buttonSaveChanges">Save changes</button>
+			</div>
+		</div>
+
+		<!-- Modal rearrangeFeeds -->
+		<div id="rearrangeFeeds" class="modal hide fade" style="width: 800px;" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h3 id="feedSettingsLabel">Rearrange feeds</h3>
+			</div>
+			<div class="modal-body" style="max-height: 600px;">
 			</div>
 			<div class="modal-footer">
 				<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
