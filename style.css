@@ -147,15 +147,13 @@ ul.feed li {
 	padding: 5px;
 }
 .ui-droppable {
-	padding: 5px;
-	margin-top: 5px;
-	margin-bottom: 5px;
+	margin-top: 2px;
+	margin-bottom: 2px;
 }
 .ui-droppable-hover {
 	border: 1px blue solid;
 	background-color: lightyellow;
 	color: lightblue;
-	padding: 5px;
-	margin-top: 5px;
-	margin-bottom: 5px;
+	margin-top: 2px;
+	margin-bottom: 2px;
 }
