@@ -90,8 +90,25 @@ function rearrangeFeeds(){
 					if (dragged.attr("feedid") == droppedOn.attr("dropid")){
 						return;
 					};
-					dragged.next().insertAfter(droppedOn);
-					dragged.insertAfter(droppedOn);
+					dragged.spin();
+					$.ajax({
+						url: "rest.php/feed/"+dragged.attr("feedid")+"/move",
+						type: "POST",
+						dataType: "json",
+						data: {
+							moveAfterFeed: droppedOn.attr("dropid")
+						},
+						success: function(data) {
+							if (data.status != "OK"){
+								alert(data.msg);
+								return;
+							}
+							dragged.next().insertAfter(droppedOn);
+							dragged.insertAfter(droppedOn);
+							getFeeds();
+						},
+						complete: function(){ dragged.spin(false); }
+					});
 				}
 			});
 			li.after(lidrop);

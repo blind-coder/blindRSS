@@ -102,36 +102,88 @@ switch ($path[0]){
 					break;
 				case "move":
 					# POST /feed/1/move
-					$query = json_decode(file_get_contents("php://input"));
-					if ($query->moveAfterFeed){
+					if (array_key_exists("moveAfterFeed", $_POST)){
 						$q = mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
 						$feedToChange = mysql_fetch_object($q);
-						$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($query->moveAfterFeed)."'");
-						$feedToMoveTo = mysql_fetch_object($q);
+						$gap = ($feedToChange->endID - $feedToChange->startID) + 1;
 
-						mysql_query("UPDATE feeds SET movedirection = 'moveme' WHERE startID >= {$feedToChange->startID} AND endID <= {$feedToChange->endID}");
-						$difference = ($feedToChange->endID - $feedToChange->startID) + 1;
+						/*
+						 +------------------------+
+						 | 01   10      All Feeds |
+						 |    02   03     Feed_1  |
+						 |    04   05     Feed_2  |
+						 |    06   07     Feed_3  |
+						 |    08   09     Feed_4  |
+						 +------------------------+
+						 */
+
+						mysql_query("UPDATE feeds
+							SET startID = startID - {$feedToChange->startID},
+						            endID   = endID - {$feedToChange->startID},
+							    movedirection = 'moveme'
+							WHERE startID >= {$feedToChange->startID} AND endID <= {$feedToChange->endID}");
+
+						/*
+						 +------------------------+
+						 | 00   01    Feed_2      | !!!
+						 | 01   10      All Feeds | !!!
+						 |    02   03     Feed_1  |    
+						 |    06   07     Feed_3  | !!!
+						 |    08   09     Feed_4  | !!!
+						 +------------------------+
+						 */
 
 						/* Take the feed we want to move OUT of the structure and move everything AFTER it UPWARDS to close the gap */
-						mysql_query("UPDATE feeds SET startID = startID - $difference WHERE startID > $feedToChange->endID");
-						mysql_query("UPDATE feeds SET endID = endID - $difference WHERE endID > $feedToChange->endID");
+						mysql_query("UPDATE feeds SET startID = startID - $gap WHERE startID > $feedToChange->endID");
+						mysql_query("UPDATE feeds SET endID = endID - $gap WHERE endID > $feedToChange->endID");
 
-						$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($query->moveAfterFeed)."'");
+						/*
+						 +------------------------+
+						 | 00   01    Feed_2      | !!!
+						 | 01   08      All Feeds |
+						 |    02   03     Feed_1  |
+						 |    04   05     Feed_3  |
+						 |    06   07     Feed_4  |
+						 +------------------------+
+						 */
+
+						$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($_POST["moveAfterFeed"])."'");
 						$feedToMoveTo = mysql_fetch_object($q);
 
 						/* Make a gap for the feed we want to move */
-						mysql_query("UPDATE feeds SET startID = startID + $difference WHERE startID > $feedToMoveTo->endID AND movedirection = 'none'");
-						mysql_query("UPDATE feeds SET endID = endID + $difference WHERE endID > $feedToMoveTo->endID AND movedirection = 'none'");
+						mysql_query("UPDATE feeds
+							SET startID = startID + $gap
+							WHERE startID > $feedToMoveTo->endID AND movedirection = 'none'");
+						mysql_query("UPDATE feeds
+							SET endID = endID + $gap
+							WHERE endID > $feedToMoveTo->endID AND movedirection = 'none'");
+						/* This need to be two queries so that containers are updated correctly */
 
-						$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($query->moveAfterFeed)."'");
-						$feedToMoveTo = mysql_fetch_object($q);
-						$q = mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
-						$feedToChange = mysql_fetch_object($q);
+						/*
+						 +------------------------+
+						 | 00   01    Feed_2      | !!!
+						 | 01   10      All Feeds | !!!
+						 |    02   03     Feed_1  |
+						 |    04   05     Feed_3  |
+						 |    08   09     Feed_4  | !!!
+						 +------------------------+
+						 */
 
 						/* Move the feed to the newly created room */
-						mysql_query("UPDATE feeds SET startID = startID - $feedToChange->startID + $feedToMoveTo->endID + 1 WHERE movedirection = 'moveme'");
-						mysql_query("UPDATE feeds SET endID = endID - $feedToChange->startID + $feedToMoveTo->endID + 1 WHERE movedirection = 'moveme'");
-						mysql_query("UPDATE feeds SET movedirection = 'none'");
+						mysql_query("UPDATE feeds
+							SET startID = startID + {$feedToMoveTo->startID} + $gap,
+							    endID   = endID   + {$feedToMoveTo->startID} + $gap,
+							    movedirection = 'none'
+							WHERE movedirection = 'moveme'");
+						/*
+						 +------------------------+
+						 | 01   10      All Feeds |
+						 |    02   03     Feed_1  |
+						 |    04   05     Feed_3  |
+						 |    06   07     Feed_2  |
+						 |    08   09     Feed_4  |
+						 +------------------------+
+						 */
 						$data["status"] = "OK";
 						$data["msg"] = "Feed moved.";
 					} else {
