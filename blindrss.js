@@ -28,10 +28,13 @@ window.onresize=resize;
 function rearrangeFeeds(){
 	var d = $("#rearrangeFeeds");
 	var dBody = d.find(".modal-body");
-	var sortedFeeds = globalFeeds.sort(function(a,b){return parseInt(a.data.startID) < parseInt(b.data.startID) ? -1 : 1;}); /* sort by startID ASC */
+	dBody.find("#categories").empty();
+	dBody.find("#entries").empty();
+
+	var sortedFeeds = globalFeeds.slice(0); /* copy the array */
+	sortedFeeds.sort(function(a,b){return parseInt(a.data.startID) < parseInt(b.data.startID) ? -1 : 1;}); /* sort by startID ASC */
 	/* this sort will leave undefined entries at the end */
 
-	dBody.empty();
 	for (var i = 0; i <= sortedFeeds.length; i++){
 		var ptr = sortedFeeds[i];
 		if (!ptr){
@@ -39,61 +42,59 @@ function rearrangeFeeds(){
 		}
 		if (ptr.isDirectory){
 			/* new category */
-			var x = $("<li feedID='"+ptr.data.ID+"'>"+ptr.data.name+"<ul id='category_"+ptr.data.ID+"' /></li>").draggable({revert: "invalid"});
-			x.find("ul").append($("<div into='"+ptr.data.ID+"'>&nbsp;</div>")
-				   .droppable({
-					hoverClass: "ui-droppable-hover", 
-					greedy: true, 
-					tolerance: "pointer",
-					drop: function(event, ui){
-						$.ajax({
-							url: "rest.php/feed/"+ui.draggable.attr("feedID"),
-							type: "MOVE",
-							dataType: "json",
-							data: JSON.stringify({
-								moveToBeginningOfCategory: $(this).attr("into")
-							}),
-							success: function(data){
-							},
-							complete: function(){
-								getFeeds();
-								rearrangeFeeds();
-							}
-						});
-				   	}
-				   })
-			);
-			if (i == 0){
-				dBody.append(x);
-			} else {
-				$("#category_"+ptr.parent.data.ID).append(x);
-			}
-		} else {
-			var li = $("<li feedID='"+ptr.data.ID+"'>"+ptr.data.name+"</li>").draggable({revert: "invalid"});
-			$("#category_"+ptr.parent.data.ID).append(li);
-			li.after($("<div after='"+ptr.data.ID+"'>&nbsp;</div>")
-			  .droppable({
+			var a = $("<a parentid='"+ptr.data.ID+"' href='#'>"+ptr.data.name+"</a>").on("click", function(){
+					dBody.find("#entries").find("ul").addClass("hide");
+					dBody.find("#entries").find("#parent_"+$(this).attr("parentid")).removeClass("hide");
+				});
+			var li = $("<li id='category_"+ptr.data.ID+"'></li>").append(a);
+			li.droppable({
 				hoverClass: "ui-droppable-hover",
 				greedy: true,
-				tolerance: "pointer",
 				drop: function(event, ui){
-					$.ajax({
-						url: "rest.php/feed/"+ui.draggable.attr("feedID")+"/move",
-						type: "POST",
-						dataType: "json",
-						data: JSON.stringify({
-							moveAfterFeed: $(this).attr("after")
-						}),
-						success: function(data){
-						},
-						complete: function(){
-							getFeeds();
-							rearrangeFeeds();
-						}
-					});
+					var droppedOn = $(this);
+					var dragged = ui.draggable;
+					if (dragged.attr("feedid") == droppedOn.attr("dropid")){
+						return;
+					};
+					dragged.next().remove();
+					dragged.remove();
 				}
-			  })
-			);
+			});
+			var ul = $("<ul>").append(li);
+			var p;
+			if (i == 0){
+				p = dBody.find("#categories");
+			} else {
+				p = dBody.find("#category_"+ptr.parent.data.ID);
+			}
+			p.append(ul);
+		} else {
+			/* new feed */
+			var li = $("<li feedid='"+ptr.data.ID+"'>"+ptr.data.name+"</li>");
+			var p = dBody.find("#entries").find("#parent_"+ptr.parent.data.ID);
+			if (!p.length){
+				p = $("<ul class='hide' id='parent_"+ptr.parent.data.ID+"'>");
+				dBody.find("#entries").append(p);
+			}
+			p.append(li);
+			li.draggable({
+				revert: true,
+				revertDuration: 0
+			})
+			var lidrop = $("<li dropid='"+ptr.data.ID+"'>&nbsp;</li>");
+			lidrop.droppable({
+				hoverClass: "ui-droppable-hover",
+				drop: function(event, ui){
+					var droppedOn = $(this);
+					var dragged = ui.draggable;
+					if (dragged.attr("feedid") == droppedOn.attr("dropid")){
+						return;
+					};
+					dragged.next().insertAfter(droppedOn);
+					dragged.insertAfter(droppedOn);
+				}
+			});
+			li.after(lidrop);
 		}
 	}
 
