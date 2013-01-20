@@ -3,10 +3,14 @@ include("etc/config.php");
 function mres($x){
 	return mysql_real_escape_string($x);
 }
+function my_mysql_query($x){
+	error_log($x);
+	return mysql_query($x);
+}
 
 mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
 mysql_select_db($MYSQL_DB);
-mysql_query("SET NAMES 'utf8';");
+my_mysql_query("SET NAMES 'utf8';");
 
 $method = $_SERVER["REQUEST_METHOD"];
 $path = preg_replace(";^/;", "", $_SERVER["PATH_INFO"]);
@@ -26,18 +30,51 @@ switch ($path[0]){
 	case "feeds": // {{{
 		if ($method == "GET"){
 			# GET /feeds
-			$q = mysql_query("SELECT * FROM feeds ORDER BY startID ASC");
+			$q = my_mysql_query("SELECT * FROM feeds ORDER BY startID ASC");
 			$data = Array();
 			while ($r = mysql_fetch_object($q)){
 				$data[] = $r;
 			}
+		}
+		elseif ($method == "POST"){
+			# PUT /feeds
+			$q = my_mysql_query("SELECT * FROM feeds WHERE `url` = '".$_GET['url']."' AND `url` != ''");
+			if (mysql_num_rows($q) > 0){
+				$r = mysql_fetch_object($q);
+				$data["status"] = "Error";
+				$data["msg"] = "Duplicate URL! URL already in use in Feed {$r->name}!";
+				break;
+			}
+
+			$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($_REQUEST["parent"]));
+			if (mysql_error()){
+				$data["status"] = "Error";
+				$data["msg"] = "Unknown Parent Feed";
+				break;
+			}
+
+			$r = mysql_fetch_object($q);
+			my_mysql_query("UPDATE feeds SET endID=endID+2 WHERE endID >= $r->endID");
+			my_mysql_query("UPDATE feeds SET startID=startID+2 WHERE startID >= $r->endID"); # $r->endID is correct!
+			if ($_REQUEST["isgroup"] == "1"){
+				$_REQUEST["url"] = "";
+			}
+			$q = my_mysql_query("INSERT INTO feeds (startID, endID, cacheimages, name, url)
+				VALUES ({$r->endID}, {$r->endID}+1, '".mres($_RQUEST["cacheimages"])."', '".mres($_REQUEST["name"])."', '".mres($_REQUEST["url"])."')");
+			if (mysql_error()){
+				$data["status"] = "Error";
+				$data["msg"] = mysql_error();
+				break;
+			}
+			$data["status"] = "OK";
+			$data["msg"] = "";
 		}
 		break;
 		// }}}
 	case "feed": // {{{
 		if ($method == "GET"){{{
 			# GET /feed/1
-			$q = mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
+			$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
 			$r = mysql_fetch_object($q);
 			if (count($path) < 3){
 				$data = $r;
@@ -48,7 +85,7 @@ switch ($path[0]){
 				case "children":
 					if ("x".$r->url == "x"){
 						$data = Array();
-						$q = mysql_query("SELECT * FROM feeds WHERE startID > ".mres($r->startID)." AND endID < ".mres($r->endID)." ORDER BY startID ASC");
+						$q = my_mysql_query("SELECT * FROM feeds WHERE startID > ".mres($r->startID)." AND endID < ".mres($r->endID)." ORDER BY startID ASC");
 						while ($r = mysql_fetch_object($q)){
 							$data[] = $r;
 						}
@@ -63,7 +100,7 @@ switch ($path[0]){
 					if (count($path) >= 4){
 						$limit = "LIMIT ".mres($path[3]).", 25";
 					}
-					$q = mysql_query("SELECT * FROM entries WHERE feedID = ".mres($r->ID)." ORDER BY `date` DESC $limit");
+					$q = my_mysql_query("SELECT * FROM entries WHERE feedID = ".mres($r->ID)." ORDER BY `date` DESC $limit");
 					while ($r = mysql_fetch_object($q)){
 						$data[] = $r;
 					}
@@ -71,7 +108,7 @@ switch ($path[0]){
 				# GET /feed/1/filter
 				case "filter":
 					$data = Array();
-					$q = mysql_query("SELECT * FROM filter WHERE feedID = ".mres($r->ID)." ORDER BY ID ASC");
+					$q = my_mysql_query("SELECT * FROM filter WHERE feedID = ".mres($r->ID)." ORDER BY ID ASC");
 					while ($r = mysql_fetch_object($q)){
 						$data[] = $r;
 					}
@@ -86,10 +123,10 @@ switch ($path[0]){
 					if ($_POST["maxID"] > 0){
 						$maxID = "AND ID <= ".mres($_POST["maxID"]);
 					}
-					$q = mysql_query("SELECT startID, endID FROM feeds WHERE ID = ".mres($path[1]));
+					$q = my_mysql_query("SELECT startID, endID FROM feeds WHERE ID = ".mres($path[1]));
 					$feed = mysql_fetch_object($q);
 
-					$q = mysql_query("UPDATE entries SET date=date, isread='1'
+					$q = my_mysql_query("UPDATE entries SET date=date, isread='1'
 						WHERE feedID IN (SELECT ID FROM feeds WHERE startID >= {$feed->startID} AND endID <= {$feed->endID})
 						AND isread='0' $maxID");
 					if (mysql_error()){
@@ -103,87 +140,50 @@ switch ($path[0]){
 				case "move":
 					# POST /feed/1/move
 					if (array_key_exists("moveAfterFeed", $_POST)){
-						$q = mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
+						$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
 						$feedToChange = mysql_fetch_object($q);
 						$gap = ($feedToChange->endID - $feedToChange->startID) + 1;
 
-						/*
-						 +------------------------+
-						 | 01   10      All Feeds |
-						 |    02   03     Feed_1  |
-						 |    04   05     Feed_2  |
-						 |    06   07     Feed_3  |
-						 |    08   09     Feed_4  |
-						 +------------------------+
-						 */
+						/* Take the feed we want to move OUT of the structure */
+						my_mysql_query("UPDATE feeds SET startID = startID - {$feedToChange->startID}, endID = endID - {$feedToChange->startID}, movedirection = 'moveme' WHERE startID >= {$feedToChange->startID} AND endID <= {$feedToChange->endID}");
 
-						mysql_query("UPDATE feeds
-							SET startID = startID - {$feedToChange->startID},
-						            endID   = endID - {$feedToChange->startID},
-							    movedirection = 'moveme'
-							WHERE startID >= {$feedToChange->startID} AND endID <= {$feedToChange->endID}");
+						/* Move everything AFTER it UPWARDS to close the gap */
+						my_mysql_query("UPDATE feeds SET startID = startID - $gap WHERE startID > $feedToChange->endID AND movedirection = 'none'");
+						my_mysql_query("UPDATE feeds SET endID = endID - $gap WHERE endID > $feedToChange->endID AND movedirection = 'none'");
 
-						/*
-						 +------------------------+
-						 | 00   01    Feed_2      | !!!
-						 | 01   10      All Feeds | !!!
-						 |    02   03     Feed_1  |    
-						 |    06   07     Feed_3  | !!!
-						 |    08   09     Feed_4  | !!!
-						 +------------------------+
-						 */
-
-						/* Take the feed we want to move OUT of the structure and move everything AFTER it UPWARDS to close the gap */
-						mysql_query("UPDATE feeds SET startID = startID - $gap WHERE startID > $feedToChange->endID");
-						mysql_query("UPDATE feeds SET endID = endID - $gap WHERE endID > $feedToChange->endID");
-
-						/*
-						 +------------------------+
-						 | 00   01    Feed_2      | !!!
-						 | 01   08      All Feeds |
-						 |    02   03     Feed_1  |
-						 |    04   05     Feed_3  |
-						 |    06   07     Feed_4  |
-						 +------------------------+
-						 */
-
-						$q = mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($_POST["moveAfterFeed"])."'");
-						$feedToMoveTo = mysql_fetch_object($q);
+						$q = my_mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($_POST["moveAfterFeed"])."'");
+						$feedToMoveAfter = mysql_fetch_object($q);
 
 						/* Make a gap for the feed we want to move */
-						mysql_query("UPDATE feeds
-							SET startID = startID + $gap
-							WHERE startID > $feedToMoveTo->endID AND movedirection = 'none'");
-						mysql_query("UPDATE feeds
-							SET endID = endID + $gap
-							WHERE endID > $feedToMoveTo->endID AND movedirection = 'none'");
-						/* This need to be two queries so that containers are updated correctly */
-
-						/*
-						 +------------------------+
-						 | 00   01    Feed_2      | !!!
-						 | 01   10      All Feeds | !!!
-						 |    02   03     Feed_1  |
-						 |    04   05     Feed_3  |
-						 |    08   09     Feed_4  | !!!
-						 +------------------------+
-						 */
+						my_mysql_query("UPDATE feeds SET endID=endID+$gap WHERE endID > {$feedToMoveAfter->endID} AND movedirection = 'none'");
+						my_mysql_query("UPDATE feeds SET startID=startID+$gap WHERE startID >= {$feedToMoveAfter->endID} AND movedirection = 'none'"); # endID is correct!
 
 						/* Move the feed to the newly created room */
-						mysql_query("UPDATE feeds
-							SET startID = startID + {$feedToMoveTo->startID} + $gap,
-							    endID   = endID   + {$feedToMoveTo->startID} + $gap,
-							    movedirection = 'none'
-							WHERE movedirection = 'moveme'");
-						/*
-						 +------------------------+
-						 | 01   10      All Feeds |
-						 |    02   03     Feed_1  |
-						 |    04   05     Feed_3  |
-						 |    06   07     Feed_2  |
-						 |    08   09     Feed_4  |
-						 +------------------------+
-						 */
+						my_mysql_query("UPDATE feeds SET startID = startID + {$feedToMoveAfter->endID} + 1, endID = endID + {$feedToMoveAfter->endID} + 1, movedirection = 'none' WHERE movedirection = 'moveme'");
+						$data["status"] = "OK";
+						$data["msg"] = "Feed moved.";
+					} elseif (array_key_exists("moveIntoCategory", $_POST)){
+						$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
+						$feedToChange = mysql_fetch_object($q);
+						$gap = ($feedToChange->endID - $feedToChange->startID) + 1;
+
+						/* Take the feed we want to move OUT of the structure */
+						my_mysql_query("UPDATE feeds SET startID = startID - {$feedToChange->startID}, endID = endID - {$feedToChange->startID}, movedirection = 'moveme' WHERE startID >= {$feedToChange->startID} AND endID <= {$feedToChange->endID}");
+
+						/* Move everything AFTER it UPWARDS to close the gap */
+						my_mysql_query("UPDATE feeds SET startID = startID - $gap WHERE startID > $feedToChange->endID AND movedirection = 'none'");
+						my_mysql_query("UPDATE feeds SET endID = endID - $gap WHERE endID > $feedToChange->endID AND movedirection = 'none'");
+
+						$q = my_mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($_POST["moveIntoCategory"])."'");
+						$feedToMoveInto = mysql_fetch_object($q);
+
+						/* Make a gap for the feed we want to move */
+						my_mysql_query("UPDATE feeds SET endID=endID+$gap WHERE endID >= {$feedToMoveInto->endID} AND movedirection = 'none'");
+						my_mysql_query("UPDATE feeds SET startID=startID+$gap WHERE startID >= {$feedToMoveInto->endID} AND movedirection = 'none'"); # endID is correct!
+
+						/* Move the feed to the newly created room */
+						my_mysql_query("UPDATE feeds SET startID = startID + {$feedToMoveInto->endID}, endID = endID + {$feedToMoveInto->endID}, movedirection = 'none' WHERE movedirection = 'moveme'");
+
 						$data["status"] = "OK";
 						$data["msg"] = "Feed moved.";
 					} else {
@@ -203,7 +203,7 @@ switch ($path[0]){
 					$UPDATE .= ", `$k` = \"".mres($update->$k)."\"";
 				}
 			}
-			mysql_query("UPDATE feeds SET $UPDATE WHERE ID = ".mres($path[1])." LIMIT 1");
+			my_mysql_query("UPDATE feeds SET $UPDATE WHERE ID = ".mres($path[1])." LIMIT 1");
 			if (mysql_error()){
 				$data["status"] = "error";
 				$data["msg"] = mysql_error();
@@ -211,12 +211,12 @@ switch ($path[0]){
 			}
 			foreach ($update->filter as $k => $v){
 				if ($v->delete == "true"){
-					mysql_query("DELETE FROM filter WHERE ID = ".mres($v->ID)." LIMIT 1");
+					my_mysql_query("DELETE FROM filter WHERE ID = ".mres($v->ID)." LIMIT 1");
 				} else {
 					if ($v->ID == "0" && strlen($v->regex) > 0){
-						mysql_query("INSERT INTO filter (regex, whiteorblack, feedID) VALUES (\"".mres($v->regex)."\", \"".mres($v->whiteorblack)."\", ".mres($path[1]).")");
+						my_mysql_query("INSERT INTO filter (regex, whiteorblack, feedID) VALUES (\"".mres($v->regex)."\", \"".mres($v->whiteorblack)."\", ".mres($path[1]).")");
 					} else {
-						mysql_query("UPDATE filter SET regex = \"".mres($v->regex)."\", whiteorblack = \"".mres($v->whiteorblack)."\" WHERE ID = ".mres($v->ID)." LIMIT 1");
+						my_mysql_query("UPDATE filter SET regex = \"".mres($v->regex)."\", whiteorblack = \"".mres($v->whiteorblack)."\" WHERE ID = ".mres($v->ID)." LIMIT 1");
 					}
 				}
 				if (mysql_errno()){
@@ -230,9 +230,9 @@ switch ($path[0]){
 		} # }}}
 		elseif ($method == "DELETE"){{{
 			# DELETE /feed/1
-			$q = mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
+			$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
 			$feed = mysql_fetch_object($q);
-			mysql_query("DELETE FROM feeds WHERE ID = $feed->ID LIMIT 1");
+			my_mysql_query("DELETE FROM feeds WHERE ID = $feed->ID LIMIT 1");
 
 			if (mysql_error()){
 				$data["status"] = "error";
@@ -240,14 +240,14 @@ switch ($path[0]){
 				break;
 		}
 
-		mysql_query("UPDATE feeds SET endID=endID-2 WHERE endID >= {$feed->endID}");
+		my_mysql_query("UPDATE feeds SET endID=endID-2 WHERE endID >= {$feed->endID}");
 		if (mysql_error()){
 			$data["status"] = "error";
 			$data["msg"] = mysql_error();
 			break;
 		}
 
-		mysql_query("UPDATE feeds SET startID=startID-2 WHERE startID >= $feed->endID"); # $feed->endID is correct!
+		my_mysql_query("UPDATE feeds SET startID=startID-2 WHERE startID >= $feed->endID"); # $feed->endID is correct!
 		if (mysql_error()){
 			$data["status"] = "error";
 			$data["msg"] = mysql_error();
@@ -273,7 +273,7 @@ switch ($path[0]){
 				$data["status"] = "error";
 				$data["msg"] = "No valid data to update given!";
 			} else {
-				mysql_query("UPDATE entries SET $UPDATE WHERE ID = ".mres($path[1])." LIMIT 1");
+				my_mysql_query("UPDATE entries SET $UPDATE WHERE ID = ".mres($path[1])." LIMIT 1");
 				if (mysql_error() == ""){
 					$data["status"] = "OK";
 					$data["msg"] = "";
@@ -292,12 +292,12 @@ switch ($path[0]){
 			$data = Array();
 			$r = Array();
 			if (count($path) >= 2){
-				$q = mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
+				$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
 			} else {
-				$q = mysql_query("SELECT * FROM feeds WHERE startID = 1");
+				$q = my_mysql_query("SELECT * FROM feeds WHERE startID = 1");
 			}
 			$r = mysql_fetch_object($q);
-			$qc = mysql_query("SELECT feeds.ID, feeds.startID, COUNT(entries.ID) AS unread, MAX(entries.ID) AS maxID
+			$qc = my_mysql_query("SELECT feeds.ID, feeds.startID, COUNT(entries.ID) AS unread, MAX(entries.ID) AS maxID
 				FROM feeds
 				LEFT JOIN entries ON entries.feedID IN (SELECT f.ID FROM feeds AS f WHERE f.startID >= feeds.startID AND f.endID <= feeds.endID) AND isread='0'
 				WHERE feeds.startID >= ".$r->startID." AND feeds.endID <= ".$r->endID."

@@ -25,7 +25,7 @@ function resize(){{{
 }}}
 window.onresize=resize;
 
-function rearrangeFeeds(){
+function rearrangeFeeds(){{{
 	var d = $("#rearrangeFeeds");
 	var dBody = d.find(".modal-body");
 	dBody.find("#categories").empty();
@@ -46,7 +46,7 @@ function rearrangeFeeds(){
 					dBody.find("#entries").find("ul").addClass("hide");
 					dBody.find("#entries").find("#parent_"+$(this).attr("parentid")).removeClass("hide");
 				});
-			var li = $("<li id='category_"+ptr.data.ID+"'></li>").append(a);
+			var li = $("<li dropid='"+ptr.data.ID+"' id='category_"+ptr.data.ID+"'></li>").append(a);
 			li.droppable({
 				hoverClass: "ui-droppable-hover",
 				greedy: true,
@@ -54,10 +54,34 @@ function rearrangeFeeds(){
 					var droppedOn = $(this);
 					var dragged = ui.draggable;
 					if (dragged.attr("feedid") == droppedOn.attr("dropid")){
+						/* dropped onto itself */
 						return;
 					};
-					dragged.next().remove();
-					dragged.remove();
+					if (dBody.find("#entries").find("#parent_"+droppedOn.attr("dropid")).length){
+						if (!(dBody.find("#entries").find("#parent_"+droppedOn.attr("dropid")).hasClass("hide"))){
+							/* dropped into same category as it is now */
+							return;
+						}
+					}
+					dragged.spin();
+					$.ajax({
+						url: "rest.php/feed/"+dragged.attr("feedid")+"/move",
+						type: "POST",
+						dataType: "json",
+						data: {
+							moveIntoCategory: droppedOn.attr("dropid")
+						},
+						success: function(data) {
+							if (data.status != "OK"){
+								alert(data.msg);
+								return;
+							}
+							dragged.next().remove();
+							dragged.remove();
+							getFeeds();
+						},
+						complete: function(){ dragged.spin(false); }
+					});
 				}
 			});
 			var ul = $("<ul>").append(li);
@@ -68,7 +92,8 @@ function rearrangeFeeds(){
 				p = dBody.find("#category_"+ptr.parent.data.ID);
 			}
 			p.append(ul);
-		} else {
+		}
+		if (ptr.parent){
 			/* new feed */
 			var li = $("<li feedid='"+ptr.data.ID+"'>"+ptr.data.name+"</li>");
 			var p = dBody.find("#entries").find("#parent_"+ptr.parent.data.ID);
@@ -116,7 +141,7 @@ function rearrangeFeeds(){
 	}
 
 	d.modal();
-}
+}}}
 function FeedShowSettings(){{{
 	var f = this;
 
@@ -548,37 +573,37 @@ function startup(){{{
 }}}
 $(document).ready(startup);
 
-function showAddFeed(){{{
-	var f = this;
-	var d = $("<div />").dialog({
-		width: "800px",
-		modal: true,
-		title: "Add Feed",
-		close: function(event, ui){
-			$(this).remove();
-			return true;
+function addFeed(){{{
+	var d = $("#addFeed");
+	$.ajax({
+		url: "rest.php/feeds",
+		type: "POST",
+		dataType: "json",
+		data: {
+			parent: d.find("#parent").val(),
+			name: d.find("#name").val(),
+			url: d.find("#url").val(),
+			isgroup: d.find("#isgroup").val(),
+			cacheimages: d.find("#cacheimages").val()
 		},
-		buttons: {
-			"FF Handler": addRSSHandler,
-			"Commit": function(){ d.dialog("close"); },
-			"Cancel": function(){ d.dialog("close"); }
+		success: function(data){
+			if (data.status == "OK"){
+				getFeeds();
+				d.modal("hide");
+				return;
+			}
+			alert ("Error: "+data.msg);
+			return;
 		}
 	});
-	d.html("<table>"+
-		"<tr><td>Parent:</td><td><select id='parent' /></td></tr>"+
-		"<tr><td>Name:</td><td><input type='text' size='60' id='name'></td></tr>"+
-		"<tr><td>Feed URL:</td><td><input type='text' id='url' size='60'></td></tr>"+
-		"<tr><td>Is a group:</td><td id='isGroupYesNo'><input type='radio' id='isgroupno' name='isgroup' checked value='0'><label for='isgroupno'>No</label><input type='radio' id='isgroupyes' name='isgroup' value='1'><label for='isgroupyes'>Yes</label></td></tr>"+
-		"<tr><td>Cache images:</td><td id='cacheImagesYesNo'><input type='radio' id='cacheimagesno' name='cacheimages' checked value='no'><label for='cacheimagesno'>No</label><input type='radio' id='cacheimagesyes' name='cacheimages' value='yes'><label for='cacheimagesyes'>Yes</label></td></tr>"+
-		"</table>");
-	d.find("#isGroupYesNo").buttonset();
-	d.find("#cacheImagesYesNo").buttonset();
-	d.find("#isgroupyes")
-		.on("change", function(){ d.find("#url").attr("disabled", $(this).attr("checked")); });
-	d.find("#isgroupno")
-		.on("change", function(){ d.find("#url").attr("disabled", !$(this).attr("checked")); });
+}}}
+function showAddFeed(){{{
+	var d = $("#addFeed");
+	var sortedFeeds = globalFeeds.slice(0); /* copy the array */
+	sortedFeeds.sort(function(a,b){return parseInt(a.data.startID) < parseInt(b.data.startID) ? -1 : 1;}); /* sort by startID ASC */
+
 	var options = "";
-	$.each(globalFeeds, function(k,v){
+	$.each(sortedFeeds, function(k,v){
 		if (v == undefined){
 			return true; // continue;
 		}
@@ -591,6 +616,10 @@ function showAddFeed(){{{
 		}
 	});
 	d.find("select#parent").append(options);
+	d.find("#buttonAddRSSHandler").unbind("click");
+	d.find("#buttonAddRSSHandler").bind("click", addRSSHandler);
+	d.find("#buttonAddFeed").unbind("click").bind("click", addFeed);
+	d.modal();
 }}}
 function addRSSHandler(){{{
 	var addDir = $("#parent :selected");
