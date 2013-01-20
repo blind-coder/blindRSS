@@ -141,7 +141,6 @@ while ($feed = mysql_fetch_object($query_feeds)){
 					$timestamp,
 					$oldFeedEntry["ID"]);
 				$query_oldFeedEntry = my_mysql_query($query);
-				echo "\tUPDATE: $title";
 				/* Reset isread? */
 				if ($isread == 1){ // forced read by blacklist
 					$query = sprintf("UPDATE entries SET isread='1' WHERE ID = '%s'",
@@ -153,10 +152,8 @@ while ($feed = mysql_fetch_object($query_feeds)){
 						$query = sprintf("UPDATE entries SET isread='0' WHERE ID = '%s'",
 							$oldFeedEntry["ID"]);
 						my_mysql_query($query);
-						echo "and mark UNREAD";
 					}
 				}
-				echo "\n";
 			}
 		} else {
 			$query = sprintf("INSERT INTO entries (feedID, title, link, sha1_link, description, date, isread) ".
@@ -168,7 +165,6 @@ while ($feed = mysql_fetch_object($query_feeds)){
 				mysql_real_escape_string($content),
 				mysql_real_escape_string($timestamp),
 				$isread);
-			echo "\t   NEW: $title\n";
 			my_mysql_query($query);
 		}
 	}
