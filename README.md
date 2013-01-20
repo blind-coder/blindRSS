@@ -3,16 +3,16 @@ blindRSS
 
 Simple Web-based RSS reader writtin in PHP.
 
+
 Licenses
 ========
 
 This work is in the Public Domain
 
-All icons are from the Tango Icon Theme 0.8.90 and have been released into the public domain.
-	http://tango.freedesktop.org/Tango_Icon_Library
-
-This means the following files:
-	images/scalable/*
+The layout, CSS and Icons are from the Twitter Bootstrap toolkit:
+	http://twitter.github.com/bootstrap/
+Twitter Bootstrap Code licensed under Apache License v2.0, documentation under CC BY 3.0.
+Glyphicons Free licensed under CC BY 3.0.
 
 The RSS logo is from the Mozilla foundation as made available at http://www.feedicons.com/
 This means the following file:
@@ -20,3 +20,6 @@ This means the following file:
 
 Earlier versions included images from the Tidy Blog design:
 	http://www.oswd.org/design/information/id/3505
+
+Earlier versions included images from the Tango Icon theme under the followign license:
+	Creative Commons Attribution-ShareAlike 2.5 License Agreement
