@@ -190,6 +190,7 @@ function FeedShowSettings(){{{
 		complete: function(){ d.find("input[type=radio]").button(); d.find("input[type=checkbox]").button(); }
 	});
 
+	$("#buttonDeleteFeed").unbind("click").bind("click", function(){ if (confirm("Really delete feed? This cannot be undone!")){ f.deleteFeed(); } });
 	$("#buttonSaveChanges").unbind("click");
 	$("#buttonSaveChanges").bind("click", function(){ f.updateFeed(); });
 	$("#feedSettings").modal();
@@ -380,7 +381,7 @@ function FeedDeleteFeed(){{{
 		dataType: "json",
 		success: function(data){
 			f.spin.spin(false);
-			f.ul.parent().remove();
+			getFeeds();
 		}
 	});
 }}}
