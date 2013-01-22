@@ -336,7 +336,9 @@ function FeedMarkAllRead(){{{
 		complete: function(){ f.updateCount(); },
 		success: function(data){
 			if (data.status == "OK"){
-				globalUlEntries.find("li").removeClass("new");
+				if (curFeed == f){
+					globalUlEntries.find("li.new").removeClass("new").find("i.icon-star").toggleClass("icon-star icon-star-empty");
+				}
 				f.updateCount();
 			} else {
 				alert(data.msg);
