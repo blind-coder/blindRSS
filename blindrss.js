@@ -76,8 +76,17 @@ function rearrangeFeeds(){{{
 								alert(data.msg);
 								return;
 							}
-							dragged.next().remove();
-							dragged.remove();
+							var x = dBody.find("#entries").find("#parent_"+droppedOn.attr("dropid"));
+							var n = dragged.next();
+							dragged.appendTo(x);
+							n.appendTo(x);
+
+							x = dBody.find("#categories").find("#category_"+dragged.attr("feedid"));
+							if (x.length){
+								/* Moved a category */
+								var ul = x.parent();
+								ul.appendTo(droppedOn);
+							}
 							getFeeds();
 						},
 						complete: function(){ dragged.spin(false); }
