@@ -21,7 +21,7 @@ function max(a, b){{{
 }}}
 function resize(){{{
 	$("#navigation").height(window.innerHeight-($("#navigation").position().top + 40));
-	$("#content").height(window.innerHeight-($("#content").position().top + 60));
+	$("#content").height($("#navigation").height() - ($("#content").position().top - $("#navigation").position().top));
 }}}
 window.onresize=resize;
 
