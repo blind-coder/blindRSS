@@ -627,7 +627,7 @@ function showAddFeed(){{{
 			options += "<option value='"+v.data.ID+"'>"+s+"</option>";
 		}
 	});
-	d.find("select#parent").append(options);
+	d.find("select#parent").empty().append(options);
 	d.find("#buttonAddRSSHandler").unbind("click");
 	d.find("#buttonAddRSSHandler").bind("click", addRSSHandler);
 	d.find("#buttonAddFeed").unbind("click").bind("click", addFeed);
