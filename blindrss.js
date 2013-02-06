@@ -21,7 +21,7 @@ function max(a, b){{{
 }}}
 function resize(){{{
 	$("#navigation").height(window.innerHeight-($("#navigation").position().top + 40));
-	$("#content").height($("#navigation").height() - ($("#content").position().top - $("#navigation").position().top));
+	$("#content").height($("#navigation").height() - ($("#content").position().top - $("#navigation").position().top) + 20);
 }}}
 window.onresize=resize;
 
@@ -497,7 +497,7 @@ function EntryToggleRead(){{{
 	});
 }}}
 function EntryShow(){{{
-	$("#headline").empty().attr("href", this.data.link).html(this.data.title.replace(/</, "&lt;").replace(/>/, "&gt;"));
+	$("#headline").empty().attr("href", this.data.link).html("<nobr>"+this.data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
 	$("#content").empty().html(this.data.description.replace(/<(\/?)script/, "<$1disabledscript"));
 	$("ul#entries li.active").toggleClass("inactive active");
 	li = $("ul#entries li#entry_"+this.data.ID);
