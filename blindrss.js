@@ -211,7 +211,7 @@ function FeedUpdateFeed(){{{
 	$.each(d.find("[name^=regex_]"), function(k,v){
 		var id = v.name.split("_")[1];
 		var regex = v.value;
-		var wob = d.find("input[name=whiteorblack_"+id+"]").val();
+		var wob = d.find("select[name=whiteorblack_"+id+"]").val();
 		var del = d.find("input[name=delete_"+id+"]").attr("checked") == "checked" ? "true" : "false";
 		filter[filter.length] = {ID: id, regex: regex, whiteorblack: wob, delete: del};
 	});
