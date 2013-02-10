@@ -100,7 +100,7 @@ switch ($path[0]){
 					if (count($path) >= 4){
 						$limit = "LIMIT ".mres($path[3]).", 25";
 					}
-					$q = my_mysql_query("SELECT * FROM entries WHERE feedID = ".mres($r->ID)." ORDER BY `isread` ASC, `date` DESC $limit");
+					$q = my_mysql_query("SELECT * FROM entries WHERE feedID = ".mres($r->ID)." `date` DESC $limit");
 					while ($r = mysql_fetch_object($q)){
 						$data[] = $r;
 					}
