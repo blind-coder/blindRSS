@@ -497,10 +497,11 @@ function EntryToggleRead(){{{
 	});
 }}}
 function EntryShow(){{{
+	var e = this;
 	$("#content").empty().spin();
-	$("#headline").empty().attr("href", this.data.link).html("<nobr>"+this.data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
+	$("#headline").empty().attr("href", e.data.link).html("<nobr>"+e.data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
 	$.ajax({
-		url: "rest.php/entry/"+this.data.ID,
+		url: "rest.php/entry/"+e.data.ID,
 		type: "GET",
 		dataType: "json",
 		success: function(data){
@@ -510,9 +511,9 @@ function EntryShow(){{{
 			}
 			$("#content").html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
 			$("ul#entries li.active").toggleClass("inactive active");
-			li = $("ul#entries li#entry_"+this.data.ID);
+			li = $("ul#entries li#entry_"+e.data.ID);
 			li.toggleClass("inactive active");
-			this.markRead();
+			e.markRead();
 		},
 		complete: function(){ $("#content").spin(false); }
 	})
