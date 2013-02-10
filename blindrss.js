@@ -497,12 +497,25 @@ function EntryToggleRead(){{{
 	});
 }}}
 function EntryShow(){{{
+	$("#content").empty().spin();
 	$("#headline").empty().attr("href", this.data.link).html("<nobr>"+this.data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
-	$("#content").empty().html(this.data.description.replace(/<(\/?)script/, "<$1disabledscript"));
-	$("ul#entries li.active").toggleClass("inactive active");
-	li = $("ul#entries li#entry_"+this.data.ID);
-	li.toggleClass("inactive active");
-	this.markRead();
+	$.ajax({
+		url: "rest.php/entry/"+this.data.ID,
+		type: "GET",
+		dataType: "json",
+		success: function(data){
+			if (data.status == "error"){
+				alert(data.msg);
+				return;
+			}
+			$("#content").html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
+			$("ul#entries li.active").toggleClass("inactive active");
+			li = $("ul#entries li#entry_"+this.data.ID);
+			li.toggleClass("inactive active");
+			this.markRead();
+		},
+		complete: function(){ $("#content").spin(false); }
+	})
 }}}
 function EntryRender(){{{
 	var e = this;

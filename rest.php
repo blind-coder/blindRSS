@@ -100,7 +100,7 @@ switch ($path[0]){
 					if (count($path) >= 4){
 						$limit = "LIMIT ".mres($path[3]).", 25";
 					}
-					$q = my_mysql_query("SELECT * FROM entries WHERE feedID = ".mres($r->ID)." ORDER BY `date` DESC $limit");
+					$q = my_mysql_query("SELECT ID, title, date, isread FROM entries WHERE feedID = ".mres($r->ID)." ORDER BY `date` DESC $limit");
 					while ($r = mysql_fetch_object($q)){
 						$data[] = $r;
 					}
@@ -260,7 +260,18 @@ switch ($path[0]){
 		break;
 		// }}}
 	case "entry": // {{{
-		if ($method == "PUT"){
+		if ($method == "GET"){
+			# GET /entry/1
+			$data = Array();
+			$q = my_mysql_query("SELECT * FROM entries WHERE ID = ".mres($path[1]));
+			if ($r = mysql_fetch_object($q)){
+				$data = $r;
+			} else {
+				$data["status"] = "error";
+				$data["msg"] = "Unknown ID: ".mres($path[1]);
+			}
+		}
+		elseif ($method == "PUT"){
 			# PUT /entry/1
 			$UPDATE = "date = date";
 			$update = json_decode(file_get_contents("php://input"));
