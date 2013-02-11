@@ -399,7 +399,9 @@ function FeedDeleteFeed(){{{
 		success: function(data){
 			f.spin.spin(false);
 			getFeeds();
-			$("#addFeed").modal("hide");
+		},
+		complete: function(){
+			$("#feedSettings").modal("hide");
 		}
 	});
 }}}
