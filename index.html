@@ -7,6 +7,8 @@
 
 		<link rel="stylesheet" href="bootstrap/css/bootstrap.css" />
 		<link rel="stylesheet" href="bootstrap/css/bootstrap-responsive.css" />
+		<link rel="stylesheet" href="bootstrap-switch/bootstrap-switch.css" />
+		<link rel="stylesheet" href="bootstrap-switch/bootstrap-select.css" />
 
 		<link rel="stylesheet" href="jquery/css/smoothness/jquery-ui-1.9.0.custom.css" />
 
@@ -28,6 +30,8 @@
 		<script src="spin.js"></script>
 
 		<script src="bootstrap/js/bootstrap.js"></script>
+		<script src="bootstrap-switch/jquery.switch.js"></script>
+		<script src="bootstrap-select/bootstrap-select.js"></script>
 
 		<script src="blindrss.js"></script>
 	</head>
@@ -42,6 +46,8 @@
 							<li><a href="javascript:globalRootFeed.updateCount();">Refresh</a></li>
 							<li><a href="javascript:showAddFeed();">Add Feed</a></li>
 							<li><a href="javascript:rearrangeFeeds();">rearrange Feeds</a></li>
+							<li><a href="javascript:showOptions();">Options</a>
+							</li>
 						</ul>
 					</div>
 				</div>
@@ -89,13 +95,42 @@
 				<h3 id="feedSettingsLabel">Add Feed</h3>
 			</div>
 			<div class="modal-body">
-				<table>
-					<tr><td>Parent:</td><td><select id='parent' /></td></tr>
-					<tr><td>Name:</td><td><input type='text' class='input-xxlarge' id='name'></td></tr>
-					<tr><td>Feed URL:</td><td><input type='text' id='url' class='input-xxlarge'></td></tr>
-					<tr><td>Is a group:</td><td><select id='isgroup' name='isgroup'><option value='0'>No</option><option value='1'>Yes</option></select></td></tr>
-					<tr><td>Cache images:</td><td><select id='cacheimages' name='cacheimages'><option value='no'>No</option><option values='yes'>Yes</option></select></td></tr>
-				</table>
+				<form class='form-horizontal'>
+					<div class='control-group'>
+						<label class="control-label" for="parent">Parent:</label>
+						<div class="controls">
+							<select class='selectpicker' id='parent'></select>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="name">Name:</label>
+						<div class="controls">
+							<input type='text' class='input-xxlarge' id='name'>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="url">Feed URL:</label>
+						<div class="controls">
+							<input type='text' id='url' class='input-xxlarge'>
+						</div>
+					</div>
+					<div class='control-group'>
+						<label class="control-label" for="isgroup">Is this a group:</label>
+						<div class="controls">
+							<div id='isgroup' class="switch switch-small" data-on-label="Yes" data-off-label="No">
+								<input type="checkbox" checked="checked">
+							</div>
+						</div>
+					</div>
+					<div class='control-group'>
+						<label class="control-label" for="cacheimages">Cache images in this feed:</label>
+						<div class="controls">
+							<div id='cacheimages' class="switch switch-small" data-on-label="Yes" data-off-label="No">
+								<input type="checkbox" checked="checked">
+							</div>
+						</div>
+					</div>
+				</form>
 			</div>
 			<div class="modal-footer">
 				<button class="btn" id="buttonAddRSSHandler" aria-hidden="true">Add RSS Handler</button>
@@ -111,14 +146,44 @@
 				<h3 id="feedSettingsLabel">Feedsettings</h3>
 			</div>
 			<div class="modal-body">
-				<table>
-					<tr><td>Name:</td><td><input type='text' class='input-xxlarge' id='name'></td></tr>
-					<tr><td>Feed URL:</td><td><input type='text' id='url' class='input-xxlarge'></td></tr>
-					<tr><td>Is a group:</td><td><select id='isgroup' name='isgroup'><option value='0'>No</option><option value='1'>Yes</option></select></td></tr>
-					<tr><td>Cache images:</td><td><select id='cacheimages' name='cacheimages'><option value='no'>No</option><option values='yes'>Yes</option></select></td></tr>
-					<tr><td>Filter:</td><td><table id='filter'></table></td></tr>
-					<tr><td>Delete Feed:</td><td><a id='buttonDeleteFeed' class='btn' href='#'>Delete Feed</a></td></tr>
-				</table>
+				<form class="form-horizontal">
+					<div class='control-group'>
+						<label class="control-label" for="name">Name:</label>
+						<div class="controls">
+							<input type='text' class='input-xxlarge' id='name'>
+						</div>
+					</div>
+					<div class='control-group'>
+						<label class="control-label" for="url">Feed URL:</label>
+						<div class="controls">
+							<input type='text' id='url' class='input-xxlarge'>
+						</div>
+					</div>
+					<div class='control-group'>
+						<label class="control-label" for="isgroup">Is this a group:</label>
+						<div class="controls">
+							<div id='isgroup' class="switch switch-small" data-on-label="Yes" data-off-label="No">
+								<input type="checkbox" checked="checked">
+							</div>
+						</div>
+					</div>
+					<div class='control-group'>
+						<label class="control-label" for="cacheimages">Cache images in this feed:</label>
+						<div class="controls">
+							<div id='cacheimages' class="switch switch-small" data-on-label="Yes" data-off-label="No">
+								<input type="checkbox" checked="checked">
+							</div>
+						</div>
+					</div>
+					<div class='control-group'>
+						<label class="control-label" for="filter">Filter:</label>
+						<div class="controls">
+							<table class='table' id='filter'></table>
+						</div>
+					</div>
+
+					<a id='buttonDeleteFeed' class='btn' href='#'>Delete Feed</a>
+				</form>
 			</div>
 			<div class="modal-footer">
 				<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
@@ -135,6 +200,41 @@
 			<div class="modal-body" style="max-height: 600px;">
 				<div class="span3 well" id="categories"> </div>
 				<div class="span3 well" id="entries" style="height: 550px; overflow-y: scroll;"> </div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+			</div>
+		</div>
+
+		<!-- Modal options -->
+		<div id="modalOptions" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="optionsLabel" aria-hidden="true">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h3 id="optionsLabel">Options</h3>
+			</div>
+			<div class="modal-body" style="height: 550px;">
+				<form class="form-horizontal">
+					<div class='control-group'>
+						<label class='control-label' for='buttonUnreadOnChange'>Mark entries 'new' when content changes:</label>
+						<div class='controls'>
+							<div id='buttonUnreadOnChange' class="switch switch-small" data-on-label="Yes" data-off-label="No">
+								<input type="checkbox" checked="checked">
+							</div>
+						</div>
+					</div>
+					<div class='control-group'>
+						<label class='control-label' for='selectPurgeAfter'>Delete entries after:</label>
+						<div class='controls'>
+							<select id='selectPurgeAfter'>
+								<option value='7'>7 Days</option>
+								<option value='14'>14 Days</option>
+								<option value='31'>31 Days</option>
+								<option value='365'>365 Days</option>
+								<option value='36135'>99 Years</option>
+							</select>
+						</div>
+					</div>
+				</form>
 			</div>
 			<div class="modal-footer">
 				<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>

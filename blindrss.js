@@ -157,8 +157,13 @@ function FeedShowSettings(){{{
 	var d = $("#feedSettings");
 	d.find("#name").val(f.data.name);
 	d.find("#url").val(f.data.url).attr("disabled", f.isDirectory);
-	d.find("#isgroup").on("change", function(){ d.find("#url").attr("disabled", $(this).val() == "1"); }).val(f.isDirectory ? "1" : "0");
-	d.find("#cacheimages").val(f.data.cacheimages);
+	d.find("#isgroup").unbind("switch-change")
+			  .on("switch-change", function(e, data){
+				  var value = data.value;
+				  d.find("#url").attr("disabled", value == "1");
+			  })
+	                  .switch("setState", f.isDirectory);
+	d.find("#cacheimages").switch("setState", f.data.cacheimages == "yes");
 	d.find("#deleteFeed").button().on("click", function(){
 		if (confirm("Really delete feed? This cannot be undone!")){
 			if (parseInt(f.data.startID) == 1){
@@ -184,7 +189,7 @@ function FeedShowSettings(){{{
 			data[data.length] = {ID: 0, regex: "", whiteorblack: "white"};
 			$.each(data, function(k,v){
 				s += "<tr><td>"+
-					"<select name='whiteorblack_"+v.ID+"' id='whiteorblack_"+v.ID+"'>"+
+					"<select class='selectpicker' name='whiteorblack_"+v.ID+"' id='whiteorblack_"+v.ID+"'>"+
 					"<option value='white' "+(v.whiteorblack == "white" ? "selected" : "")+">Whitelist</option>"+
 					"<option value='black' "+(v.whiteorblack == "black" ? "selected" : "")+">Blacklist</option>"+
 					"</select>"+
@@ -195,6 +200,7 @@ function FeedShowSettings(){{{
 					"</td></tr>";
 			});
 			filter.append(s).spin(false);
+			filter.find(".selectpicker").selectpicker();
 		},
 		complete: function(){ d.find("input[type=radio]").button(); d.find("input[type=checkbox]").button(); }
 	});
@@ -221,8 +227,8 @@ function FeedUpdateFeed(){{{
 		dataType: "json",
 		data: JSON.stringify({
 			name: d.find("#name").val(),
-			url: (d.find("#isgroup").val() == "1" ? "" : d.find("#url").val()),
-			cacheimages: d.find("#cacheimages").val(),
+			url: (d.find("#isgroup input").attr("checked") == "checked" ? "" : d.find("#url").val()),
+			cacheimages: d.find("#cacheimages input").attr("checked") == "checked" ? "yes" : "no",
 			filter: filter
 		}),
 		success: function(data){
@@ -393,6 +399,7 @@ function FeedDeleteFeed(){{{
 		success: function(data){
 			f.spin.spin(false);
 			getFeeds();
+			$("#addFeed").modal("hide");
 		}
 	});
 }}}
@@ -499,7 +506,7 @@ function EntryToggleRead(){{{
 function EntryShow(){{{
 	var e = this;
 	$("#content").empty().spin();
-	$("#headline").empty().attr("href", e.data.link).html("<nobr>"+e.data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
+	$("#headline").empty().attr("href", "#").html("Loading...");
 	$.ajax({
 		url: "rest.php/entry/"+e.data.ID,
 		type: "GET",
@@ -510,6 +517,7 @@ function EntryShow(){{{
 				return;
 			}
 			$("#content").html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
+			$("#headline").empty().attr("href", data.link).html("<nobr>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
 			$("ul#entries li.active").toggleClass("inactive active");
 			li = $("ul#entries li#entry_"+e.data.ID);
 			li.toggleClass("inactive active");
@@ -593,9 +601,11 @@ function getFeeds(){{{
 }}}
 function startup(){{{
 	$("input[type=button]").button();
+	$(".selectpicker").selectpicker();
 	globalUlEntries = $("ul#entries");
 	resize();
 	getFeeds();
+	getOptions();
 }}}
 $(document).ready(startup);
 
@@ -608,9 +618,8 @@ function addFeed(){{{
 		data: {
 			parent: d.find("#parent").val(),
 			name: d.find("#name").val(),
-			url: d.find("#url").val(),
-			isgroup: d.find("#isgroup").val(),
-			cacheimages: d.find("#cacheimages").val()
+			url: (d.find("#isgroup input").attr("checked") == "checked" ? "" : d.find("#url").val()),
+			cacheimages: d.find("#cacheimages input").attr("checked") == "checked" ? "yes" : "no"
 		},
 		success: function(data){
 			if (data.status == "OK"){
@@ -654,4 +663,43 @@ function addRSSHandler(){{{
 		var address = l.protocol+"/"+l.hostname+l.pathname.replace("index.html", "")+"add.php?url=%s&parentID="+addDir.val();
 		window.navigator.registerContentHandler('application/vnd.mozilla.maybe.feed',address,"blindRSS " + addDir.text().replace(/^.*\//, ""));
 	}
+}}}
+function showOptions(){{{
+	var d = $("#modalOptions");
+	d.modal();
+}}}
+function getOptions(){{{
+	$.ajax({
+		url: "rest.php/options",
+		type: "GET",
+		dataType: "json", 
+		success: function(data){
+			$("#selectPurgeAfter").val(data.purgeAfter.value)
+					      .addClass("selectpicker")
+					      .selectpicker();
+			$("#buttonUnreadOnChange").attr("checked", data.unreadOnChange.value == "true" ? "checked" : "")
+						  .switch("setState", data.unreadOnChange.value == "true");
+			$("#buttonUnreadOnChange").on("switch-change", function(e, data){
+				var value = data.value;
+				setOption("unreadOnChange", value ? "true" : "false");
+			});
+			$("#selectPurgeAfter").on("change", function(e){
+				var value = $("#selectPurgeAfter").val();
+				setOption("purgeAfter", value);
+			});
+		}
+	});
+}}}
+function setOption(key, value){{{
+	$.ajax({
+		url: "rest.php/options/"+key,
+		type: "POST",
+		dataType: "json",
+		data: { value: value },
+		success: function(data) {
+			if (data.status == "error"){
+				alert(data.msg);
+			}
+		}
+	});
 }}}

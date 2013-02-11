@@ -56,11 +56,8 @@ switch ($path[0]){
 			$r = mysql_fetch_object($q);
 			my_mysql_query("UPDATE feeds SET endID=endID+2 WHERE endID >= $r->endID");
 			my_mysql_query("UPDATE feeds SET startID=startID+2 WHERE startID >= $r->endID"); # $r->endID is correct!
-			if ($_REQUEST["isgroup"] == "1"){
-				$_REQUEST["url"] = "";
-			}
 			$q = my_mysql_query("INSERT INTO feeds (startID, endID, cacheimages, name, url)
-				VALUES ({$r->endID}, {$r->endID}+1, '".mres($_RQUEST["cacheimages"])."', '".mres($_REQUEST["name"])."', '".mres($_REQUEST["url"])."')");
+				VALUES ({$r->endID}, {$r->endID}+1, '".mres($_REQUEST["cacheimages"])."', '".mres($_REQUEST["name"])."', '".mres($_REQUEST["url"])."')");
 			if (mysql_error()){
 				$data["status"] = "Error";
 				$data["msg"] = mysql_error();
@@ -317,6 +314,29 @@ switch ($path[0]){
 				$data[] = $qr;
 			}
 		}
+		break;
+		// }}}
+	case "options": // {{{
+		# GET /options
+		if ($method == "GET"){
+			$q = my_mysql_query("SELECT * FROM options");
+			$data = Array();
+			while ($r = mysql_fetch_object($q)){
+				$data[$r->key] = $r;
+			}
+		}
+		# POST /options/unreadOnChange
+		elseif ($method == "POST"){
+			my_mysql_query("INSERT INTO options (`key`, `value`) VALUES ('".mres($path[1])."', '".mres($_POST["value"])."')
+				ON DUPLICATE KEY UPDATE value=VALUES(value)");
+			if (mysql_error()){
+				$data["status"] = "error";
+				$data["msg"] = mysql_error();
+			}
+			$data["status"] = "OK";
+			$data["msg"] = "";
+		}
+		break;
 		// }}}
 }
 
