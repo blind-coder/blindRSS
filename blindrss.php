@@ -77,10 +77,16 @@ while ($feed = mysql_fetch_object($query_feeds)){
 			    preg_match("/{$value->regex}/i", $content)){
 				if ($value->whiteorblack == "white"){
 					$isread = "0";
+				} elseif ($value->whiteorblack == "ignore"){
+					$isread = "-1";
 				} else {
 					$isread = "1";
 				}
 			}
+		}
+
+		if ($isread == "-1"){
+			continue;
 		}
 
 		if ($feed->cacheimages == "yes"){

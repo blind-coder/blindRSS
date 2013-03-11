@@ -192,6 +192,7 @@ function FeedShowSettings(){{{
 					"<select class='selectpicker' name='whiteorblack_"+v.ID+"' id='whiteorblack_"+v.ID+"'>"+
 					"<option value='white' "+(v.whiteorblack == "white" ? "selected" : "")+">Whitelist</option>"+
 					"<option value='black' "+(v.whiteorblack == "black" ? "selected" : "")+">Blacklist</option>"+
+					"<option value='ignore' "+(v.whiteorblack == "ignore" ? "selected" : "")+">Ignore entry</option>"+
 					"</select>"+
 					"</td><td>"+
 					"<input type='text' value='"+v.regex+"' name='regex_"+v.ID+"'>"+
