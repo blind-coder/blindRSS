@@ -37,6 +37,11 @@ switch ($path[0]){
 			}
 		}
 		elseif ($method == "POST"){
+			if ($ISDEMO){
+				$data["status"] = "error";
+				$data["msg"] = "This is a demo :-)";
+				break;
+			}
 			# PUT /feeds
 			$q = my_mysql_query("SELECT * FROM feeds WHERE `url` = '".$_GET['url']."' AND `url` != ''");
 			if (mysql_num_rows($q) > 0){
@@ -113,6 +118,11 @@ switch ($path[0]){
 			}
 		}}}
 		elseif ($method == "POST"){{{
+			if ($ISDEMO){
+				$data["status"] = "error";
+				$data["msg"] = "This is a demo :-)";
+				break;
+			}
 			switch ($path[2]){
 				case "markAllRead":
 					# POST /feed/1/markAllRead
@@ -192,6 +202,11 @@ switch ($path[0]){
 			}
 		}}}
 		elseif ($method == "PUT"){ # {{{
+			if ($ISDEMO){
+				$data["status"] = "error";
+				$data["msg"] = "This is a demo :-)";
+				break;
+			}
 			# PUT /feed/1
 			$UPDATE = "ID = ID";
 			$update = json_decode(file_get_contents("php://input"));
@@ -226,6 +241,11 @@ switch ($path[0]){
 			$data["msg"] = "";
 		} # }}}
 		elseif ($method == "DELETE"){{{
+			if ($ISDEMO){
+				$data["status"] = "error";
+				$data["msg"] = "This is a demo :-)";
+				break;
+			}
 			# DELETE /feed/1
 			$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
 			$feed = mysql_fetch_object($q);
@@ -269,6 +289,11 @@ switch ($path[0]){
 			}
 		}
 		elseif ($method == "PUT"){
+			if ($ISDEMO){
+				$data["status"] = "OK";
+				$data["msg"] = "";
+				break;
+			}
 			# PUT /entry/1
 			$UPDATE = "date = date";
 			$update = json_decode(file_get_contents("php://input"));
@@ -327,6 +352,11 @@ switch ($path[0]){
 		}
 		# POST /options/unreadOnChange
 		elseif ($method == "POST"){
+			if ($ISDEMO){
+				$data["status"] = "error";
+				$data["msg"] = "This is a demo :-)";
+				break;
+			}
 			my_mysql_query("INSERT INTO options (`key`, `value`) VALUES ('".mres($path[1])."', '".mres($_POST["value"])."')
 				ON DUPLICATE KEY UPDATE value=VALUES(value)");
 			if (mysql_error()){
