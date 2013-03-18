@@ -5,6 +5,9 @@ ul li a {
 	color: #000000;
 	text-decoration: none;
 }
+li.active > div > a > [class^="icon-"] {
+	background-image: url("bootstrap/img/glyphicons-halflings-white.png");
+}
 .nav ul {
 	margin: 0;
 	padding: 0 0 0 10px;
@@ -26,17 +29,14 @@ ul li a {
 .inactive :hover {
 	background-color: #EEEEEE;
 }
-ul.group>li>div>a.editButton, ul.feed>li>div>a.editButton {
+li.group>div>a.editButton, li.feed>div>a.editButton {
 	visibility: hidden;
 }
-ul.group>li:hover>div>a.editButton, ul.feed>li:hover>div>a.editButton {
+li.group:hover>div>a.editButton, li.feed:hover>div>a.editButton {
 	visibility: visible;
 }
 ul#feed_1 {
 	padding: 0;
-}
-ul.feed li {
-	border-bottom: 1px solid #000000;
 }
 #content {
 	overflow-y: scroll;
@@ -75,36 +75,36 @@ ul.feed li {
 	height: 100%;
 }
 
-.sidebar-nav ul li {
+.sidebar-nav li {
 	min-height: 16px;
 }
 
-.sidebar-nav ul li a.nameFeed {
+.sidebar-nav li a.nameFeed {
 	min-height: 16px;
 	margin-right: 48px;
 }
 
-.sidebar-nav ul.group > li:first-child {
+.sidebar-nav li.group {
 	font-weight: bold;
 	font-variant: small-caps;
 	font-size: 12px;
 }
 
-.sidebar-nav ul.feed li {
+.sidebar-nav li.feed {
 	font-weight: normal;
 	font-variant: normal;
 	font-size: 11px;
 }
 
-.sidebar-nav ul>li:first-child a.newmessage {
+.sidebar-nav a.newmessage {
 	display: none;
 }
 
-.sidebar-nav ul.new>li:first-child a.newmessage {
+.sidebar-nav li.new a.newmessage {
 	display: block;
 }
 
-.sidebar-nav ul.new>li:first-child a.nameFeed {
+.sidebar-nav li.new a.nameFeed {
 	font-weight: bold;
 }
 

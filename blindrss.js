@@ -151,6 +151,26 @@ function rearrangeFeeds(){{{
 
 	d.modal();
 }}}
+function FeedHide(metoo = false){{{
+	if (this.isDirectory){
+		for (var ptr = 0; ptr < this.children.length; ptr++){
+			this.children[ptr].hide(true);
+		}
+	}
+	if (metoo)
+		this.li.hide();
+}}}
+function FeedShow(metoo = false){{{
+	if (this.isDirectory){
+		if (this.folder.hasClass("icon-folder-open")){
+			for (var ptr = 0; ptr < this.children.length; ptr++){
+				this.children[ptr].show(true);
+			}
+		}
+	}
+	if (metoo)
+		this.li.show();
+}}}
 function FeedShowSettings(){{{
 	var f = this;
 
@@ -252,9 +272,9 @@ function FeedRenderCount(){{{
 	f.numNew.empty();
 	if (parseInt(f.data.unreadCount) > 0){
 		f.numNew.append(f.data.unreadCount);
-		f.ul.addClass("new");
+		f.li.addClass("new");
 	} else {
-		f.ul.removeClass("new");
+		f.li.removeClass("new");
 	}
 }}}
 function FeedIsDirectory(){{{
@@ -285,7 +305,7 @@ function FeedGetEntries(){{{
 		success: function(data){
 			var e = globalUlEntries;
 
-			$("ul.feed li.active").toggleClass("inactive active");
+			$("ul#feed_1 li.active").toggleClass("inactive active");
 			f.li.toggleClass("inactive active");
 			if (data.length == 0){
 				e.find(".loadMore").remove();
@@ -298,13 +318,17 @@ function FeedGetEntries(){{{
 				e.empty();
 				e.append("<li class='nav-header'>Feedentries</li>");
 				scrollTop = 0;
+				for (var ptr = 0; ptr < globalFeeds.length; ptr++){
+					if (globalFeeds[ptr])
+						globalFeeds[ptr].entries = [];
+				}
 				f.entries = new Array();
 			} else {
 				e.find(".loadMore").remove();
 			}
 			$.each(data, function(k, v){
-				v.feed = f;
-				f.entries[v.ID] = new Entry(v);
+				v.feed = globalFeeds[parseInt(v.feedID)];
+				v.feed.entries[v.ID] = new Entry(v);
 			});
 
 			var li = $("<li class='loadMore inactive' />");
@@ -417,7 +441,20 @@ function Feed(data){{{
 	this.showSettings=FeedShowSettings;
 	this.deleteFeed=FeedDeleteFeed;
 	this.updateFeed=FeedUpdateFeed;
+	this.hide=FeedHide;
+	this.show=FeedShow;
 	this.children = new Array();
+
+	if (this.data.startID != "1"){
+		var parentFeed = $("li").filter(function(){
+			return  $(this).attr("startID") <= parseInt(f.data.startID) &&
+				$(this).attr("endID")   >= parseInt(f.data.endID)   &&
+			globalFeeds[parseInt($(this).attr("group"))].isDirectory;
+		}).last().attr("group");
+		parentFeed = globalFeeds[parseInt(parentFeed)];
+		this.parent = parentFeed;
+		parentFeed.children[parentFeed.children.length] = this;
+	}
 
 	/* unfortunately, any of these tend to be sent from the server */
 	if ("x"+this.data.url == "x" ||
@@ -428,8 +465,8 @@ function Feed(data){{{
 		this.isDirectory=false;
 	}
 
-	this.ul = $("#feed_"+this.data.startID);
-	this.li = $("<li id='details_"+this.data.startID+"' class='inactive' />");
+	//this.ul = $("#feed_"+this.data.startID);
+	this.li = $("<li id='feed_"+this.data.startID+"' />");
 	this.spin = $("<span class='floatLeft spin' id='spinFeed_"+this.data.startID+"'>&nbsp;</span>");
 	this.nameFeed = $("<a href='#' class='nameFeed'>"+this.data.name+"</a>");
 	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
@@ -451,22 +488,38 @@ function Feed(data){{{
 		.append(this.spin)
 	);
 	this.li.append(this.nameFeed);
-		//$("<div class='nameFeed'>").append(this.nameFeed)
-	//);
 
-	this.ul.attr("startID", this.data.startID)
+	this.li.attr("startID", this.data.startID)
 	       .attr("endID",   this.data.endID)
-	       .attr("group",   this.data.ID)
-	       .append(this.li);
-	if (this.isDirectory){
-		this.ul.addClass("group");
-	} else {
-		this.ul.addClass("feed");
-		this.nameFeed.on("click", function(){
-			f.entry = 0;
-			f.getEntries();
-		});
+	       .attr("group",   this.data.ID);
+	$("#feed_1").append(this.li);
+
+	var indent = 0;
+	for (var ptr = this.parent; ptr; ptr=ptr.parent){
+		indent = indent + 16;
 	}
+	this.li.css("padding-left", indent + "px");
+	if (this.isDirectory){
+		this.li.addClass("group");
+		this.folder = $("<i class='icon-folder-open'></i>");
+		this.folder.on("click", function(){
+			var open = f.folder.hasClass("icon-folder-open");
+			f.folder.toggleClass("icon-folder-open icon-folder-close");
+			if (open){
+				f.hide();
+			} else {
+				f.show();
+			}
+			return false;
+		});
+		this.li.find(".nameFeed").prepend(this.folder);
+	} else {
+		this.li.addClass("feed");
+	}
+	this.nameFeed.on("click", function(){
+		f.entry = 0;
+		f.getEntries();
+	});
 }}}
 
 function EntryMarkRead(){{{
@@ -553,7 +606,7 @@ function Entry(data){{{
 		li.addClass("new");
 	}
 	li.append(
-		$("<a href='#' class='floatLeft'><i class='icon-"+(this.data.isread == "0" ? "star" : "star-empty")+"'/></a>") /* bug in bootstraps .css? */
+		$("<a href='#' class='floatLeft'><i class='icon-"+(this.data.isread == "0" ? "star" : "star-empty")+"'/></a>")
 		.on("click", function(){
 			that.toggleRead();
 		})
@@ -587,17 +640,8 @@ function getFeeds(){{{
 					globalRootFeed = new Feed(v);
 					return true; // continue; // already initialized in static HTML
 				}
-				var parentFeed = $("ul").filter(function(){
-					return  $(this).attr("startID") <= parseInt(v.startID) &&
-						$(this).attr("endID")   >= parseInt(v.endID)   &&
-						globalFeeds[parseInt($(this).attr("group"))].isDirectory;
-				}).last().attr("group");
-				parentFeed = globalFeeds[parseInt(parentFeed)];
 
-				parentFeed.ul.append("<li><ul class='nav nav-list' id='feed_"+v.startID+"' /></li>");
-				var f = new Feed(v);
-				f.parent = parentFeed;
-				parentFeed.children[parentFeed.children.length] = f;
+				new Feed(v);
 			});
 		},
 	});
