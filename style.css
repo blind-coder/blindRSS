@@ -1,4 +1,5 @@
 body {
+	padding-top: 60px;
 	padding-bottom: 0px !important;
 }
 ul li a {
@@ -73,6 +74,7 @@ ul#feed_1 {
 	overflow-y: scroll;
 	overflow-x: hidden;
 	height: 100%;
+	padding: 9px 0;
 }
 
 .sidebar-nav li {

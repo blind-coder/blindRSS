@@ -1,6 +1,7 @@
 var globalFeeds = new Array();
 var globalRootFeed;
 var globalUlEntries;
+var globalEntries;
 
 var curFeed = false;
 function min(a, b){{{
@@ -151,25 +152,35 @@ function rearrangeFeeds(){{{
 
 	d.modal();
 }}}
-function FeedHide(metoo = false){{{
-	if (this.isDirectory){
-		for (var ptr = 0; ptr < this.children.length; ptr++){
-			this.children[ptr].hide(true);
-		}
-	}
-	if (metoo)
-		this.li.hide();
-}}}
-function FeedShow(metoo = false){{{
-	if (this.isDirectory){
-		if (this.folder.hasClass("icon-folder-open")){
-			for (var ptr = 0; ptr < this.children.length; ptr++){
-				this.children[ptr].show(true);
+function FeedCollapse(collapse){{{
+	var that = this;
+	this.folder.toggleClass("icon-folder-open icon-folder-close");
+	for (var ptr = this.li.next(); ptr.length; ptr = ptr.next()){
+		if (parseInt(ptr.attr("startID")) >= that.data.startID && parseInt(ptr.attr("endID")) <= that.data.endID){
+			if (collapse){
+				ptr.hide();
+			} else {
+				ptr.show();
 			}
 		}
 	}
-	if (metoo)
-		this.li.show();
+	if ((this.data.collapsed == "yes") != collapse){
+		$.ajax({
+			url: "rest.php/feed/"+this.data.ID,
+			type: "PUT",
+			dataType: "json",
+			data: JSON.stringify({
+				collapsed: (collapse ? "yes" : "no")
+			}),
+			success: function(data){
+				if (data.status != "OK"){
+					alert(data.msg);
+					return;
+				}
+				that.data.collapsed = (collapse ? "yes" : "no");
+			}
+		});
+	}
 }}}
 function FeedShowSettings(){{{
 	var f = this;
@@ -323,12 +334,18 @@ function FeedGetEntries(){{{
 						globalFeeds[ptr].entries = [];
 				}
 				f.entries = new Array();
+				globalEntries = new Object();
 			} else {
 				e.find(".loadMore").remove();
 			}
 			$.each(data, function(k, v){
 				v.feed = globalFeeds[parseInt(v.feedID)];
-				v.feed.entries[v.ID] = new Entry(v);
+				if (globalEntries[v.ID]){
+					globalEntries[v.ID].data = v;
+					globalEntries[v.ID].update();
+				} else {
+					globalEntries[v.ID] = v.feed.entries[v.ID] = new Entry(v);
+				}
 			});
 
 			var li = $("<li class='loadMore inactive' />");
@@ -441,8 +458,7 @@ function Feed(data){{{
 	this.showSettings=FeedShowSettings;
 	this.deleteFeed=FeedDeleteFeed;
 	this.updateFeed=FeedUpdateFeed;
-	this.hide=FeedHide;
-	this.show=FeedShow;
+	this.collapse=FeedCollapse;
 	this.children = new Array();
 
 	if (this.data.startID != "1"){
@@ -504,11 +520,10 @@ function Feed(data){{{
 		this.folder = $("<i class='icon-folder-open'></i>");
 		this.folder.on("click", function(){
 			var open = f.folder.hasClass("icon-folder-open");
-			f.folder.toggleClass("icon-folder-open icon-folder-close");
 			if (open){
-				f.hide();
+				f.collapse(true);
 			} else {
-				f.show();
+				f.collapse(false);
 			}
 			return false;
 		});
@@ -593,6 +608,19 @@ function EntryRender(){{{
 		li.find("i.icon-star-empty").toggleClass("icon-star icon-star-empty");
 	}
 }}}
+function EntryUpdate(){{{
+	if (this.data.isread == "0"){
+		this.li.addClass("new");
+		this.icon.addClass("icon-star");
+		this.icon.removeClass("icon-star-empty");
+	} else {
+		this.li.removeClass("new");
+		this.icon.removeClass("icon-star");
+		this.icon.addClass("icon-star-empty");
+	}
+	this.icon.detach();
+	this.a.empty().append(this.icon).append(this.data.title);
+}}}
 function Entry(data){{{
 	var that = this;
 	this.data = data;
@@ -600,25 +628,21 @@ function Entry(data){{{
 	this.markRead = EntryMarkRead;
 	this.toggleRead = EntryToggleRead;
 	this.render = EntryRender;
+	this.update = EntryUpdate;
 
-	var li = $("<li class='inactive' id='entry_"+this.data.ID+"' />");
-	if (this.data.isread == "0"){
-		li.addClass("new");
-	}
-	li.append(
-		$("<a href='#' class='floatLeft'><i class='icon-"+(this.data.isread == "0" ? "star" : "star-empty")+"'/></a>")
+	this.icon = $("<i />")
 		.on("click", function(){
 			that.toggleRead();
-		})
-	);
-	li.append(
-		$("<a href='#'></a>")
-		.append(this.data.title)
+			return false;
+		});
+	this.a = $("<a href='#' class='floatLeft' />").append(this.icon)
 		.on("click", function(){
 			that.show();
-		})
-	);
-	globalUlEntries.append(li);
+		});
+	this.li = $("<li class='inactive' id='entry_"+this.data.ID+"' />").append(this.a);
+
+	this.update();
+	globalUlEntries.append(this.li);
 }}}
 
 function getFeeds(){{{
@@ -643,6 +667,14 @@ function getFeeds(){{{
 
 				new Feed(v);
 			});
+			var f;
+			for (var ptr = 0; ptr < globalFeeds.length; ptr++){
+				if (f = globalFeeds[ptr]){
+					if (f.data.collapsed == "yes"){
+						f.collapse(true);
+					}
+				}
+			}
 		},
 	});
 }}}

@@ -100,12 +100,12 @@ switch ($path[0]){
 					$data = Array();
 					$limit = "";
 					if (count($path) >= 4){
-						$limit = "LIMIT ".mres($path[3]).", 25";
+						$limit = "LIMIT ".(25+($path[3]));
 					}
 					//$q = my_mysql_query("SELECT ID, title, date, isread FROM entries WHERE feedID = ".mres($r->ID)." ORDER BY `date` DESC $limit");
 					$q = my_mysql_query("SELECT startID, endID FROM feeds WHERE ID = ".mres($r->ID));
 					$r = mysql_fetch_object($q);
-					$q = my_mysql_query("SELECT ID, title, date, isread, feedID FROM entries WHERE feedID IN (
+					$q = my_mysql_query($SQL = "SELECT ID, title, date, isread, feedID FROM entries WHERE feedID IN (
 							SELECT ID FROM feeds WHERE startID >= {$r->{startID}} AND endID <= {$r->{endID}}
 						) ORDER BY `date` DESC $limit");
 					while ($r = mysql_fetch_object($q)){
@@ -215,7 +215,7 @@ switch ($path[0]){
 			# PUT /feed/1
 			$UPDATE = "ID = ID";
 			$update = json_decode(file_get_contents("php://input"));
-			foreach (array("name", "url", "cacheimages") as $k){
+			foreach (array("name", "url", "cacheimages", "collapsed") as $k){
 				if ("".$update->$k != ""){
 					$UPDATE .= ", `$k` = \"".mres($update->$k)."\"";
 				}
