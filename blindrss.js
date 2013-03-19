@@ -21,10 +21,47 @@ function max(a, b){{{
 	return b;
 }}}
 function resize(){{{
-	$("#feed_1").height(window.innerHeight-($("#feed_1").position().top + 40));
-	$("#content").height($("#feed_1").height() - ($("#content").position().top - $("#feed_1").position().top) + 20);
+	$("#feeds").height(window.innerHeight-($("#feeds").position().top + 40));
+	$("#content").height($("#feeds").height() - ($("#content").position().top - $("#feeds").position().top) + 20);
 }}}
 window.onresize=resize;
+
+function showFavorites(){{{
+	var e = globalUlEntries;
+	e.empty();
+	e.append("<li class='nav-header'>Feedentries</li>");
+	e.scroll(0);
+
+	$.ajax({
+		url: "rest.php/favorites",
+		type: "GET",
+		dataType: "json",
+		success: function(data){
+			globalEntries = new Object();
+			$.each(data, function(k,v){
+				new Entry(v);
+			});
+		}
+	});
+}}}
+function showTag(tag){{{
+	var e = globalUlEntries;
+	e.empty();
+	e.append("<li class='nav-header'>Feedentries</li>");
+	e.scroll(0);
+
+	$.ajax({
+		url: "rest.php/tags/"+tag,
+		type: "GET",
+		dataType: "json",
+		success: function(data){
+			globalEntries = new Object();
+			$.each(data, function(k,v){
+				new Entry(v);
+			});
+		}
+	});
+}}}
 
 function rearrangeFeeds(){{{
 	var d = $("#rearrangeFeeds");
@@ -316,15 +353,15 @@ function FeedGetEntries(){{{
 		success: function(data){
 			var e = globalUlEntries;
 
-			$("ul#feed_1 li.active").removeClass("inactive active");
+			$("ul#feeds li.active").removeClass("active");
 			f.li.addClass("active");
 			if (data.length == 0){
 				e.find(".loadMore").remove();
-				e.append("<li class='loadMore inactive'>[ No more entries ]</li>");
+				e.append("<li class='loadMore'>[ No more entries ]</li>");
 				return;
 			}
 
-			var scrollTop = e.parent().parent().scrollTop();
+			var scrollTop = e.scrollTop();
 			if (f.entry == 0){
 				e.empty();
 				e.append("<li class='nav-header'>Feedentries</li>");
@@ -338,6 +375,7 @@ function FeedGetEntries(){{{
 			} else {
 				e.find(".loadMore").remove();
 			}
+
 			$.each(data, function(k, v){
 				v.feed = globalFeeds[parseInt(v.feedID)];
 				if (globalEntries[v.ID]){
@@ -359,9 +397,9 @@ function FeedGetEntries(){{{
 			e.append(li);
 
 			if (f.entry == 0){
-				e.parent().parent().scrollTop(0);
+				e.scrollTop(0);
 			} else {
-				e.parent().parent().scroll(scrollTop);
+				e.scroll(scrollTop);
 			}
 		},
 		complete: function(){ f.spin.spin(false); globalUlEntries.parent().spin(false); }
@@ -509,7 +547,7 @@ function Feed(data){{{
 	       .attr("group",   this.data.ID)
 				 .append(this.nameFeed);
 
-	$("#feed_1").append(this.li);
+	$("#feeds").append(this.li);
 
 	var indent = 0;
 	for (var ptr = this.parent; ptr; ptr=ptr.parent){
@@ -591,9 +629,9 @@ function EntryShow(){{{
 			}
 			$("#content").html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
 			$("#headline").empty().attr("href", data.link).html("<nobr>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
-			$("ul#entries li.active").toggleClass("inactive active");
+			$("ul#entries li.active").removeClass("active");
 			li = $("ul#entries li#entry_"+e.data.ID);
-			li.toggleClass("inactive active");
+			li.addClass("active");
 			e.markRead();
 		},
 		complete: function(){ $("#content").spin(false); }
@@ -604,24 +642,25 @@ function EntryRender(){{{
 	li = $("ul#entries li#entry_"+e.data.ID);
 	if (e.data.isread == "1"){
 		li.removeClass("new");
-		li.find("i.icon-star").toggleClass("icon-star icon-star-empty");
 	} else {
 		li.addClass("new");
-		li.find("i.icon-star-empty").toggleClass("icon-star icon-star-empty");
 	}
 }}}
 function EntryUpdate(){{{
 	if (this.data.isread == "0"){
 		this.li.addClass("new");
-		this.icon.addClass("icon-star");
-		this.icon.removeClass("icon-star-empty");
 	} else {
 		this.li.removeClass("new");
-		this.icon.removeClass("icon-star");
-		this.icon.addClass("icon-star-empty");
 	}
-	this.icon.detach();
-	this.a.empty().append(this.icon).append(this.data.title);
+	this.iconNew.detach();
+	this.iconFav.detach();
+	this.iconTag.detach();
+	this.a
+		.empty()
+		.append(this.iconTag)
+		.append(this.iconFav)
+		.append(this.iconNew)
+		.append(this.data.title);
 }}}
 function Entry(data){{{
 	var that = this;
@@ -632,24 +671,51 @@ function Entry(data){{{
 	this.render = EntryRender;
 	this.update = EntryUpdate;
 
-	this.icon = $("<i />")
+	this.iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
 		.on("click", function(){
 			that.toggleRead();
 			return false;
 		});
-	this.a = $("<a href='#' />").append(this.icon)
+	this.iconFav = $("<i class='floatLeft icon-star-empty' />")
+		.on("click", function(){
+			$.ajax({
+				url: "rest.php/entry/"+that.data.ID,
+				type: "PUT",
+				dataType: "json",
+				data: JSON.stringify({ favorite: (that.iconFav.hasClass("icon-star-empty") ? "yes" : "no") }),
+				success: function(data){
+					if (data.status == "OK"){
+						that.iconFav.toggleClass("icon-star icon-star-empty");
+					} else {
+						alert(data.msg);
+					}
+				},
+			});
+			return false;
+		});
+	this.iconTag = $("<i class='floatLeft icon-tags' />");
+
+	if (this.data.favorite == "yes"){
+		this.iconFav.toggleClass("icon-star icon-star-empty");
+	}
+
+	this.a = $("<a href='#' />")
+		.append(this.iconTag)
+		.append(this.iconFav)
+		.append(this.iconNew)
 		.on("click", function(){
 			that.show();
 		});
-	this.li = $("<li class='inactive' id='entry_"+this.data.ID+"' />").append(this.a);
+	this.li = $("<li id='entry_"+this.data.ID+"' />").append(this.a);
 
 	this.update();
 	globalUlEntries.append(this.li);
 }}}
 
 function getFeeds(){{{
-	var feed_1 = $("#feed_1");
-	feed_1.empty().append('<li class="nav-header">RSS Feeds</li>');
+	var feed_1 = $("#feeds");
+	feed_1.find(".group").remove();
+	feed_1.find(".feed").remove();
 	$.ajax({
 		url: "rest.php/feeds",
 		type: "GET",
@@ -683,6 +749,7 @@ function getFeeds(){{{
 function startup(){{{
 	$("input[type=button]").button();
 	$(".selectpicker").selectpicker();
+	$("#specialFavorites").on("click", showFavorites);
 	globalUlEntries = $("ul#entries");
 	resize();
 	getFeeds();
@@ -767,6 +834,12 @@ function getOptions(){{{
 			$("#selectPurgeAfter").on("change", function(e){
 				var value = $("#selectPurgeAfter").val();
 				setOption("purgeAfter", value);
+			});
+			$("#buttonDeleteFavorites").attr("checked", data.deleteFavorites.value == "yes" ? "checked" : "")
+						  .switch("setState", data.deleteFavorites.value == "yes");
+			$("#buttonDeleteFavorites").on("switch-change", function(e, data){
+				var value = data.value;
+				setOption("deleteFavorites", value ? "yes" : "no");
 			});
 		}
 	});

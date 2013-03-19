@@ -15,7 +15,7 @@ li.active > div > a > [class^="icon-"] {
 	list-style: none;
 	list-style-image: none;
 }
-.sidebar-nav .active, .sidebar-nav :hover {
+.sidebar-nav .active, .sidebar-nav *:hover {
 	background-color: #0081C2;
 	background-image: linear-gradient(to bottom, #0088CC, #0077B3);
 	background-repeat: repeat-x;
@@ -99,14 +99,25 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 }
 
 .sidebar-nav i.newmessage {
-	display: none;
+	visibility: hidden;
 }
 
 .sidebar-nav li.new i.newmessage {
-	display: block;
+	visibility: visible;
 }
 
-.sidebar-nav li.new .nameFeed {
+.entries li:hover i.newmessage {
+	visibility: visible;
+	opacity: 0.5;
+	filter:Alpha(opacity=50); /* IE8 and earlier */
+}
+.entries li.new:hover i.newmessage {
+	visibility: visible;
+	opacity: 1;
+	filter:Alpha(opacity=100); /* IE8 and earlier */
+}
+
+.sidebar-nav li.new .nameFeed, .entries li.new > a {
 	font-weight: bold;
 }
 

@@ -102,10 +102,9 @@ switch ($path[0]){
 					if (count($path) >= 4){
 						$limit = "LIMIT ".(25+($path[3]));
 					}
-					//$q = my_mysql_query("SELECT ID, title, date, isread FROM entries WHERE feedID = ".mres($r->ID)." ORDER BY `date` DESC $limit");
 					$q = my_mysql_query("SELECT startID, endID FROM feeds WHERE ID = ".mres($r->ID));
 					$r = mysql_fetch_object($q);
-					$q = my_mysql_query($SQL = "SELECT ID, title, date, isread, feedID FROM entries WHERE feedID IN (
+					$q = my_mysql_query($SQL = "SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE feedID IN (
 							SELECT ID FROM feeds WHERE startID >= {$r->{startID}} AND endID <= {$r->{endID}}
 						) ORDER BY `date` DESC $limit");
 					while ($r = mysql_fetch_object($q)){
@@ -300,25 +299,48 @@ switch ($path[0]){
 				break;
 			}
 			# PUT /entry/1
-			$UPDATE = "date = date";
-			$update = json_decode(file_get_contents("php://input"));
-			foreach (array("isread") as $k){
-				if ("".$update->$k != ""){
-					$UPDATE .= ", `$k` = \"".mres($update->$k)."\"";
+			if (count($path) == 2){
+				$UPDATE = "date = date";
+				$update = json_decode(file_get_contents("php://input"));
+				foreach (array("isread", "favorite") as $k){
+					if ("".$update->$k != ""){
+						$UPDATE .= ", `$k` = \"".mres($update->$k)."\"";
+					}
 				}
-			}
-			if ($UPDATE == "date = date"){
-				$data["status"] = "error";
-				$data["msg"] = "No valid data to update given!";
-			} else {
-				my_mysql_query("UPDATE entries SET $UPDATE WHERE ID = ".mres($path[1])." LIMIT 1");
-				if (mysql_error() == ""){
-					$data["status"] = "OK";
-					$data["msg"] = "";
-				} else {
+				if ($UPDATE == "date = date"){
 					$data["status"] = "error";
-					$data["msg"] = "Update failed: ".mysql_error();
+					$data["msg"] = "No valid data to update given!";
+				} else {
+					my_mysql_query("UPDATE entries SET $UPDATE WHERE ID = ".mres($path[1])." LIMIT 1");
+					if (mysql_error() == ""){
+						$data["status"] = "OK";
+						$data["msg"] = "";
+					} else {
+						$data["status"] = "error";
+						$data["msg"] = "Update failed: ".mysql_error();
+					}
 				}
+			} elseif (count($path) == 3){
+				# PUT /entry/1/tags
+				$data["status"] = "OK";
+				$data["msg"] = "";
+				$tags = json_decode(file_get_contents("php://input"));
+				foreach (explode(",", $tags->{"tags"}) as $t){
+					my_mysql_query("INSERT IGNORE INTO tags (tag) VALUES (\"".mres($t)."\")");
+					if (mysql_error()){
+						$data["status"] = "error";
+						$data["msg"] .= "Could not add tag '".mres($t)."': ".mysql_error();
+						break;
+					}
+					my_mysql_query("INSERT IGNORE INTO entries_tags (entryID, tagID) VALUES (".mres($path[1]).",
+						(SELECT ID FROM tags WHERE tag = \"".mres($t)."\"))");
+					if (mysql_error()){
+						$data["status"] = "error";
+						$data["msg"] .= "Could not add tag '".mres($t)."': ".mysql_error();
+						break;
+					}
+				}
+				break;
 			}
 		}
 		break;
@@ -342,6 +364,46 @@ switch ($path[0]){
 				GROUP BY feeds.ID");
 			while ($qr = mysql_fetch_object($qc)){
 				$data[] = $qr;
+			}
+		}
+		break;
+		// }}}
+	case "favorites": // {{{
+		# GET /favorites
+		if (count($path) == 1){
+			$data = Array();
+			$q = my_mysql_query("SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE favorite = 'yes' ORDER BY `date` DESC");
+			while ($r = mysql_fetch_object($q)){
+				$data[] = $r;
+			}
+			break;
+		}
+		break;
+		// }}}
+	case "tags": // {{{
+		if ($method == "GET"){
+			# GET /tags
+			if (count($path) == 1){
+				$data = Array();
+				$q = my_mysql_query("SELECT * FROM tags ORDER BY tag ASC");
+				if ($r = mysql_fetch_object($q)){
+					$data = $r;
+				} else {
+					$data["status"] = "error";
+					$data["msg"] = "Unknown Error! ".mysql_error();
+				}
+				break;
+			}
+			if (count($path) > 1){
+				# GET /tags/1
+				$data = Array();
+				$q = my_mysql_query("SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE ID IN (
+					SELECT entryID FROM entries_tags WHERE tagID = ".mres($path[1])."
+				) ORDER BY `date` DESC");
+				while ($r = mysql_fetch_object($q)){
+					$data[] = $r;
+				}
+				break;
 			}
 		}
 		break;

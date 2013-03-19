@@ -45,18 +45,17 @@
 		<div class="container-fluid">
 			<div class="row-fluid">
 				<div class="span3 printRemove">
-					<ul id="feed_1" class="dropdown-menu span12 sidebar-nav" style="display: block; position: static; margin-bottom: 5px; *width: 180px;">
-						<li class="nav-header">RSS Feeds</li>
+					<ul id="feeds" class="dropdown-menu span12 sidebar-nav" style="display: block; position: static; margin-bottom: 5px; *width: 180px;">
+						<li id="specialFeeds" class="nav-header">Special</li>
+						<li style='padding-left: 15px;'><a href='#' id='specialFavorites'><i class='icon-star' ></i>Favorites</a></li>
+						<li class="divider"></li>
+						<li id="rssFeeds" class="nav-header">RSS Feeds</li>
 					</ul>
 				</div><!--/span3-->
 				<div class="span9">
-					<div class="row-fluid entries well sidebar-nav printRemove">
-						<div class="span12">
-							<ul id='entries' class='nav nav-list'>
-								<li class="nav-header">Feedentries</li>
-							</ul>
-						</div>
-					</div>
+					<ul id='entries' class='dropdown-menu entries span12 sidebar-nav' style="display: block; position: static; margin-bottom: 5px; *width: 180px;">
+						<li class="nav-header">Feedentries</li>
+					</ul>
 					<div class="row-fluid">
 						<div class="span12">
 							<div class="well content">
@@ -219,6 +218,14 @@
 								<option value='365'>365 Days</option>
 								<option value='36135'>99 Years</option>
 							</select>
+						</div>
+					</div>
+					<div class='control-group'>
+						<label class='control-label' for='buttonDeleteFavorites'>Delete entries if they are favorites?</label>
+						<div class='controls'>
+							<div id='buttonDeleteFavorites' class="switch switch-small" data-on-label="Yes" data-off-label="No">
+								<input type="checkbox" checked="checked">
+							</div>
 						</div>
 					</div>
 				</form>

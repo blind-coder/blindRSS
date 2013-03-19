@@ -7,7 +7,10 @@ mysql_select_db($MYSQL_DB) || die (mysql_error());
 mysql_query("SET NAMES 'utf8';");
 
 /* Purge old entries */
-mysql_query("SELECT `value` INTO @x FROM options WHERE `key` = 'purgeAfter'; DELETE FROM `entries` WHERE `date` < SUBDATE(CURDATE(), INTERVAL @x DAY);");
+mysql_query("SELECT `value` INTO @x FROM options WHERE `key` = 'purgeAfter';
+SELECT `value` INTO @delFav FROM options WHERE `key` = 'deleteFavorites';
+DELETE FROM `entries` WHERE `date` < SUBDATE(CURDATE(), INTERVAL @x DAY)
+AND `favorite` IN ('no', @delFav)");
 
 $q = mysql_query("SELECT `value` FROM options WHERE `key` = 'unreadOnChange'");
 $unreadOnChange = mysql_fetch_object($q);
