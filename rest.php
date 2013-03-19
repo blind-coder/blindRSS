@@ -95,18 +95,30 @@ switch ($path[0]){
 						header("Location: ../../unreadcount/".$r->ID);
 					}
 					break;
-				# GET /feed/1/entries/25
+				# GET /feed/1/entries/2013-02-02
 				case "entries":
 					$data = Array();
-					$limit = "";
-					if (count($path) >= 4){
-						$limit = "LIMIT ".(25+($path[3]));
-					}
+					$date = "";
 					$q = my_mysql_query("SELECT startID, endID FROM feeds WHERE ID = ".mres($r->ID));
 					$r = mysql_fetch_object($q);
+					if (count($path) >= 4){
+						/* We need to get the first date with entries after one day before $path[4] */
+						$q = my_mysql_query($SQL = "SELECT DISTINCT `date` FROM `entries`
+							WHERE feedID IN (
+								SELECT ID FROM feeds WHERE startID >= {$r->{startID}} AND endID <= {$r->{endID}}
+							)
+							AND `date` <= '".mres($path[3])." 23:59:59'
+							ORDER BY `date` DESC
+							LIMIT 1");
+						if (!($d = mysql_fetch_object($q))){
+							/* no more entries */
+							break;
+						}
+						$date = "AND `date` >= '".substr($d->{"date"}, 0, 10)."' AND `date` < '".mres($path[3])." 23:59:59'";
+					}
 					$q = my_mysql_query($SQL = "SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE feedID IN (
-							SELECT ID FROM feeds WHERE startID >= {$r->{startID}} AND endID <= {$r->{endID}}
-						) ORDER BY `date` DESC $limit");
+						SELECT ID FROM feeds WHERE startID >= {$r->{startID}} AND endID <= {$r->{endID}}
+					) $date ORDER BY `date` DESC");
 					while ($r = mysql_fetch_object($q)){
 						$data[] = $r;
 					}

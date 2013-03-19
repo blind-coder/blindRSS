@@ -1,7 +1,6 @@
 var globalFeeds = new Array();
 var globalRootFeed;
 var globalUlEntries;
-var globalEntries;
 
 var curFeed = false;
 function min(a, b){{{
@@ -37,7 +36,6 @@ function showFavorites(){{{
 		type: "GET",
 		dataType: "json",
 		success: function(data){
-			globalEntries = new Object();
 			$.each(data, function(k,v){
 				new Entry(v);
 			});
@@ -55,7 +53,6 @@ function showUnread(){{{
 		type: "GET",
 		dataType: "json",
 		success: function(data){
-			globalEntries = new Object();
 			$.each(data, function(k,v){
 				new Entry(v);
 			});
@@ -73,7 +70,6 @@ function showTag(tag){{{
 		type: "GET",
 		dataType: "json",
 		success: function(data){
-			globalEntries = new Object();
 			$.each(data, function(k,v){
 				new Entry(v);
 			});
@@ -353,7 +349,7 @@ function FeedIsDirectory(){{{
 	}
 	return this.isDirectory;
 }}}
-function FeedGetEntries(){{{
+function FeedGetEntries(today){{{
 	var f = this;
 
 	if (curFeed){
@@ -365,7 +361,7 @@ function FeedGetEntries(){{{
 
 	f.spin.spin("tiny");
 	$.ajax({
-		url: "rest.php/feed/"+f.data.ID+"/entries/"+f.entry,
+		url: "rest.php/feed/"+f.data.ID+"/entries/"+f.SQLDate(),
 		type: "GET",
 		dataType: "json",
 		success: function(data){
@@ -379,42 +375,37 @@ function FeedGetEntries(){{{
 				return;
 			}
 
+			e.append("<li class='nav-header'>"+data[0].date.substr(0, 10)+"</li>");
 			var scrollTop = e.scrollTop();
-			if (f.entry == 0){
-				e.empty();
-				e.append("<li class='nav-header'>Feedentries</li>");
+			if (today){
 				scrollTop = 0;
 				for (var ptr = 0; ptr < globalFeeds.length; ptr++){
 					if (globalFeeds[ptr])
-						globalFeeds[ptr].entries = [];
+						globalFeeds[ptr].entries = new Array();
 				}
-				f.entries = new Array();
-				globalEntries = new Object();
 			} else {
 				e.find(".loadMore").remove();
 			}
 
+			var newDate;
 			$.each(data, function(k, v){
 				v.feed = globalFeeds[parseInt(v.feedID)];
-				if (globalEntries[v.ID]){
-					globalEntries[v.ID].data = v;
-					globalEntries[v.ID].update();
-				} else {
-					globalEntries[v.ID] = v.feed.entries[v.ID] = new Entry(v);
-				}
+				v.feed.entries[v.ID] = new Entry(v);
+				newDate = v.date;
 			});
 
 			var li = $("<li class='loadMore' />");
 			li.append(
-				$("<a href='#'>[ Load 25 more entries ]</a>")
+				$("<a href='#'>[ Load next day ]</a>")
 				.on("click", function(){
-					f.entry += 25;
-					f.getEntries();
+					var d = newDate.match(/^(....)-(..)-(..)/);
+					f.date = new Date(parseInt(d[1]), parseInt(d[2])-1, parseInt(d[3])-1);
+					f.getEntries(false);
 				})
 			);
 			e.append(li);
 
-			if (f.entry == 0){
+			if (today){
 				e.scrollTop(0);
 			} else {
 				e.scroll(scrollTop);
@@ -503,6 +494,9 @@ function FeedDeleteFeed(){{{
 		}
 	});
 }}}
+function FeedSQLDate(){{{
+	return this.date.getFullYear()+"-"+(this.date.getMonth()+1 < 10 ? "0" : "")+(this.date.getMonth()+1)+"-"+(this.date.getDate() < 10 ? "0" : "")+this.date.getDate();
+}}}
 function Feed(data){{{
 	var f = this;
 	globalFeeds[parseInt(data.ID)] = this;
@@ -515,6 +509,7 @@ function Feed(data){{{
 	this.deleteFeed=FeedDeleteFeed;
 	this.updateFeed=FeedUpdateFeed;
 	this.collapse=FeedCollapse;
+	this.SQLDate=FeedSQLDate;
 	this.children = new Array();
 
 	if (this.data.startID != "1"){
@@ -590,7 +585,10 @@ function Feed(data){{{
 		this.li.addClass("feed");
 	}
 	this.nameFeed.on("click", function(){
-		f.entry = 0;
+		f.date = new Date();
+		globalUlEntries.empty();
+		globalUlEntries.append("<li class='nav-header'>Feedentries</li>");
+		f.entries = new Object();
 		f.getEntries();
 	});
 }}}
