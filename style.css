@@ -21,7 +21,10 @@ li.active > div > a > [class^="icon-"] {
 	background-repeat: repeat-x;
 	color: #FFFFFF;
 }
-.sidebar-nav .active a, .sidebar-nav .active a :hover {
+.sidebar-nav .active a, .sidebar-nav .active a :hover,
+.sidebar-nav .active a a, .sidebar-nav .active a :hover a,
+.sidebar-nav li:hover span a
+{
 	color: #FFFFFF;
 }
 .sidebar-nav > li > a {

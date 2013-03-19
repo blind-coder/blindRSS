@@ -4,7 +4,7 @@ function mres($x){
 	return mysql_real_escape_string($x);
 }
 function my_mysql_query($x){
-	error_log($x);
+	//error_log($x);
 	return mysql_query($x);
 }
 
