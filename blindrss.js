@@ -585,10 +585,13 @@ function Feed(data){{{
 		this.li.addClass("feed");
 	}
 	this.nameFeed.on("click", function(){
+		for (var ptr=0; ptr<globalFeeds.length; ptr++){
+			if (globalFeeds[ptr])
+				globalFeeds[ptr].entries = new Object();
+		}
 		f.date = new Date();
 		globalUlEntries.empty();
 		globalUlEntries.append("<li class='nav-header'>Feedentries</li>");
-		f.entries = new Object();
 		f.getEntries();
 	});
 }}}
