@@ -380,6 +380,18 @@ switch ($path[0]){
 		}
 		break;
 		// }}}
+	case "unread": // {{{
+		# GET /unread
+		if (count($path) == 1){
+			$data = Array();
+			$q = my_mysql_query("SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE isread = '0' ORDER BY `date` DESC");
+			while ($r = mysql_fetch_object($q)){
+				$data[] = $r;
+			}
+			break;
+		}
+		break;
+		// }}}
 	case "tags": // {{{
 		if ($method == "GET"){
 			# GET /tags

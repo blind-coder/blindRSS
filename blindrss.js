@@ -44,6 +44,24 @@ function showFavorites(){{{
 		}
 	});
 }}}
+function showUnread(){{{
+	var e = globalUlEntries;
+	e.empty();
+	e.append("<li class='nav-header'>Feedentries</li>");
+	e.scroll(0);
+
+	$.ajax({
+		url: "rest.php/unread",
+		type: "GET",
+		dataType: "json",
+		success: function(data){
+			globalEntries = new Object();
+			$.each(data, function(k,v){
+				new Entry(v);
+			});
+		}
+	});
+}}}
 function showTag(tag){{{
 	var e = globalUlEntries;
 	e.empty();
@@ -750,6 +768,7 @@ function startup(){{{
 	$("input[type=button]").button();
 	$(".selectpicker").selectpicker();
 	$("#specialFavorites").on("click", showFavorites);
+	$("#specialUnread").on("click", showUnread);
 	globalUlEntries = $("ul#entries");
 	resize();
 	getFeeds();
