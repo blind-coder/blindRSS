@@ -6,6 +6,7 @@ CREATE TABLE `tags` (
 	 `tag` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
 	 PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+ALTER TABLE `tags` ADD UNIQUE (`tag`);
 
 CREATE TABLE `entries_tags` (
 	 `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
