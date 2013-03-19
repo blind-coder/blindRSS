@@ -15,29 +15,26 @@ li.active > div > a > [class^="icon-"] {
 	list-style: none;
 	list-style-image: none;
 }
-.nav-list .active, .nav-list .active :hover {
-	background-color: #0088CC;
-	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
+.sidebar-nav .active, .sidebar-nav :hover {
+	background-color: #0081C2;
+	background-image: linear-gradient(to bottom, #0088CC, #0077B3);
+	background-repeat: repeat-x;
 	color: #FFFFFF;
 }
-.nav-list .active a, .nav-list .active a :hover {
-	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
+.sidebar-nav .active a, .sidebar-nav .active a :hover {
 	color: #FFFFFF;
 }
-.nav-list > li > a {
+.sidebar-nav > li > a {
 	padding: 0px 15px;
 }
 .inactive :hover {
 	background-color: #EEEEEE;
 }
-li.group>div>a.editButton, li.feed>div>a.editButton {
+li.group>a>i.editButton, li.feed>a>i.editButton {
 	visibility: hidden;
 }
-li.group:hover>div>a.editButton, li.feed:hover>div>a.editButton {
+li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 	visibility: visible;
-}
-ul#feed_1 {
-	padding: 0;
 }
 #content {
 	overflow-y: scroll;
@@ -58,11 +55,11 @@ ul#feed_1 {
 	padding: 0;
 	margin: 0;
 }
-.entries ul li {
+.entries ul > li {
 	max-height: 16px;
 	line-height: 16px;
 }
-.entries ul li a {
+.entries ul > li > a {
 	padding: 0px 15px;
 }
 
@@ -81,12 +78,15 @@ ul#feed_1 {
 	min-height: 16px;
 }
 
-.sidebar-nav li a.nameFeed {
+.sidebar-nav li a{
+	white-space: normal;
+}
+.sidebar-nav li .nameFeed {
 	min-height: 16px;
 	margin-right: 48px;
 }
 
-.sidebar-nav li.group {
+.sidebar-nav li.group .nameFeed {
 	font-weight: bold;
 	font-variant: small-caps;
 	font-size: 12px;
@@ -98,15 +98,15 @@ ul#feed_1 {
 	font-size: 11px;
 }
 
-.sidebar-nav a.newmessage {
+.sidebar-nav i.newmessage {
 	display: none;
 }
 
-.sidebar-nav li.new a.newmessage {
+.sidebar-nav li.new i.newmessage {
 	display: block;
 }
 
-.sidebar-nav li.new a.nameFeed {
+.sidebar-nav li.new .nameFeed {
 	font-weight: bold;
 }
 

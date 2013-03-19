@@ -21,8 +21,8 @@ function max(a, b){{{
 	return b;
 }}}
 function resize(){{{
-	$("#navigation").height(window.innerHeight-($("#navigation").position().top + 40));
-	$("#content").height($("#navigation").height() - ($("#content").position().top - $("#navigation").position().top) + 20);
+	$("#feed_1").height(window.innerHeight-($("#feed_1").position().top + 40));
+	$("#content").height($("#feed_1").height() - ($("#content").position().top - $("#feed_1").position().top) + 20);
 }}}
 window.onresize=resize;
 
@@ -316,8 +316,8 @@ function FeedGetEntries(){{{
 		success: function(data){
 			var e = globalUlEntries;
 
-			$("ul#feed_1 li.active").toggleClass("inactive active");
-			f.li.toggleClass("inactive active");
+			$("ul#feed_1 li.active").removeClass("inactive active");
+			f.li.addClass("active");
 			if (data.length == 0){
 				e.find(".loadMore").remove();
 				e.append("<li class='loadMore inactive'>[ No more entries ]</li>");
@@ -348,7 +348,7 @@ function FeedGetEntries(){{{
 				}
 			});
 
-			var li = $("<li class='loadMore inactive' />");
+			var li = $("<li class='loadMore' />");
 			li.append(
 				$("<a href='#'>[ Load 25 more entries ]</a>")
 				.on("click", function(){
@@ -481,33 +481,34 @@ function Feed(data){{{
 		this.isDirectory=false;
 	}
 
-	//this.ul = $("#feed_"+this.data.startID);
 	this.li = $("<li id='feed_"+this.data.startID+"' />");
 	this.spin = $("<span class='floatLeft spin' id='spinFeed_"+this.data.startID+"'>&nbsp;</span>");
-	this.nameFeed = $("<a href='#' class='nameFeed'>"+this.data.name+"</a>");
-	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
-	this.nameFeed.append(this.numNew)
 
 	this.buttons = new Object();
-	this.buttons.settings = $("<a class='floatRight editButton' href='#'><i class='icon-pencil' /></a>")
+	this.buttons.settings = $("<i class='icon-pencil floatRight editButton' />")
 		.on("click", function(){
 			f.showSettings();
+			return false;
 		});
-	this.buttons.newMessage = $("<a id='newMessage_"+this.data.startID+"' class='newmessage floatRight' href='#'><i class='icon-envelope' /></a>")
+	this.buttons.newMessage = $("<i id='newMessage_"+this.data.startID+"' class='icon-envelope newmessage floatRight' />")
 		.on("click", function() {
 			f.markAllRead();
+			return false;
 		});
 
-	this.li.append(
-		$("<div class='floatRight'>").append(this.buttons.settings)
+	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
+
+	this.nameFeed = $("<a href='#' />")
+		.append(this.buttons.settings)
 		.append(this.buttons.newMessage)
 		.append(this.spin)
-	);
-	this.li.append(this.nameFeed);
+		.append($("<span href='#' class='nameFeed'>"+this.data.name+"</span>").append(this.numNew));
 
 	this.li.attr("startID", this.data.startID)
 	       .attr("endID",   this.data.endID)
-	       .attr("group",   this.data.ID);
+	       .attr("group",   this.data.ID)
+				 .append(this.nameFeed);
+
 	$("#feed_1").append(this.li);
 
 	var indent = 0;
@@ -515,6 +516,7 @@ function Feed(data){{{
 		indent = indent + 16;
 	}
 	this.li.css("padding-left", indent + "px");
+
 	if (this.isDirectory){
 		this.li.addClass("group");
 		this.folder = $("<i class='icon-folder-open'></i>");
@@ -527,7 +529,7 @@ function Feed(data){{{
 			}
 			return false;
 		});
-		this.li.find(".nameFeed").prepend(this.folder);
+		this.li.find(".nameFeed").before(this.folder);
 	} else {
 		this.li.addClass("feed");
 	}
@@ -635,7 +637,7 @@ function Entry(data){{{
 			that.toggleRead();
 			return false;
 		});
-	this.a = $("<a href='#' class='floatLeft' />").append(this.icon)
+	this.a = $("<a href='#' />").append(this.icon)
 		.on("click", function(){
 			that.show();
 		});
@@ -647,7 +649,7 @@ function Entry(data){{{
 
 function getFeeds(){{{
 	var feed_1 = $("#feed_1");
-	feed_1.empty();
+	feed_1.empty().append('<li class="nav-header">RSS Feeds</li>');
 	$.ajax({
 		url: "rest.php/feeds",
 		type: "GET",
