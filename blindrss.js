@@ -225,28 +225,28 @@ function FeedCollapse(collapse){{{
 	}
 }}}
 function FeedShowSettings(){{{
-	var f = this;
+	var that = this;
 
 	var d = $("#feedSettings");
-	d.find("#name").val(f.data.name);
-	d.find("#url").val(f.data.url).attr("disabled", f.isDirectory);
+	d.find("#name").val(that.data.name);
+	d.find("#url").val(that.data.url).attr("disabled", that.isDirectory);
 	d.find("#isgroup").unbind("switch-change")
 			  .on("switch-change", function(e, data){
 				  var value = data.value;
 				  d.find("#url").attr("disabled", value == "1");
 			  })
-	                  .switch("setState", f.isDirectory);
-	d.find("#cacheimages").switch("setState", f.data.cacheimages == "yes");
+	                  .switch("setState", that.isDirectory);
+	d.find("#cacheimages").switch("setState", that.data.cacheimages == "yes");
 	d.find("#deleteFeed").button().on("click", function(){
 		if (confirm("Really delete feed? This cannot be undone!")){
-			if (parseInt(f.data.startID) == 1){
-				alert("Cowardly refusing to delete root category '"+f.data.name+"'");
+			if (parseInt(that.data.startID) == 1){
+				alert("Cowardly refusing to delete root category '"+that.data.name+"'");
 			}
-			else if (parseInt(f.data.endID) - 1 != parseInt(f.data.startID)){ // non-empty category
+			else if (parseInt(that.data.endID) - 1 != parseInt(that.data.startID)){ // non-empty category
 				alert("Cowardly refusing to delete non-empty category!");
 			} else {
 				d.dialog("close");
-				f.deleteFeed();
+				that.deleteFeed();
 			}
 		}
 	});
@@ -254,7 +254,7 @@ function FeedShowSettings(){{{
 	var filter = d.find("#filter");
 	filter.empty().spin("tiny");
 	$.ajax({
-		url: "rest.php/feed/"+f.data.ID+"/filter",
+		url: "rest.php/feed/"+that.data.ID+"/filter",
 		type: "GET",
 		dataType: "json",
 		success: function (data){
@@ -279,13 +279,13 @@ function FeedShowSettings(){{{
 		complete: function(){ d.find("input[type=radio]").button(); d.find("input[type=checkbox]").button(); }
 	});
 
-	$("#buttonDeleteFeed").unbind("click").bind("click", function(){ if (confirm("Really delete feed? This cannot be undone!")){ f.deleteFeed(); } });
+	$("#buttonDeleteFeed").unbind("click").bind("click", function(){ if (confirm("Really delete feed? This cannot be undone!")){ that.deleteFeed(); } });
 	$("#buttonSaveChanges").unbind("click");
-	$("#buttonSaveChanges").bind("click", function(){ f.updateFeed(); });
+	$("#buttonSaveChanges").bind("click", function(){ that.updateFeed(); });
 	$("#feedSettings").modal();
 }}}
 function FeedUpdateFeed(){{{
-	var f = this;
+	var that = this;
 	var d = $("#feedSettings");
 	var filter = new Array();
 	$.each(d.find("[name^=regex_]"), function(k,v){
@@ -296,7 +296,7 @@ function FeedUpdateFeed(){{{
 		filter[filter.length] = {ID: id, regex: regex, whiteorblack: wob, delete: del};
 	});
 	$.ajax({
-		url: "rest.php/feed/"+f.data.ID,
+		url: "rest.php/feed/"+that.data.ID,
 		type: "PUT",
 		dataType: "json",
 		data: JSON.stringify({
@@ -310,10 +310,10 @@ function FeedUpdateFeed(){{{
 				alert(data.msg);
 				return;
 			}
-			f.data.name = d.find("#name").val();
-			f.data.cacheimages = d.find("input[name=cacheimages]:checked").val();
-			f.data.url = d.find("input[name=isgroup]:checked").val() == "1" ? "" : d.find("#url").val();
-			f.nameFeed.empty().append(d.find("#name").val());
+			that.data.name = d.find("#name").val();
+			that.data.cacheimages = d.find("input[name=cacheimages]:checked").val();
+			that.data.url = d.find("input[name=isgroup]:checked").val() == "1" ? "" : d.find("#url").val();
+			that.nameFeed.empty().append(d.find("#name").val());
 		},
 		complete: function(){
 			d.modal("hide");
@@ -321,13 +321,13 @@ function FeedUpdateFeed(){{{
 	});
 }}}
 function FeedRenderCount(){{{
-	var f = this;
-	f.numNew.empty();
-	if (parseInt(f.data.unreadCount) > 0){
-		f.numNew.append(f.data.unreadCount);
-		f.li.addClass("new");
+	var that = this;
+	that.numNew.empty();
+	if (parseInt(that.data.unreadCount) > 0){
+		that.numNew.append(that.data.unreadCount);
+		that.li.addClass("new");
 	} else {
-		f.li.removeClass("new");
+		that.li.removeClass("new");
 	}
 }}}
 function FeedIsDirectory(){{{
@@ -341,7 +341,7 @@ function FeedIsDirectory(){{{
 	return this.isDirectory;
 }}}
 function FeedGetEntries(today){{{
-	var f = this;
+	var that = this;
 
 	if (curFeed){
 		if (curFeed != this){
@@ -350,16 +350,16 @@ function FeedGetEntries(today){{{
 	}
 	curFeed = this;
 
-	f.spin.spin("tiny");
+	that.spin.spin("tiny");
 	$.ajax({
-		url: "rest.php/feed/"+f.data.ID+"/entries/"+f.SQLDate(),
+		url: "rest.php/feed/"+that.data.ID+"/entries/"+that.SQLDate(),
 		type: "GET",
 		dataType: "json",
 		success: function(data){
 			var e = globalUlEntries;
 
 			$("ul#feeds li.active").removeClass("active");
-			f.li.addClass("active");
+			that.li.addClass("active");
 			if (data.length == 0){
 				e.find(".loadMore").remove();
 				e.append("<li class='loadMore'>[ No more entries ]</li>");
@@ -389,8 +389,8 @@ function FeedGetEntries(today){{{
 				$("<a href='#'>[ Load next day ]</a>")
 				.on("click", function(){
 					var d = newDate.match(/^(....)-(..)-(..)/);
-					f.date = new Date(parseInt(d[1]), parseInt(d[2])-1, parseInt(d[3])-1);
-					f.getEntries(false);
+					that.date = new Date(parseInt(d[1]), parseInt(d[2])-1, parseInt(d[3])-1);
+					that.getEntries(false);
 				})
 			);
 			e.append(li);
@@ -401,20 +401,20 @@ function FeedGetEntries(today){{{
 				e.scroll(scrollTop);
 			}
 		},
-		complete: function(){ f.spin.spin(false); globalUlEntries.parent().spin(false); }
+		complete: function(){ that.spin.spin(false); globalUlEntries.parent().spin(false); }
 	});
 }}}
 function FeedMarkAllRead(){{{
-	var f = this;
+	var that = this;
 	var maxID;
 
-	if (!(maxID = parseInt(f.data.maxID))){
+	if (!(maxID = parseInt(that.data.maxID))){
 		maxID = 0;
 	}
 
-	f.spin.spin("tiny");
-	if (f.entries){
-		$.each(f.entries, function(k,v){
+	that.spin.spin("tiny");
+	if (that.entries){
+		$.each(that.entries, function(k,v){
 			if (!v){
 				return true;
 			}
@@ -427,13 +427,13 @@ function FeedMarkAllRead(){{{
 		dataType: "json",
 		type: "POST",
 		data: { maxID: maxID },
-		complete: function(){ f.updateCount(); },
+		complete: function(){ that.updateCount(); },
 		success: function(data){
 			if (data.status == "OK"){
 				if (curFeed == f){
 					globalUlEntries.find("li.new").removeClass("new").find("i.icon-star").toggleClass("icon-star icon-star-empty");
 				}
-				f.updateCount();
+				that.updateCount();
 			} else {
 				alert(data.msg);
 			}
@@ -441,13 +441,13 @@ function FeedMarkAllRead(){{{
 	});
 }}}
 function FeedUpdateCount(){{{
-	var f = this;
-	f.spin.spin("tiny");
+	var that = this;
+	that.spin.spin("tiny");
 	$.ajax({
-		url: "rest.php/unreadcount/"+f.data.ID,
+		url: "rest.php/unreadcount/"+that.data.ID,
 		dataType: "json",
 		type: "GET",
-		complete: function(){ f.spin.spin(false); },
+		complete: function(){ that.spin.spin(false); },
 		success: function(data){
 			$.each(data, function(k, v){
 				var feed = globalFeeds[parseInt(v.ID)];
@@ -455,7 +455,7 @@ function FeedUpdateCount(){{{
 				feed.data.maxID = v.maxID;
 				feed.renderCount();
 			})
-			for (var x = f.parent; x; x=x.parent){
+			for (var x = that.parent; x; x=x.parent){
 				/* only need to update parents */
 				var newCount = 0;
 				for (var c = 0; c < x.children.length; c++){
@@ -468,15 +468,15 @@ function FeedUpdateCount(){{{
 	});
 }}}
 function FeedDeleteFeed(){{{
-	var f = this;
-	f.spin.spin("tiny");
+	var that = this;
+	that.spin.spin("tiny");
 
 	$.ajax({
-		url: "rest.php/feed/"+f.data.ID,
+		url: "rest.php/feed/"+that.data.ID,
 		type: "DELETE",
 		dataType: "json",
 		success: function(data){
-			f.spin.spin(false);
+			that.spin.spin(false);
 			getFeeds();
 		},
 		complete: function(){
@@ -488,7 +488,7 @@ function FeedSQLDate(){{{
 	return this.date.getFullYear()+"-"+(this.date.getMonth()+1 < 10 ? "0" : "")+(this.date.getMonth()+1)+"-"+(this.date.getDate() < 10 ? "0" : "")+this.date.getDate();
 }}}
 function Feed(data){{{
-	var f = this;
+	var that = this;
 	globalFeeds[parseInt(data.ID)] = this;
 	this.data = data;
 	this.getEntries=FeedGetEntries;
@@ -504,8 +504,8 @@ function Feed(data){{{
 
 	if (this.data.startID != "1"){
 		var parentFeed = $("li").filter(function(){
-			return  $(this).attr("startID") <= parseInt(f.data.startID) &&
-				$(this).attr("endID")   >= parseInt(f.data.endID)   &&
+			return  $(this).attr("startID") <= parseInt(that.data.startID) &&
+				$(this).attr("endID")   >= parseInt(that.data.endID)   &&
 			globalFeeds[parseInt($(this).attr("group"))].isDirectory;
 		}).last().attr("group");
 		parentFeed = globalFeeds[parseInt(parentFeed)];
@@ -528,12 +528,12 @@ function Feed(data){{{
 	this.buttons = new Object();
 	this.buttons.settings = $("<i class='icon-pencil floatRight editButton' />")
 		.on("click", function(){
-			f.showSettings();
+			that.showSettings();
 			return false;
 		});
 	this.buttons.newMessage = $("<i id='newMessage_"+this.data.startID+"' class='icon-envelope newmessage floatRight' />")
 		.on("click", function() {
-			f.markAllRead();
+			that.markAllRead();
 			return false;
 		});
 
@@ -562,11 +562,11 @@ function Feed(data){{{
 		this.li.addClass("group");
 		this.folder = $("<i class='icon-folder-open'></i>");
 		this.folder.on("click", function(){
-			var open = f.folder.hasClass("icon-folder-open");
+			var open = that.folder.hasClass("icon-folder-open");
 			if (open){
-				f.collapse(true);
+				that.collapse(true);
 			} else {
-				f.collapse(false);
+				that.collapse(false);
 			}
 			return false;
 		});
@@ -579,39 +579,38 @@ function Feed(data){{{
 			if (globalFeeds[ptr])
 				globalFeeds[ptr].entries = new Object();
 		}
-		f.date = new Date();
+		that.date = new Date();
 		globalUlEntries.empty();
 		globalUlEntries.append("<li class='nav-header'>Feedentries</li>");
-		f.getEntries();
+		that.getEntries();
 	});
 }}}
 
 function EntryMarkRead(){{{
-	var e = this;
-	if (e.data.isread == "1"){
+	if (this.data.isread == "1"){
 		return;
 	}
-	e.toggleRead();
+	this.toggleRead();
 }}}
 function EntryToggleRead(){{{
-	var e = this;
-	if (e.data.isread == "1"){
-		e.data.isread = "0";
+	var that = this;
+	if (this.data.isread == "1"){
+		this.data.isread = "0";
 	} else {
-		e.data.isread = "1";
+		this.data.isread = "1";
 	}
-	e.render();
+	this.render();
 	$.ajax({
 		url: "rest.php/entry/"+this.data.ID,
 		type: "PUT",
 		dataType: "json",
-		data: JSON.stringify({ isread: e.data.isread }),
+		data: JSON.stringify({ isread: this.data.isread }),
 		success: function(data){
 			if (data.status == "OK"){
 				var f;
-				for (f = e.data.feed; f; f=f.parent){
+				for (f = that.data.feed; f; f=f.parent){
 					var i = parseInt(f.data.unreadCount);
-					if (e.data.isread == "0"){
+					if (that.data.isread == "0"){
 						i++;
 					} else {
 						i--;
@@ -626,11 +625,11 @@ function EntryToggleRead(){{{
 	});
 }}}
 function EntryShow(){{{
-	var e = this;
+	var that = this;
 	$("#content").empty().spin();
 	$("#headline").empty().attr("href", "#").html("Loading...");
 	$.ajax({
-		url: "rest.php/entry/"+e.data.ID,
+		url: "rest.php/entry/"+this.data.ID,
 		type: "GET",
 		dataType: "json",
 		success: function(data){
@@ -641,17 +640,17 @@ function EntryShow(){{{
 			$("#content").html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
 			$("#headline").empty().attr("href", data.link).html("<nobr>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
 			$("ul#entries li.active").removeClass("active");
-			li = $("ul#entries li#entry_"+e.data.ID);
+			li = $("ul#entries li#entry_"+that.data.ID);
 			li.addClass("active");
-			e.markRead();
+			that.markRead();
 		},
 		complete: function(){ $("#content").spin(false); }
 	})
 }}}
 function EntryRender(){{{
-	var e = this;
-	li = $("ul#entries li#entry_"+e.data.ID);
-	if (e.data.isread == "1"){
+	var that = this;
+	li = $("ul#entries li#entry_"+this.data.ID);
+	if (this.data.isread == "1"){
 		li.removeClass("new");
 	} else {
 		li.addClass("new");
