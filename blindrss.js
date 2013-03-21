@@ -430,7 +430,7 @@ function FeedMarkAllRead(){{{
 		complete: function(){ that.updateCount(); },
 		success: function(data){
 			if (data.status == "OK"){
-				if (curFeed == f){
+				if (curFeed == that){
 					globalUlEntries.find("li.new").removeClass("new").find("i.icon-star").toggleClass("icon-star icon-star-empty");
 				}
 				that.updateCount();
