@@ -37,6 +37,10 @@ function showFavorites(){{{
 		dataType: "json",
 		success: function(data){
 			$.each(data, function(k,v){
+				for (var ptr=0; ptr<globalFeeds.length; ptr++){
+					if (globalFeeds[ptr])
+						globalFeeds[ptr].entries = new Object();
+				}
 				new Entry(v);
 			});
 		}
@@ -54,6 +58,10 @@ function showUnread(){{{
 		dataType: "json",
 		success: function(data){
 			$.each(data, function(k,v){
+				for (var ptr=0; ptr<globalFeeds.length; ptr++){
+					if (globalFeeds[ptr])
+						globalFeeds[ptr].entries = new Object();
+				}
 				new Entry(v);
 			});
 		}
@@ -71,6 +79,10 @@ function showTag(tag){{{
 		dataType: "json",
 		success: function(data){
 			$.each(data, function(k,v){
+				for (var ptr=0; ptr<globalFeeds.length; ptr++){
+					if (globalFeeds[ptr])
+						globalFeeds[ptr].entries = new Object();
+				}
 				new Entry(v);
 			});
 		}
@@ -389,8 +401,7 @@ function FeedGetEntries(today){{{
 
 			var newDate;
 			$.each(data, function(k, v){
-				v.feed = globalFeeds[parseInt(v.feedID)];
-				v.feed.entries[v.ID] = new Entry(v);
+				new Entry(v);
 				newDate = v.date;
 			});
 
@@ -689,6 +700,9 @@ function Entry(data){{{
 	this.toggleRead = EntryToggleRead;
 	this.render = EntryRender;
 	this.update = EntryUpdate;
+
+	this.data.feed = globalFeeds[parseInt(this.data.feedID)];
+	this.data.feed.entries[this.data.ID] = this;
 
 	this.iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
 		.on("click", function(){
