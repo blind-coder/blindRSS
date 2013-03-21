@@ -299,6 +299,11 @@ switch ($path[0]){
 			$q = my_mysql_query("SELECT * FROM entries WHERE ID = ".mres($path[1]));
 			if ($r = mysql_fetch_object($q)){
 				$data = $r;
+				$q = my_mysql_query("SELECT * FROM tags WHERE ID IN (SELECT tagID FROM entries_tags WHERE entryID = {$r->{"ID"}})");
+				$data->{"tags"} = Array();
+				while ($r = mysql_fetch_object($q)){
+					$data->{"tags"}[] = $r;
+				}
 			} else {
 				$data["status"] = "error";
 				$data["msg"] = "Unknown ID: ".mres($path[1]);
@@ -344,7 +349,7 @@ switch ($path[0]){
 						$data["msg"] .= "Could not add tag '".mres($t)."': ".mysql_error();
 						break;
 					}
-					my_mysql_query("INSERT IGNORE INTO entries_tags (entryID, tagID) VALUES (".mres($path[1]).",
+					my_mysql_query("INSERT INTO entries_tags (entryID, tagID) VALUES (".mres($path[1]).",
 						(SELECT ID FROM tags WHERE tag = \"".mres($t)."\"))");
 					if (mysql_error()){
 						$data["status"] = "error";
@@ -352,6 +357,15 @@ switch ($path[0]){
 						break;
 					}
 				}
+				break;
+			}
+		}
+		elseif ($method == "DELETE"){
+			if (count($path) == 4){
+				# DELETE /entry/1/tags/foobar
+				$data["status"] = "OK";
+				$data["msg"] = "";
+				my_mysql_query("DELETE FROM entries_tags WHERE entryID = \"".mres($path[1])."\" AND tagID = (SELECT ID FROM tags WHERE tag = \"".mres($path[3])."\")");
 				break;
 			}
 		}

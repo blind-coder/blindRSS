@@ -61,6 +61,17 @@
 						<div class="span12">
 							<div class="well content">
 								<h3><a href='#' target="_blank" id="headline">Welcome to blindRSS</a></h3>
+								<div>
+									<span id='btnAddNewTag' class='label hide'><i title='Add new tag' class='icon-tag'></i></span>
+									<form action="javascript:addTag();" id='frmAddNewTag' class='form hide'>
+										<input type='hidden' id='entryID' value='0'>
+										<div class="input-prepend">
+											<span class="add-on"><i class='icon-tag'></i></span>
+											<input class="span2" id="newTag" type="text" placeholder="Add Tag...">
+										</div>
+									</form>
+									<span id='headlineTags'></span>
+								</div>
 								<div id="content">
 									blindRSS is a very simple browser-operated RSS reader.<br>
 									You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>

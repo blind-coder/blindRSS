@@ -177,3 +177,6 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 	margin-top: 2px;
 	margin-bottom: 2px;
 }
+.form {
+	margin: 0;
+}

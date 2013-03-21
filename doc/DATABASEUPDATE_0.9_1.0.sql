@@ -18,4 +18,6 @@ CREATE TABLE `entries_tags` (
 	 CONSTRAINT `entries_tags_ibfk_2` FOREIGN KEY (`tagID`) REFERENCES `tags` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
 	 CONSTRAINT `entries_tags_ibfk_1` FOREIGN KEY (`entryID`) REFERENCES `entries` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+ALTER TABLE `entries_tags` ADD UNIQUE `onlyonce` ( `entryID` , `tagID` );
+
 INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'deleteFavorites', 'no');
