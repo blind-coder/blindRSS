@@ -1,5 +1,6 @@
 var labelNames = new Array("label-success", "label-warning", "label-important", "label-info", "label-inverse");
 var globalFeeds = new Array();
+var globalRootFeed;
 var globalUlEntries;
 
 var curFeed = false;
@@ -384,24 +385,13 @@ function FeedUpdateFeed(){{{
 	});
 }}}
 function FeedRenderCount(){{{
-	var that = this;
-	that.numNew.empty();
-	if (parseInt(that.data.unreadCount) > 0){
-		that.numNew.append(that.data.unreadCount);
-		that.li.addClass("new");
+	this.numNew.empty();
+	if (parseInt(this.data.unreadCount) > 0){
+		this.numNew.append(this.data.unreadCount);
+		this.li.addClass("new");
 	} else {
-		that.li.removeClass("new");
+		this.li.removeClass("new");
 	}
-}}}
-function FeedIsDirectory(){{{
-	if ("x"+this.data.url == "x" ||
-		"x"+this.data.url == "xnull" ||
-		"x"+this.data.url == "xundefined"){
-		this.isDirectory=returnTrue;
-	} else {
-		this.isDirectory=returnFalse;
-	}
-	return this.isDirectory;
 }}}
 function FeedGetEntries(today){{{
 	var that = this;
@@ -435,7 +425,7 @@ function FeedGetEntries(today){{{
 				scrollTop = 0;
 				for (var ptr = 0; ptr < globalFeeds.length; ptr++){
 					if (globalFeeds[ptr])
-						globalFeeds[ptr].entries = new Array();
+						globalFeeds[ptr].entries = new Object();
 				}
 			} else {
 				e.find(".loadMore").remove();
@@ -494,9 +484,9 @@ function FeedMarkAllRead(){{{
 		success: function(data){
 			if (data.status == "OK"){
 				if (curFeed == that){
-					globalUlEntries.find("li.new").removeClass("new").find("i.icon-star").toggleClass("icon-star icon-star-empty");
+					/* TODO iterate through all new entries and turn this into real object oriented code */
+					globalUlEntries.find("li.new").removeClass("new");
 				}
-				that.updateCount();
 			} else {
 				alert(data.msg);
 			}
@@ -569,8 +559,8 @@ function Feed(data){{{
 		var parentFeed = $("li").filter(function(){
 			return  $(this).attr("startID") <= parseInt(that.data.startID) &&
 				$(this).attr("endID")   >= parseInt(that.data.endID)   &&
-			globalFeeds[parseInt($(this).attr("group"))].isDirectory;
-		}).last().attr("group");
+			globalFeeds[parseInt($(this).attr("ID"))].isDirectory;
+		}).last().attr("ID");
 		parentFeed = globalFeeds[parseInt(parentFeed)];
 		this.parent = parentFeed;
 		parentFeed.children[parentFeed.children.length] = this;
@@ -587,6 +577,8 @@ function Feed(data){{{
 
 	this.li = $("<li id='feed_"+this.data.startID+"' />");
 	this.spin = $("<span class='floatLeft spin' id='spinFeed_"+this.data.startID+"'>&nbsp;</span>");
+	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
+	this.nameFeed = $("<span href='#' class='nameFeed'>"+this.data.name+"</span>").append(this.numNew);
 
 	this.buttons = new Object();
 	this.buttons.settings = $("<i class='icon-pencil floatRight editButton' />")
@@ -600,26 +592,34 @@ function Feed(data){{{
 			return false;
 		});
 
-	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
-
-	this.nameFeed = $("<a href='#' />")
-		.append(this.buttons.settings)
-		.append(this.buttons.newMessage)
-		.append(this.spin)
-		.append($("<span href='#' class='nameFeed'>"+this.data.name+"</span>").append(this.numNew));
-
-	this.li.attr("startID", this.data.startID)
-	       .attr("endID",   this.data.endID)
-	       .attr("group",   this.data.ID)
-				 .append(this.nameFeed);
-
-	$("#feeds").append(this.li);
-
 	var indent = 0;
 	for (var ptr = this.parent; ptr; ptr=ptr.parent){
 		indent = indent + 16;
 	}
-	this.li.css("padding-left", indent + "px");
+
+	this.li.attr("startID", this.data.startID)
+		.attr("endID",   this.data.endID)
+		.attr("ID",      this.data.ID)
+		.css("padding-left", indent + "px")
+		.append($("<a href='#' />")
+			.append(this.buttons.settings)
+			.append(this.buttons.newMessage)
+			.append(this.spin)
+			.append(this.nameFeed)
+			.on("click", function(){
+				for (var ptr=0; ptr<globalFeeds.length; ptr++){
+					if (globalFeeds[ptr])
+						globalFeeds[ptr].entries = new Object();
+				}
+				that.date = new Date();
+				globalUlEntries.empty();
+				globalUlEntries.append("<li class='nav-header'>Feedentries</li>");
+				that.getEntries();
+			})
+		);
+
+
+	$("#feeds").append(this.li);
 
 	if (this.isDirectory){
 		this.li.addClass("group");
@@ -633,20 +633,11 @@ function Feed(data){{{
 			}
 			return false;
 		});
-		this.li.find(".nameFeed").before(this.folder);
+		this.nameFeed.before(this.folder);
 	} else {
 		this.li.addClass("feed");
 	}
-	this.nameFeed.on("click", function(){
-		for (var ptr=0; ptr<globalFeeds.length; ptr++){
-			if (globalFeeds[ptr])
-				globalFeeds[ptr].entries = new Object();
-		}
-		that.date = new Date();
-		globalUlEntries.empty();
-		globalUlEntries.append("<li class='nav-header'>Feedentries</li>");
-		that.getEntries();
-	});
+
 }}}
 
 function EntryMarkRead(){{{
@@ -818,9 +809,12 @@ function getFeeds(){{{
 			if (!data){
 				return;
 			}
-			/* We're cheating a bit to get the first feed */
 			globalFeeds = new Array();
 			$.each(data, function(k,v){
+				if (k == 0){
+				        globalRootFeed = new Feed(v);
+					return true;
+				}
 				new Feed(v);
 			});
 			var f;
