@@ -25,35 +25,14 @@ function resize(){{{
 }}}
 window.onresize=resize;
 
-function showFavorites(){{{
+function showEntries(url){{{
 	var e = globalUlEntries;
 	e.empty();
 	e.append("<li class='nav-header'>Feedentries</li>");
 	e.scroll(0);
 
 	$.ajax({
-		url: "rest.php/favorites",
-		type: "GET",
-		dataType: "json",
-		success: function(data){
-			$.each(data, function(k,v){
-				for (var ptr=0; ptr<globalFeeds.length; ptr++){
-					if (globalFeeds[ptr])
-						globalFeeds[ptr].entries = new Object();
-				}
-				new Entry(v);
-			});
-		}
-	});
-}}}
-function showUnread(){{{
-	var e = globalUlEntries;
-	e.empty();
-	e.append("<li class='nav-header'>Feedentries</li>");
-	e.scroll(0);
-
-	$.ajax({
-		url: "rest.php/unread",
+		url: url,
 		type: "GET",
 		dataType: "json",
 		success: function(data){
@@ -631,11 +610,13 @@ function EntryToggleRead(){{{
 			if (data.status == "OK"){
 				var f;
 				for (f = e.data.feed; f; f=f.parent){
+					var i = parseInt(f.data.unreadCount);
 					if (e.data.isread == "0"){
-						f.data.unreadCount++;
+						i++;
 					} else {
-						f.data.unreadCount--;
+						i--;
 					}
+					f.data.unreadCount = i;
 					f.renderCount();
 				}
 			} else {
@@ -782,8 +763,8 @@ function getFeeds(){{{
 function startup(){{{
 	$("input[type=button]").button();
 	$(".selectpicker").selectpicker();
-	$("#specialFavorites").on("click", showFavorites);
-	$("#specialUnread").on("click", showUnread);
+	$("#specialFavorites").on("click", function(){ showEntries("rest.php/favorites"); });
+	$("#specialUnread").on("click", function(){ showEntries("rest.php/unread"); });
 	globalUlEntries = $("ul#entries");
 	resize();
 	getFeeds();
