@@ -1,6 +1,5 @@
 var labelNames = new Array("label-success", "label-warning", "label-important", "label-info", "label-inverse");
 var globalFeeds = new Array();
-var globalRootFeed;
 var globalUlEntries;
 
 var curFeed = false;
@@ -26,7 +25,7 @@ function resize(){{{
 }}}
 window.onresize=resize;
 
-function addTag(){
+function addTag(){{{
 	var entry = $("#frmAddNewTag #entryID").val();
 	var tag = $("#newTag").val();
 	$.ajax({
@@ -54,7 +53,40 @@ function addTag(){
 			);
 		}
 	});
-}
+}}}
+function hideTags() {{{
+	$(".navTag").remove();
+	var specialTags = $("#specialTags");
+	specialTags.find("i.icon-folder-open").toggleClass("icon-folder-close icon-folder-open");
+	specialTags.unbind("click");
+	specialTags.on("click", getTags);
+}}}
+function getTags(){{{
+	var that = this;
+	$.ajax({
+		url: "rest.php/tags",
+		type: "GET",
+		dataType: "json",
+		success: function(data){
+			if (data.status != "OK"){
+				alert(data.msg);
+				return;
+			}
+			var specialTags = $("#specialTags");
+			specialTags.find("i.icon-folder-close").toggleClass("icon-folder-close icon-folder-open");
+			specialTags.unbind("click");
+			specialTags.on("click", hideTags);
+			$(".navTag").remove();
+			data.tags = data.tags.reverse();
+			for (var i = 0; i < data.tags.length; i++){
+				var t = data.tags[i].tag;
+				var tID = data.tags[i].ID;
+				var a = $("<a href='#'>"+t+"</a>").attr("tagID", tID).on("click", function(){ showTag($(this).attr("tagID")); });
+				specialTags.parent().after($("<li style='padding-left: 30px;' class='navTag'></li>").append(a));
+			}
+		}
+	});
+}}}
 
 function showEntries(url){{{
 	var e = globalUlEntries;
@@ -774,9 +806,9 @@ function Entry(data){{{
 }}}
 
 function getFeeds(){{{
-	var feed_1 = $("#feeds");
-	feed_1.find(".group").remove();
-	feed_1.find(".feed").remove();
+	var feeds = $("#feeds");
+	feeds.find(".group").remove();
+	feeds.find(".feed").remove();
 	$.ajax({
 		url: "rest.php/feeds",
 		type: "GET",
@@ -789,11 +821,6 @@ function getFeeds(){{{
 			/* We're cheating a bit to get the first feed */
 			globalFeeds = new Array();
 			$.each(data, function(k,v){
-				if (k == 0){
-					globalRootFeed = new Feed(v);
-					return true; // continue; // already initialized in static HTML
-				}
-
 				new Feed(v);
 			});
 			var f;
@@ -812,6 +839,7 @@ function startup(){{{
 	$(".selectpicker").selectpicker();
 	$("#specialFavorites").on("click", function(){ showEntries("rest.php/favorites"); });
 	$("#specialUnread").on("click", function(){ showEntries("rest.php/unread"); });
+	$("#specialTags").on("click", getTags);
 	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); });
 	globalUlEntries = $("ul#entries");
 	resize();

@@ -366,6 +366,7 @@ switch ($path[0]){
 				$data["status"] = "OK";
 				$data["msg"] = "";
 				my_mysql_query("DELETE FROM entries_tags WHERE entryID = \"".mres($path[1])."\" AND tagID = (SELECT ID FROM tags WHERE tag = \"".mres($path[3])."\")");
+				my_mysql_query("DELETE FROM tags WHERE NOT EXISTS (SELECT ID FROM entries_tags WHERE tagID = tags.ID LIMIT 1)");
 				break;
 			}
 		}
@@ -422,13 +423,17 @@ switch ($path[0]){
 		if ($method == "GET"){
 			# GET /tags
 			if (count($path) == 1){
-				$data = Array();
+				$data["status"] = "OK";
+				$data["msg"] = "";
+				$data["tags"] = Array();
 				$q = my_mysql_query("SELECT * FROM tags ORDER BY tag ASC");
-				if ($r = mysql_fetch_object($q)){
-					$data = $r;
-				} else {
+				if (mysql_error()){
 					$data["status"] = "error";
 					$data["msg"] = "Unknown Error! ".mysql_error();
+					break;
+				}
+				while ($r = mysql_fetch_object($q)){
+					$data["tags"][] = $r;
 				}
 				break;
 			}
