@@ -64,10 +64,12 @@ function hideTags() {{{
 }}}
 function getTags(){{{
 	var that = this;
+	$("#spinFeed_specialTags").spin("tiny");
 	$.ajax({
 		url: "rest.php/tags",
 		type: "GET",
 		dataType: "json",
+		complete: function(){ $("#spinFeed_specialTags").spin(false); },
 		success: function(data){
 			if (data.status != "OK"){
 				alert(data.msg);
@@ -82,23 +84,27 @@ function getTags(){{{
 			for (var i = 0; i < data.tags.length; i++){
 				var t = data.tags[i].tag;
 				var tID = data.tags[i].ID;
-				var a = $("<a href='#'>"+t+"</a>").attr("tagID", tID).on("click", function(){ showTag($(this).attr("tagID")); });
+				var a = $("<a href='#'>"+t+"</a>").attr("tagID", tID).attr("tag", t).on("click", function(){ showTag($(this).attr("tagID"), $(this).attr("tag")); });
+				a.append("<span class='floatLeft spin' id='spinFeed_tag"+t+"'> </span>");
 				specialTags.parent().after($("<li style='padding-left: 30px;' class='navTag'></li>").append(a));
 			}
 		}
 	});
 }}}
 
-function showEntries(url){{{
+function showEntries(url, spin){{{
 	var e = globalUlEntries;
+	spin = "#"+spin;
 	e.empty();
 	e.append("<li class='nav-header'>Feedentries</li>");
 	e.scroll(0);
 
+	$(spin).spin("tiny");
 	$.ajax({
 		url: url,
 		type: "GET",
 		dataType: "json",
+		complete: function(){ $(spin).spin(false); },
 		success: function(data){
 			$.each(data, function(k,v){
 				for (var ptr=0; ptr<globalFeeds.length; ptr++){
@@ -110,16 +116,18 @@ function showEntries(url){{{
 		}
 	});
 }}}
-function showTag(tag){{{
+function showTag(tagID, tag){{{
 	var e = globalUlEntries;
 	e.empty();
 	e.append("<li class='nav-header'>Feedentries</li>");
 	e.scroll(0);
+	$("#spinFeed_tag"+tag).spin("tiny");
 
 	$.ajax({
-		url: "rest.php/tags/"+tag,
+		url: "rest.php/tags/"+tagID,
 		type: "GET",
 		dataType: "json",
+		complete: function(){ $("#spinFeed_tag"+tag).spin(false); },
 		success: function(data){
 			$.each(data, function(k,v){
 				for (var ptr=0; ptr<globalFeeds.length; ptr++){
@@ -831,8 +839,8 @@ function getFeeds(){{{
 function startup(){{{
 	$("input[type=button]").button();
 	$(".selectpicker").selectpicker();
-	$("#specialFavorites").on("click", function(){ showEntries("rest.php/favorites"); });
-	$("#specialUnread").on("click", function(){ showEntries("rest.php/unread"); });
+	$("#specialFavorites").on("click", function(){ showEntries("rest.php/favorites", "spinFeed_specialFavorites"); });
+	$("#specialUnread").on("click", function(){ showEntries("rest.php/unread", "spinFeed_specialUnread"); });
 	$("#specialTags").on("click", getTags);
 	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); });
 	globalUlEntries = $("ul#entries");
