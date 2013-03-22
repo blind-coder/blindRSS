@@ -86,7 +86,7 @@ function getTags(){{{
 				var tID = data.tags[i].ID;
 				var a = $("<a href='#'>"+t+"</a>").attr("tagID", tID).attr("tag", t).on("click", function(){ showTag($(this).attr("tagID"), $(this).attr("tag")); });
 				a.append("<span class='floatLeft spin' id='spinFeed_tag"+t+"'> </span>");
-				specialTags.parent().after($("<li style='padding-left: 30px;' class='navTag'></li>").append(a));
+				specialTags.parent().after($("<li style='padding-left: 15px;' class='navTag'></li>").append(a));
 			}
 		}
 	});
