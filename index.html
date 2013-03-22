@@ -47,34 +47,36 @@
 					<ul id="specials" class="dropdown-menu specials span12 sidebar-nav" style="display: block; position: static; margin-bottom: 5px;">
 						<li id="specialFeeds" class="nav-header">Special</li>
 						<li class='feed'>
-							<a href='#' id='specialFavorites'>
+							<a href='#' id='specialFavorites' class="nameFeed">
 								<i class='icon-star'> </i>
 								<span class='floatLeft spin' id='spinFeed_specialFavorites'>&nbsp;</span>
 								Favorites
 							</a>
 						</li>
 						<li class='feed'>
-							<a href='#' id='specialUnread'>
+							<a href='#' id='specialUnread' class="nameFeed">
 								<i class='icon-asterisk'> </i>
 								<span class='floatLeft spin' id='spinFeed_specialUnread'>&nbsp;</span>
 								Unread entries
 							</a>
 						</li>
 						<li class='group'>
-							<a href='#' id='specialTags'>
+							<a href='#' id='specialTags' class="nameFeed">
 								<i class='icon-folder-close'> </i>
 								<span class='floatLeft spin' id='spinFeed_specialTags'>&nbsp;</span>
 								Tags
 							</a>
 						</li>
 						<li style="padding-left: 15px;">
-						<span class='floatLeft spin' id='spinFeed_specialSearch'>&nbsp;</span>
-							<form action="javascript:search();" id='frmSearch' class='form'>
-								<div class="input-prepend">
-									<span class="add-on"><i class='icon-search'></i></span>
-									<input class="span9" id="txtSearch" type="text" placeholder="Search...">
-								</div>
-							</form>
+							<a class='nameFeed'>
+								<span class='floatLeft spin' id='spinFeed_specialSearch'>&nbsp;</span>
+								<form action="javascript:search();" id='frmSearch' class='form'>
+									<div class="input-prepend">
+										<span class="add-on"><i class='icon-search'></i></span>
+										<input class="span9" id="txtSearch" type="text" placeholder="Search...">
+									</div>
+								</form>
+							</a>
 						</li>
 					</ul>
 				</div><!--/span3-->
@@ -96,7 +98,7 @@
 								<h3><a href='#' target="_blank" id="headline">Welcome to blindRSS</a></h3>
 								<div>
 									<span id='btnAddNewTag' class='label hide'><i title='Add new tag' class='icon-tag'></i></span>
-									<form action="javascript:addTag();" id='frmAddNewTag' class='form hide'>
+									<form id='frmAddNewTag' class='form hide'>
 										<input type='hidden' id='entryID' value='0'>
 										<div class="input-prepend">
 											<span class="add-on"><i class='icon-tag'></i></span>
