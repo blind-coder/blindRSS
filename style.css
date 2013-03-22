@@ -47,22 +47,22 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 	padding: 0;
 	overflow-x: hidden;
 }
-.entries {
+.entries, .specials {
 	overflow-y: scroll;
 	overflow-x: hidden;
 	height: 120px !important;
 	width: 100%;
 	font-size: 12px;
 }
-.entries ul {
+.entries ul, .specials ul {
 	padding: 0;
 	margin: 0;
 }
-.entries ul > li {
+.entries ul > li, .specials ul > li {
 	max-height: 16px;
 	line-height: 16px;
 }
-.entries ul > li > a {
+.entries ul > li > a, .specials ul > li > a {
 	padding: 0px 15px;
 }
 

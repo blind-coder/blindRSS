@@ -44,40 +44,46 @@
 		<div class="container-fluid">
 			<div class="row-fluid">
 				<div class="span3 printRemove">
-					<ul id="feeds" class="dropdown-menu span12 sidebar-nav" style="display: block; position: static; margin-bottom: 5px; *width: 180px;">
+					<ul id="specials" class="dropdown-menu specials span12 sidebar-nav" style="display: block; position: static; margin-bottom: 5px;">
 						<li id="specialFeeds" class="nav-header">Special</li>
-						<li>
+						<li class='feed'>
 							<a href='#' id='specialFavorites'>
 								<i class='icon-star'> </i>
 								<span class='floatLeft spin' id='spinFeed_specialFavorites'>&nbsp;</span>
 								Favorites
 							</a>
 						</li>
-						<li>
+						<li class='feed'>
 							<a href='#' id='specialUnread'>
 								<i class='icon-asterisk'> </i>
 								<span class='floatLeft spin' id='spinFeed_specialUnread'>&nbsp;</span>
 								Unread entries
 							</a>
 						</li>
-						<li>
+						<li class='group'>
 							<a href='#' id='specialTags'>
 								<i class='icon-folder-close'> </i>
 								<span class='floatLeft spin' id='spinFeed_specialTags'>&nbsp;</span>
 								Tags
 							</a>
 						</li>
-						<li class="divider"></li>
-						<li id="rssFeeds" class="nav-header">RSS Feeds</li>
 					</ul>
 				</div><!--/span3-->
 				<div class="span9">
-					<ul id='entries' class='dropdown-menu entries span12 sidebar-nav' style="display: block; position: static; margin-bottom: 5px; *width: 180px;">
+					<ul id='entries' class='dropdown-menu entries span12 sidebar-nav' style="display: block; position: static; margin-bottom: 5px;">
 						<li class="nav-header">Feedentries</li>
 					</ul>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span3 printRemove">
+					<ul id="feeds" class="dropdown-menu span12 sidebar-nav" style="display: block; position: static; margin-bottom: 5px;">
+						<li id="rssFeeds" class="nav-header">RSS Feeds</li>
+					</ul>
+				</div>
+				<div class="span9">
 					<div class="row-fluid">
-						<div class="span12">
-							<div class="well content">
+						<div class="span12 well content">
 								<h3><a href='#' target="_blank" id="headline">Welcome to blindRSS</a></h3>
 								<div>
 									<span id='btnAddNewTag' class='label hide'><i title='Add new tag' class='icon-tag'></i></span>
@@ -97,7 +103,6 @@
 									<br>
 									Enjoy :-)
 								</div>
-							</div>
 						</div><!--/span-->
 					</div><!--/row-->
 				</div><!--/span-->
