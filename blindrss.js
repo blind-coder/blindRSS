@@ -26,35 +26,6 @@ function resize(){{{
 }}}
 window.onresize=resize;
 
-function addTag(){{{
-	var entry = $("#frmAddNewTag #entryID").val();
-	var tag = $("#newTag").val();
-	$.ajax({
-		url: "rest.php/entry/"+entry+"/tags",
-		type: "PUT",
-		dataType: "json",
-		data: JSON.stringify({ tags: tag }),
-		success: function(data){
-			if (data.status != "OK"){
-				alert(data.msg);
-				return;
-			}
-			var a = $("<a href='#'>&times;</a>").on('click', function(){
-				$.ajax({
-					url: "rest.php/entry/"+entry+"/tags/"+tag,
-					type: "DELETE",
-					dataType: "json",
-					success: function(data){
-						$("#entry_"+entry+"_tag_"+tag).remove();
-					}
-				});
-			});
-			$("#headlineTags").append(
-				$("&nbsp;<span id='entry_"+entry+"_tag_"+tag+"' class='label "+(labelNames[$("#headlineTags > .label").length%labelNames.length])+"'>"+tag+"&nbsp;</span>").append(a)
-			);
-		}
-	});
-}}}
 function hideTags() {{{
 	$(".navTag").remove();
 	var specialTags = $("#specialTags");
@@ -658,6 +629,37 @@ function Feed(data){{{
 
 }}}
 
+function Tag(entry, data){{{
+	var that = this;
+	this.entry = entry;
+	this.data = data;
+
+	var a = $("<a title='Delete tag' href='#'>&times;</a>").on('click', function(){
+		$.ajax({
+			url: "rest.php/entry/"+that.entry.data.ID+"/tags/"+that.data.tag,
+			type: "DELETE",
+			dataType: "json",
+			success: function(data){
+				$("#entry_"+that.entry.data.ID+"_tag_"+that.data.tag).remove();
+				delete(that);
+				var i = 0;
+				$.each($("#headlineTags > .label"), function(k,v){
+					v = $(v);
+					for (var j=0; j<labelNames.length; j++){
+						v.removeClass(labelNames[j]);
+					}
+					v.addClass(labelNames[i]);
+				});
+			}
+		});
+	});
+	var i = $("#headlineTags > .label").length;
+	$("#headlineTags").append(
+		$("<span id='entry_"+that.entry.data.ID+"_tag_"+that.data.tag+"' class='label "+(labelNames[i%labelNames.length])+"'>"+that.data.tag+" </span>")
+			.append(a)
+	);
+}}}
+
 function EntryMarkRead(){{{
 	if (this.data.isread == "1"){
 		return;
@@ -696,6 +698,23 @@ function EntryToggleRead(){{{
 		}
 	});
 }}}
+function EntryAddTag(){{{
+	var that = this;
+	var tag = $("#newTag").val();
+	$.ajax({
+		url: "rest.php/entry/"+that.data.ID+"/tags",
+		type: "PUT",
+		dataType: "json",
+		data: JSON.stringify({ tags: tag }),
+		success: function(data){
+			if (data.status != "OK"){
+				alert(data.msg);
+				return;
+			}
+			that.tags[that.tags.length] = new Tag(that, {ID: 0, tag: tag});
+		}
+	});
+}}}
 function EntryShow(){{{
 	var that = this;
 	$("#content").empty().spin();
@@ -711,25 +730,14 @@ function EntryShow(){{{
 			}
 			$("#content").html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
 			$("#headline").empty().attr("href", data.link).html("<nobr>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
-			var headlineTags = $("#headlineTags").empty();
+			$("#headlineTags").empty();
 			$("#btnAddNewTag").show();
-			$("#frmAddNewTag").hide();
-			$("#frmAddNewTag #entryID").val(that.data.ID);
+			$("#frmAddNewTag").hide().unbind("submit").on("submit", function(){ that.addTag(); });
 			that.data.tags = data.tags;
 			if (data.tags.length){
+				that.tags = new Object();
 				for (var i = 0; i < data.tags.length; i++){
-					var lTag = data.tags[i].tag
-					var a = $("<a href='#'>&times;</a>").on('click', function(){
-						$.ajax({
-							url: "rest.php/entry/"+that.data.ID+"/tags/"+lTag,
-							type: "DELETE",
-							dataType: "json",
-							success: function(data){
-								$("#entry_"+that.data.ID+"_tag_"+lTag).remove();
-							}
-						});
-					});
-					headlineTags.append($("&nbsp;<span id='entry_"+that.data.ID+"_tag_"+data.tags[i].tag+"' class='label "+(labelNames[i%labelNames.length])+"'>"+data.tags[i].tag+"&nbsp;</span>").append(a));
+					that.tags[data.tags[i].ID] = new Tag(that, data.tags[i]);
 				}
 			}
 			$("ul#entries li.active").removeClass("active");
@@ -742,11 +750,10 @@ function EntryShow(){{{
 }}}
 function EntryRender(){{{
 	var that = this;
-	li = $("ul#entries li#entry_"+this.data.ID);
 	if (this.data.isread == "1"){
-		li.removeClass("new");
+		this.li.removeClass("new");
 	} else {
-		li.addClass("new");
+		this.li.addClass("new");
 	}
 }}}
 function EntryUpdate(){{{
@@ -771,6 +778,7 @@ function Entry(data){{{
 	this.toggleRead = EntryToggleRead;
 	this.render = EntryRender;
 	this.update = EntryUpdate;
+	this.addTag = EntryAddTag;
 
 	this.data.feed = globalFeeds[parseInt(this.data.feedID)];
 	this.data.feed.entries[this.data.ID] = this;
