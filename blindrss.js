@@ -91,6 +91,9 @@ function getTags(){{{
 		}
 	});
 }}}
+function search(){{{
+	showEntries("rest.php/search/"+$("#frmSearch #txtSearch").val(), "spinFeed_specialSearch");
+}}}
 
 function showEntries(url, spin){{{
 	var e = globalUlEntries;
@@ -106,10 +109,17 @@ function showEntries(url, spin){{{
 		dataType: "json",
 		complete: function(){ $(spin).spin(false); },
 		success: function(data){
+			var oldDate = "0000-00-00";
 			$.each(data, function(k,v){
 				for (var ptr=0; ptr<globalFeeds.length; ptr++){
 					if (globalFeeds[ptr])
 						globalFeeds[ptr].entries = new Object();
+				}
+				var newDate = v.date.match(/^(....)-(..)-(..)/);
+				newDate = newDate[0];
+				if (newDate != oldDate){
+					oldDate = newDate;
+					e.append("<li class='nav-header'>"+oldDate+"</li>");
 				}
 				new Entry(v);
 			});

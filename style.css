@@ -50,7 +50,7 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 .entries, .specials {
 	overflow-y: scroll;
 	overflow-x: hidden;
-	height: 120px !important;
+	height: 135px !important;
 	width: 100%;
 	font-size: 12px;
 }

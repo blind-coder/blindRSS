@@ -451,6 +451,27 @@ switch ($path[0]){
 		}
 		break;
 		// }}}
+	case "search": // {{{
+		if ($method == "GET"){
+			# GET /search/searchtext
+			if (count($path) == 2){
+				$data = Array();
+				$q = my_mysql_query("SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE
+					title LIKE \"%".mres($path[1])."%\" OR description LIKE \"%".mres($path[1])."%\"
+				ORDER BY `date` DESC LIMIT 100");
+				if (mysql_error()){
+					$data["status"] = "error";
+					$data["msg"] = "Unknown Error! ".mysql_error();
+					break;
+				}
+				while ($r = mysql_fetch_object($q)){
+					$data[] = $r;
+				}
+				break;
+			}
+		}
+		break;
+		// }}}
 	case "options": // {{{
 		# GET /options
 		if ($method == "GET"){
