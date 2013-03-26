@@ -119,7 +119,7 @@ while ($feed = mysql_fetch_object($query_feeds)){
 							fwrite($fd, $content);
 							fclose($fd);
 						}
-						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"rest.php/cache/".base64_encode($url)."\"", $desc);
+						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"cache.php?q=".base64_encode($url)."\"", $desc);
 					} else {
 						$query = sprintf("SELECT * FROM cache WHERE sha1_link='%s'", $url_sha1);
 						$query_cache = my_mysql_query($query);
@@ -130,7 +130,7 @@ while ($feed = mysql_fetch_object($query_feeds)){
 								$url, $url_sha1, $content);
 							my_mysql_query($query);
 						}
-						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"rest.php/cache/".$url_sha1."\"", $desc);
+						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"cache.php?q=".$url_sha1."\"", $desc);
 					}
 				}
 			}
