@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `entries` (
   `description` longtext COLLATE utf8_unicode_ci NOT NULL,
   `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `isread` enum('0','1') COLLATE utf8_unicode_ci NOT NULL DEFAULT '0',
+  `favorite` enum('no','yes') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'no',
   PRIMARY KEY (`ID`),
   UNIQUE KEY `feedID_2` (`feedID`,`sha1_link`),
   KEY `isread` (`isread`),
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `feeds` (
   `name` text CHARACTER SET latin1 NOT NULL,
   `url` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cacheimages` enum('no','yes') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'no',
+  `collapsed` enum('no','yes') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'no',
   `movedirection` enum('none','moveme') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'none',
   PRIMARY KEY (`ID`),
   UNIQUE KEY `name` (`name`(512)),
@@ -65,7 +67,31 @@ CREATE TABLE IF NOT EXISTS `options` (
   PRIMARY KEY (`ID`),
   UNIQUE KEY `key` (`key`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ;
+INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'deleteFavorites', 'no');
+INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'deleteTagged', 'no');
+INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'unreadOnChange', 'true');
+INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'purgeAfter', '36135');
 
+DROP TABLE IF EXISTS `tags`;
+CREATE TABLE IF NOT EXISTS `tags` (
+  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `tag` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `tags` (`tag`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+DROP TABLE IF EXISTS `entries_tags`;
+CREATE TABLE `entries_tags` (
+  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `entryID` bigint(20) unsigned NOT NULL,
+  `tagID` bigint(20) unsigned NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `entryID` (`entryID`),
+  KEY `tagID` (`tagID`),
+  UNIQUE KEY `onlyonce` (`entryID`, `tagID`),
+  CONSTRAINT `entries_tags_ibfk_2` FOREIGN KEY (`tagID`) REFERENCES `tags` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `entries_tags_ibfk_1` FOREIGN KEY (`entryID`) REFERENCES `entries` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 ALTER TABLE `entries`
   ADD CONSTRAINT `entries_ibfk_1` FOREIGN KEY (`feedID`) REFERENCES `feeds` (`ID`) ON DELETE CASCADE;
