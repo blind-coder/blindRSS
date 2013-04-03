@@ -909,6 +909,12 @@ function getOptions(){{{
 				var value = data.value;
 				setOption("deleteFavorites", value ? "yes" : "no");
 			});
+			$("#buttonDeleteTagged").attr("checked", data.deleteTagged.value == "yes" ? "checked" : "")
+						  .switch("setState", data.deleteTagged.value == "yes");
+			$("#buttonDeleteTagged").on("switch-change", function(e, data){
+				var value = data.value;
+				setOption("deleteTagged", value ? "yes" : "no");
+			});
 		}
 	});
 }}}
