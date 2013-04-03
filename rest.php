@@ -162,57 +162,52 @@ switch ($path[0]){
 					break;
 				case "move":
 					# POST /feed/1/move
+					if (!array_key_exists("moveAfterFeed", $_POST) && !array_key_exists("moveBeforeFeed", $_POST) && !array_key_exists("moveIntoCategory", $_POST)){
+						$data["status"] = "error";
+						$data["msg"] = "Invalid query";
+						break;
+					}
+					$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
+					$feedToChange = mysql_fetch_object($q);
+					$gap = ($feedToChange->endID - $feedToChange->startID) + 1;
+
+					/* Take the feed we want to move OUT of the structure */
+					my_mysql_query("UPDATE feeds SET startID = startID - {$feedToChange->startID}, endID = endID - {$feedToChange->startID}, movedirection = 'moveme' WHERE startID >= {$feedToChange->startID} AND endID <= {$feedToChange->endID}");
+
+					/* Move everything AFTER it UPWARDS to close the gap */
+					my_mysql_query("UPDATE feeds SET startID = startID - $gap WHERE startID > $feedToChange->endID AND movedirection = 'none'");
+					my_mysql_query("UPDATE feeds SET endID = endID - $gap WHERE endID > $feedToChange->endID AND movedirection = 'none'");
+
 					if (array_key_exists("moveAfterFeed", $_POST)){
-						$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
-						$feedToChange = mysql_fetch_object($q);
-						$gap = ($feedToChange->endID - $feedToChange->startID) + 1;
-
-						/* Take the feed we want to move OUT of the structure */
-						my_mysql_query("UPDATE feeds SET startID = startID - {$feedToChange->startID}, endID = endID - {$feedToChange->startID}, movedirection = 'moveme' WHERE startID >= {$feedToChange->startID} AND endID <= {$feedToChange->endID}");
-
-						/* Move everything AFTER it UPWARDS to close the gap */
-						my_mysql_query("UPDATE feeds SET startID = startID - $gap WHERE startID > $feedToChange->endID AND movedirection = 'none'");
-						my_mysql_query("UPDATE feeds SET endID = endID - $gap WHERE endID > $feedToChange->endID AND movedirection = 'none'");
-
 						$q = my_mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($_POST["moveAfterFeed"])."'");
 						$feedToMoveAfter = mysql_fetch_object($q);
-
 						/* Make a gap for the feed we want to move */
 						my_mysql_query("UPDATE feeds SET endID=endID+$gap WHERE endID > {$feedToMoveAfter->endID} AND movedirection = 'none'");
 						my_mysql_query("UPDATE feeds SET startID=startID+$gap WHERE startID >= {$feedToMoveAfter->endID} AND movedirection = 'none'"); # endID is correct!
-
 						/* Move the feed to the newly created room */
 						my_mysql_query("UPDATE feeds SET startID = startID + {$feedToMoveAfter->endID} + 1, endID = endID + {$feedToMoveAfter->endID} + 1, movedirection = 'none' WHERE movedirection = 'moveme'");
 						$data["status"] = "OK";
 						$data["msg"] = "Feed moved.";
-					} elseif (array_key_exists("moveIntoCategory", $_POST)){
-						$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($path[1]));
-						$feedToChange = mysql_fetch_object($q);
-						$gap = ($feedToChange->endID - $feedToChange->startID) + 1;
-
-						/* Take the feed we want to move OUT of the structure */
-						my_mysql_query("UPDATE feeds SET startID = startID - {$feedToChange->startID}, endID = endID - {$feedToChange->startID}, movedirection = 'moveme' WHERE startID >= {$feedToChange->startID} AND endID <= {$feedToChange->endID}");
-
-						/* Move everything AFTER it UPWARDS to close the gap */
-						my_mysql_query("UPDATE feeds SET startID = startID - $gap WHERE startID > $feedToChange->endID AND movedirection = 'none'");
-						my_mysql_query("UPDATE feeds SET endID = endID - $gap WHERE endID > $feedToChange->endID AND movedirection = 'none'");
-
-						$q = my_mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($_POST["moveIntoCategory"])."'");
-						$feedToMoveInto = mysql_fetch_object($q);
-
+					} elseif (array_key_exists("moveBeforeFeed", $_POST)){
+						$q = my_mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($_POST["moveBeforeFeed"])."'");
+						$feedToMoveBefore = mysql_fetch_object($q);
 						/* Make a gap for the feed we want to move */
-						my_mysql_query("UPDATE feeds SET endID=endID+$gap WHERE endID >= {$feedToMoveInto->endID} AND movedirection = 'none'");
-						my_mysql_query("UPDATE feeds SET startID=startID+$gap WHERE startID >= {$feedToMoveInto->endID} AND movedirection = 'none'"); # endID is correct!
-
+						my_mysql_query("UPDATE feeds SET endID=endID+$gap WHERE endID >= {$feedToMoveBefore->startID} AND movedirection = 'none'");
+						my_mysql_query("UPDATE feeds SET startID=startID+$gap WHERE startID >= {$feedToMoveBefore->startID} AND movedirection = 'none'");
 						/* Move the feed to the newly created room */
-						my_mysql_query("UPDATE feeds SET startID = startID + {$feedToMoveInto->endID}, endID = endID + {$feedToMoveInto->endID}, movedirection = 'none' WHERE movedirection = 'moveme'");
-
+						my_mysql_query("UPDATE feeds SET startID = startID + {$feedToMoveBefore->startID}, endID = endID + {$feedToMoveAfter->endID}, movedirection = 'none' WHERE movedirection = 'moveme'");
 						$data["status"] = "OK";
 						$data["msg"] = "Feed moved.";
-					} else {
-						$data["status"] = "error";
-						$data["msg"] = "Invalid query";
-						break;
+					} elseif (array_key_exists("moveIntoCategory", $_POST)){
+						$q = my_mysql_query("SELECT * FROM feeds WHERE `ID` = '".mres($_POST["moveIntoCategory"])."'");
+						$feedToMoveInto = mysql_fetch_object($q);
+						/* Make a gap for the feed we want to move */
+						my_mysql_query("UPDATE feeds SET endID=endID+$gap WHERE endID > {$feedToMoveInto->startID} AND movedirection = 'none'"); # startID is correct!
+						my_mysql_query("UPDATE feeds SET startID=startID+$gap WHERE startID > {$feedToMoveInto->startID} AND movedirection = 'none'");
+						/* Move the feed to the newly created room */
+						my_mysql_query("UPDATE feeds SET startID = startID + {$feedToMoveInto->startID} + 1, endID = endID + {$feedToMoveInto->startID} + 1, movedirection = 'none' WHERE movedirection = 'moveme'");
+						$data["status"] = "OK";
+						$data["msg"] = "Feed moved.";
 					}
 					break;
 			}

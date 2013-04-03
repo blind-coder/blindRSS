@@ -123,130 +123,84 @@ function showTag(tagID, tag){{{
 
 function rearrangeFeeds(){{{
 	var d = $("#rearrangeFeeds");
-	var dBody = d.find(".modal-body");
-	dBody.find("#categories").empty();
-	dBody.find("#entries").empty();
+	var dBody = d.find(".modal-body").empty();
+	dBody.tree(false);
 
-	var sortedFeeds = globalFeeds.slice(0); /* copy the array */
-	sortedFeeds.sort(function(a,b){return parseInt(a.data.startID) < parseInt(b.data.startID) ? -1 : 1;}); /* sort by startID ASC */
-	/* this sort will leave undefined entries at the end */
+	var tree = globalRootFeed.jqTree();
 
-	for (var i = 0; i <= sortedFeeds.length; i++){
-		var ptr = sortedFeeds[i];
-		if (!ptr){
-			break;
-		}
-		if (ptr.isDirectory){
-			/* new category */
-			var a = $("<a parentid='"+ptr.data.ID+"' href='#'>"+ptr.data.name+"</a>").on("click", function(){
-					dBody.find("#entries").find("ul").addClass("hide");
-					dBody.find("#entries").find("#parent_"+$(this).attr("parentid")).removeClass("hide");
-				});
-			var li = $("<li dropid='"+ptr.data.ID+"' id='category_"+ptr.data.ID+"'></li>").append(a);
-			li.droppable({
-				hoverClass: "ui-droppable-hover",
-				greedy: true,
-				drop: function(event, ui){
-					var droppedOn = $(this);
-					var dragged = ui.draggable;
-					if (dragged.attr("feedid") == droppedOn.attr("dropid")){
-						/* dropped onto itself */
-						return;
-					};
-					if (dBody.find("#entries").find("#parent_"+droppedOn.attr("dropid")).length){
-						if (!(dBody.find("#entries").find("#parent_"+droppedOn.attr("dropid")).hasClass("hide"))){
-							/* dropped into same category as it is now */
-							return;
-						}
-					}
-					dragged.spin();
-					$.ajax({
-						url: "rest.php/feed/"+dragged.attr("feedid")+"/move",
-						type: "POST",
-						dataType: "json",
-						data: {
-							moveIntoCategory: droppedOn.attr("dropid")
-						},
-						success: function(data) {
-							if (data.status != "OK"){
-								alert(data.msg);
-								return;
-							}
-							var x = dBody.find("#entries").find("#parent_"+droppedOn.attr("dropid"));
-							var n = dragged.next();
-							dragged.appendTo(x);
-							n.appendTo(x);
-
-							x = dBody.find("#categories").find("#category_"+dragged.attr("feedid"));
-							if (x.length){
-								/* Moved a category */
-								var ul = x.parent();
-								ul.appendTo(droppedOn);
-							}
-							getFeeds();
-						},
-						complete: function(){ dragged.spin(false); }
-					});
-				}
-			});
-			var ul = $("<ul>").append(li);
-			var p;
-			if (i == 0){
-				p = dBody.find("#categories");
+	var t = $("<div id='rearrangeTree' />").tree({
+		data: [tree],
+		autoOpen: 1,
+		dragAndDrop: true,
+		selectable: false,
+		onCanMove: function(node) {
+			if (!node.parent.parent) {
+				return false;
 			} else {
-				p = dBody.find("#category_"+ptr.parent.data.ID);
+				return true;
 			}
-			p.append(ul);
+		},
+		onCanMoveTo: function(moved_node, target_node, position) {
+			if (position == "inside"){
+				return target_node.feed.isDirectory;
+			}
+			if (!target_node.parent.parent){
+				return false;
+			}
+			return true;
 		}
-		if (ptr.parent){
-			/* new feed */
-			var li = $("<li feedid='"+ptr.data.ID+"'>"+ptr.data.name+"</li>");
-			var p = dBody.find("#entries").find("#parent_"+ptr.parent.data.ID);
-			if (!p.length){
-				p = $("<ul class='hide' id='parent_"+ptr.parent.data.ID+"'>");
-				dBody.find("#entries").append(p);
+	});
+
+	t.bind(
+		'tree.move',
+		function(event){
+			/* event.move_info.moved_node
+			 * event.move_info.target_node
+			 * event.move_info.position: ['before','after','inside']
+			 * event.move_info.previous_parent
+			 */
+			var data = {};
+			if (event.move_info.position == 'after'){
+				data = { moveAfterFeed: event.move_info.target_node.feed.data.ID };
 			}
-			p.append(li);
-			li.draggable({
-				revert: true,
-				revertDuration: 0
-			})
-			var lidrop = $("<li dropid='"+ptr.data.ID+"'>&nbsp;</li>");
-			lidrop.droppable({
-				hoverClass: "ui-droppable-hover",
-				drop: function(event, ui){
-					var droppedOn = $(this);
-					var dragged = ui.draggable;
-					if (dragged.attr("feedid") == droppedOn.attr("dropid")){
+			else if (event.move_info.position == 'before'){
+				data = { moveBeforeFeed: event.move_info.target_node.feed.data.ID };
+			}
+			else if (event.move_info.position == 'inside'){
+				data = { moveIntoCategory: event.move_info.target_node.feed.data.ID };
+			}
+			$.ajax({
+				url: "rest.php/feed/"+event.move_info.moved_node.feed.data.ID+"/move",
+				type: "POST",
+				dataType: "json",
+				data: data,
+				success: function(data) {
+					if (data.status != "OK"){
+						alert(data.msg);
 						return;
-					};
-					dragged.spin();
-					$.ajax({
-						url: "rest.php/feed/"+dragged.attr("feedid")+"/move",
-						type: "POST",
-						dataType: "json",
-						data: {
-							moveAfterFeed: droppedOn.attr("dropid")
-						},
-						success: function(data) {
-							if (data.status != "OK"){
-								alert(data.msg);
-								return;
-							}
-							dragged.next().insertAfter(droppedOn);
-							dragged.insertAfter(droppedOn);
-							getFeeds();
-						},
-						complete: function(){ dragged.spin(false); }
-					});
+					}
+					getFeeds();
 				}
 			});
-			li.after(lidrop);
+		}
+	);
+	dBody.append(t);
+	d.modal();
+
+	return;
+}}}
+function FeedJqTree(){
+	var that = this;
+
+	var retVal = { id: this.data.ID, feed: this, label: this.data.name };
+	if (this.children.length){
+		retVal["children"] = [];
+		for (var i = 0; i < this.children.length; i++){
+			retVal.children[retVal.children.length] = this.children[i].jqTree();
 		}
 	}
-
-	d.modal();
-}}}
+	return retVal;
+}
 function FeedCollapse(collapse){{{
 	var that = this;
 	this.folder.toggleClass("icon-folder-open icon-folder-close");
@@ -542,6 +496,7 @@ function Feed(data){{{
 	this.updateFeed=FeedUpdateFeed;
 	this.collapse=FeedCollapse;
 	this.SQLDate=FeedSQLDate;
+	this.jqTree=FeedJqTree;
 	this.children = new Array();
 
 	if (this.data.startID != "1"){
