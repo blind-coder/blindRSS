@@ -189,7 +189,7 @@ function rearrangeFeeds(){{{
 
 	return;
 }}}
-function FeedJqTree(){
+function FeedJqTree(){{{
 	var that = this;
 
 	var retVal = { id: this.data.ID, feed: this, label: this.data.name };
@@ -200,7 +200,7 @@ function FeedJqTree(){
 		}
 	}
 	return retVal;
-}
+}}}
 function FeedCollapse(collapse){{{
 	var that = this;
 	this.folder.toggleClass("icon-folder-open icon-folder-close");
@@ -851,7 +851,7 @@ function showAddFeed(){{{
 	var sortedFeeds = globalFeeds.slice(0); /* copy the array */
 	sortedFeeds.sort(function(a,b){return parseInt(a.data.startID) < parseInt(b.data.startID) ? -1 : 1;}); /* sort by startID ASC */
 
-	var options = "";
+	var options = $("<select id='parent' class='selectpicker' />");
 	$.each(sortedFeeds, function(k,v){
 		if (v == undefined){
 			return true; // continue;
@@ -861,10 +861,12 @@ function showAddFeed(){{{
 			for (var x = v; x; x=x.parent){
 				s = "/"+x.data.name+s;
 			}
-			options += "<option value='"+v.data.ID+"'>"+s+"</option>";
+			options.append("<option value='"+v.data.ID+"'>"+s+"</option>");
 		}
 	});
-	d.find("select#parent").empty().append(options);
+	options.val(globalRootFeed.data.ID);
+	d.find("#controlParent").empty().append(options);
+	options.selectpicker();
 	d.find("#buttonAddRSSHandler").unbind("click");
 	d.find("#buttonAddRSSHandler").bind("click", addRSSHandler);
 	d.find("#buttonAddFeed").unbind("click").bind("click", addFeed);
