@@ -17,7 +17,7 @@ li.active > div > a > [class^="icon-"] {
 	list-style: none;
 	list-style-image: none;
 }
-.sidebar-nav .active, .sidebar-nav *:hover {
+.sidebar-nav .active, .sidebar-nav li:hover {
 	background-color: #0081C2;
 	background-image: linear-gradient(to bottom, #0088CC, #0077B3);
 	background-repeat: repeat-x;
