@@ -33,10 +33,81 @@
 					<a class="brand" href="#">blindRSS</a>
 					<div class="nav-collapse collapse">
 						<ul class="nav">
-							<li><a href="javascript:globalRootFeed.updateCount();">Refresh</a></li>
-							<li><a href="javascript:showAddFeed();">Add Feed</a></li>
-							<li><a href="javascript:rearrangeFeeds();">rearrange Feeds</a></li>
-							<li><a href="javascript:showOptions();">Options</a></li>
+							<li><a href="javascript:globalRootFeed.updateCount();"><span class='titleText'>Refresh</span><i class="titleIcon icon-white icon-refresh"></i></a></li>
+							<li><a href="javascript:showAddFeed();"><span class='titleText'>Add feed</span><i class="titleIcon icon-white icon-plus"></i></a></li>
+							<li><a href="javascript:rearrangeFeeds();"><span class='titleText'>Rearrange feeds</span><i class="titleIcon icon-white icon-random"></i></a></li>
+						</ul>
+						<ul class="nav pull-right">
+							<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><span class='titleText'>Options</span><i class="titleIcon icon-cog icon-white"></i></a>
+								<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+									<li>
+										<form class="form-horizontal">
+											<div class='control-group'>
+												<label class='control-label' for='buttonUnreadOnChange'>Mark entries 'new' when content changes:</label>
+												<div class='controls'>
+													<div id='buttonUnreadOnChange' class="switch switch-small" data-on-label="Yes" data-off-label="No">
+														<input type="checkbox" checked="checked">
+													</div>
+												</div>
+											</div>
+										</form>
+									</li>
+									<li>
+										<form class="form-horizontal">
+											<div class='control-group'>
+												<label class='control-label' for='selectPurgeAfter'>Delete entries after:</label>
+												<div class='controls'>
+													<select id='selectPurgeAfter'>
+														<option value='7'>7 Days</option>
+														<option value='14'>14 Days</option>
+														<option value='31'>31 Days</option>
+														<option value='365'>365 Days</option>
+														<option value='36135'>99 Years</option>
+												</select>
+											</div>
+										</div>
+									</form>
+									</li>
+									<li>
+										<form class="form-horizontal">
+											<div class='control-group'>
+												<label class='control-label' for='buttonDeleteFavorites'>Delete entries if they are favorites?</label>
+												<div class='controls'>
+													<div id='buttonDeleteFavorites' class="switch switch-small" data-on-label="Yes" data-off-label="No">
+														<input type="checkbox" checked="checked">
+													</div>
+												</div>
+											</div>
+										</form>
+									</li>
+									<li>
+										<form class="form-horizontal">
+											<div class='control-group'>
+												<label class='control-label' for='buttonDeleteFavorites'>Delete entries if they are tagged?</label>
+												<div class='controls'>
+													<div id='buttonDeleteTagged' class="switch switch-small" data-on-label="Yes" data-off-label="No">
+														<input type="checkbox" checked="checked">
+													</div>
+												</div>
+											</div>
+										</form>
+									</li>
+									<li class="divider"></li>
+									<li>
+										<form class="form-horizontal">
+											<div class='control-group'>
+												<label class='control-label' for='buttonTextOrIcons'>Style of titlebar:</label>
+												<div class='controls'>
+													<div id='buttonTextOrIcons' class="switch switch-small" data-on-label="Text" data-off-label="Icons">
+														<input type="checkbox" checked="checked">
+													</div>
+												</div>
+											</div>
+										</form>
+									</li>
+								</ul>
+							</li>
 						</ul>
 					</div>
 				</div>
@@ -231,57 +302,6 @@
 				<h3 id="feedSettingsLabel">Rearrange feeds</h3>
 			</div>
 			<div class="modal-body" style="max-height: 600px;">
-			</div>
-			<div class="modal-footer">
-				<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-			</div>
-		</div>
-
-		<!-- Modal options -->
-		<div id="modalOptions" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="optionsLabel" aria-hidden="true">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-				<h3 id="optionsLabel">Options</h3>
-			</div>
-			<div class="modal-body" style="height: 550px;">
-				<form class="form-horizontal">
-					<div class='control-group'>
-						<label class='control-label' for='buttonUnreadOnChange'>Mark entries 'new' when content changes:</label>
-						<div class='controls'>
-							<div id='buttonUnreadOnChange' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-								<input type="checkbox" checked="checked">
-							</div>
-						</div>
-					</div>
-					<div class='control-group'>
-						<label class='control-label' for='selectPurgeAfter'>Delete entries after:</label>
-						<div class='controls'>
-							<select id='selectPurgeAfter'>
-								<option value='7'>7 Days</option>
-								<option value='14'>14 Days</option>
-								<option value='31'>31 Days</option>
-								<option value='365'>365 Days</option>
-								<option value='36135'>99 Years</option>
-							</select>
-						</div>
-					</div>
-					<div class='control-group'>
-						<label class='control-label' for='buttonDeleteFavorites'>Delete entries if they are favorites?</label>
-						<div class='controls'>
-							<div id='buttonDeleteFavorites' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-								<input type="checkbox" checked="checked">
-							</div>
-						</div>
-					</div>
-					<div class='control-group'>
-						<label class='control-label' for='buttonDeleteFavorites'>Delete entries if they are tagged?</label>
-						<div class='controls'>
-							<div id='buttonDeleteTagged' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-								<input type="checkbox" checked="checked">
-							</div>
-						</div>
-					</div>
-				</form>
 			</div>
 			<div class="modal-footer">
 				<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>

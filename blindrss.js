@@ -884,15 +884,22 @@ function showOptions(){{{
 	var d = $("#modalOptions");
 	d.modal();
 }}}
+function toggleTextOrIcons(textOrIcons){{{
+	if (textOrIcons == "icons"){
+		$(".titleText").hide();
+		$(".titleIcon").show();
+	} else {
+		$(".titleText").show();
+		$(".titleIcon").hide();
+	}
+}}}
 function getOptions(){{{
 	$.ajax({
 		url: "rest.php/options",
 		type: "GET",
 		dataType: "json", 
 		success: function(data){
-			$("#selectPurgeAfter").val(data.purgeAfter.value)
-					      .addClass("selectpicker")
-					      .selectpicker();
+			$("#selectPurgeAfter").val(data.purgeAfter.value);
 			$("#buttonUnreadOnChange").attr("checked", data.unreadOnChange.value == "true" ? "checked" : "")
 						  .switch("setState", data.unreadOnChange.value == "true");
 			$("#buttonUnreadOnChange").on("switch-change", function(e, data){
@@ -914,6 +921,14 @@ function getOptions(){{{
 			$("#buttonDeleteTagged").on("switch-change", function(e, data){
 				var value = data.value;
 				setOption("deleteTagged", value ? "yes" : "no");
+			});
+			$("#buttonTextOrIcons").attr("checked", data.textOrIcons.value == "text" ? "checked" : "")
+						  .switch("setState", data.textOrIcons.value == "text");
+			toggleTextOrIcons(data.textOrIcons.value);
+			$("#buttonTextOrIcons").on("switch-change", function(e, data){
+				var value = data.value;
+				setOption("textOrIcons", value ? "text" : "icons");
+				toggleTextOrIcons(value ? "text" : "icons");
 			});
 		}
 	});

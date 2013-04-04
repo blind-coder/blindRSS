@@ -22,3 +22,4 @@ ALTER TABLE `entries_tags` ADD UNIQUE `onlyonce` ( `entryID` , `tagID` );
 
 INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'deleteFavorites', 'no');
 INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'deleteTagged', 'no');
+INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'textOrIcons', 'text');

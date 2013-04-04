@@ -71,6 +71,7 @@ INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'deleteFavorites',
 INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'deleteTagged', 'no');
 INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'unreadOnChange', 'true');
 INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'purgeAfter', '36135');
+INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'textOrIcons', 'text');
 
 DROP TABLE IF EXISTS `tags`;
 CREATE TABLE IF NOT EXISTS `tags` (
