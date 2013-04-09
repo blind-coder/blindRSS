@@ -86,7 +86,7 @@ function showEntries(url, spin){{{
 					if (globalFeeds[ptr])
 						globalFeeds[ptr].entries = new Object();
 				}
-				var newDate = v.date.match(/^(....)-(..)-(..)/);
+				var newDate = v.date.match(/^(....)-0?(.?.)-0?(.?.)/);
 				newDate = newDate[0];
 				if (newDate != oldDate){
 					oldDate = newDate;
@@ -384,7 +384,7 @@ function FeedGetEntries(today){{{
 			li.append(
 				$("<a href='#'>[ Load next day ]</a>")
 				.on("click", function(){
-					var d = newDate.match(/^(....)-(..)-(..)/);
+					var d = newDate.match(/^(....)-0?(.?.)-0?(.?.)/);
 					that.date = new Date(parseInt(d[1]), parseInt(d[2])-1, parseInt(d[3])-1);
 					that.getEntries(false);
 				})
