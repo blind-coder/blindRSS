@@ -536,6 +536,9 @@ function Feed(data){{{
 			.append(this.spin)
 			.append(this.nameFeed)
 			.on("click", function(){
+				/* Reset all feeds' entries Object.
+				 * This is necessary for correct function of MarkAllRead
+				 */
 				for (var ptr=0; ptr<globalFeeds.length; ptr++){
 					if (globalFeeds[ptr])
 						globalFeeds[ptr].entries = new Object();
