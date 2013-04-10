@@ -64,11 +64,10 @@ function showEntries(url, spin){{{
 		complete: function(){ $(spin).spin(false); },
 		success: function(data){
 			var oldDate = "0000-00-00";
+			$.each(globalFeeds, function(k,v){
+				v.entries = new Object();
+			});
 			$.each(data, function(k,v){
-				for (var ptr=0; ptr<globalFeeds.length; ptr++){
-					if (globalFeeds[ptr])
-						globalFeeds[ptr].entries = new Object();
-				}
 				var newDate = v.date.match(/^(....)-0?(.?.)-0?(.?.)/);
 				newDate = newDate[0];
 				if (newDate != oldDate){
@@ -94,10 +93,9 @@ function showTag(tagID, tag){{{
 		complete: function(){ $("#spinFeed_tag"+tag).spin(false); },
 		success: function(data){
 			$.each(data, function(k,v){
-				for (var ptr=0; ptr<globalFeeds.length; ptr++){
-					if (globalFeeds[ptr])
-						globalFeeds[ptr].entries = new Object();
-				}
+				$.each(globalFeeds, function(k,v){
+					v.entries = new Object();
+				});
 				new Entry(v);
 			});
 		}
@@ -349,10 +347,9 @@ function FeedGetEntries(today){{{
 			var scrollTop = e.scrollTop();
 			if (today){
 				scrollTop = 0;
-				for (var ptr = 0; ptr < globalFeeds.length; ptr++){
-					if (globalFeeds[ptr])
-						globalFeeds[ptr].entries = new Object();
-				}
+				$.each(globalFeeds, function(k,v){
+					v.entries = new Object();
+				});
 			} else {
 				e.find(".loadMore").remove();
 			}
@@ -539,13 +536,12 @@ function Feed(data){{{
 				/* Reset all feeds' entries Object.
 				 * This is necessary for correct function of MarkAllRead
 				 */
-				for (var ptr=0; ptr<globalFeeds.length; ptr++){
-					if (globalFeeds[ptr])
-						globalFeeds[ptr].entries = new Object();
-				}
+				$.each(globalFeeds, function(k,v){
+					v.entries = new Object();
+				});
 				that.date = new Date();
 				$("#entries").empty().append("<li class='nav-header'>Feedentries</li>");
-				that.getEntries();
+				that.getEntries(true);
 			})
 		);
 
@@ -788,13 +784,11 @@ function getFeeds(){{{
 				new Feed(v);
 			});
 
-			for (var ptr = 0; ptr < globalFeeds.length; ptr++){
-				if (globalFeeds[ptr]){
-					if (globalFeeds[ptr].data.collapsed == "yes"){
-						globalFeeds[ptr].collapse(true);
-					}
+			$.each(globalFeeds, function(k,v){
+				if (v.data.collapsed == "yes"){
+					v.collapse(true);
 				}
-			}
+			});
 		},
 	});
 }}}
