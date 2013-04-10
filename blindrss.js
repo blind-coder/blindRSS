@@ -515,12 +515,12 @@ function Feed(data){{{
 	this.buttons.settings = $("<i class='icon-pencil floatRight editButton' />")
 		.on("click", function(){
 			that.showSettings();
-			return false;
+			return false; // last 'click' handler
 		});
 	this.buttons.newMessage = $("<i id='newMessage_"+this.data.startID+"' class='icon-envelope newmessage floatRight' />")
 		.on("click", function() {
 			that.markAllRead();
-			return false;
+			return false; // last 'click' handler
 		});
 
 	var indent = 0;
