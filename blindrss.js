@@ -483,6 +483,9 @@ function Feed(data){{{
 	this.children = new Array();
 
 	if (this.data.startID != "1"){
+		/* unless this is the root feed, we need a pointer to our parent feed */
+		/* TODO: Maybe there's an easier way than to parse the DOM tree, query its elements' attributes and then get an array element? */
+		/* TODO: I'm quite sure there is */
 		var parentFeed = $("li").filter(function(){
 			return  $(this).attr("startID") <= parseInt(that.data.startID) &&
 				$(this).attr("endID")   >= parseInt(that.data.endID)   &&
