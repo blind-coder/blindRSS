@@ -63,7 +63,9 @@ while ($feed = mysql_fetch_object($query_feeds)){
 		/* Set one last default */
 		$isread = 0;
 
-		/* Check filter lists */
+		/* Check filter lists
+		 * Here, last matching filter always wins.
+		 */
 		foreach ($feedfilter AS $key => $value){
 			if (preg_match("/{$value->regex}/i", $title) ||
 			    preg_match("/{$value->regex}/i", $content)){
