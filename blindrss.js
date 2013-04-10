@@ -760,9 +760,9 @@ function Entry(data){{{
 }}}
 
 function getFeeds(){{{
-	var feeds = $("#feeds");
-	feeds.find(".group").remove();
-	feeds.find(".feed").remove();
+	$("#feeds").find(".group").remove();
+	$("#feeds").find(".feed").remove();
+
 	$.ajax({
 		url: "rest.php/feeds",
 		type: "GET",
