@@ -4,22 +4,6 @@ var globalRootFeed;
 var globalUlEntries;
 
 var curFeed = false;
-function min(a, b){{{
-	a = parseInt(a);
-	b = parseInt(b);
-	if (a < b){
-		return a;
-	}
-	return b;
-}}}
-function max(a, b){{{
-	a = parseInt(a);
-	b = parseInt(b);
-	if (a > b){
-		return a;
-	}
-	return b;
-}}}
 function resize(){{{
 	$("#feeds").height(window.innerHeight-($("#feeds").position().top + 40));
 	$("#content").height($("#feeds").height() - ($("#content").position().top - $("#feeds").position().top) + 20);
@@ -414,7 +398,7 @@ function FeedMarkAllRead(){{{
 			if (!v){
 				return true;
 			}
-			maxID = max(maxID, v.data.ID);
+			maxID = Math.max(maxID, v.data.ID);
 		});
 	}
 
