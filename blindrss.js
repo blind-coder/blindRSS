@@ -1,5 +1,5 @@
 var labelNames = new Array("label-success", "label-warning", "label-important", "label-info", "label-inverse");
-var globalFeeds = new Array();
+var globalFeeds = new Object();
 var globalRootFeed;
 
 var curFeed = false;
@@ -772,9 +772,13 @@ function getFeeds(){{{
 			if (!data){
 				return;
 			}
-			globalFeeds = new Array();
+			globalFeeds = new Object();
 			$.each(data, function(k,v){
 				if (k == 0){
+					/* We can't assume that the root feed has the ID 1.
+					 * Backwards compatibility means we might encounter
+					 * an installation which didn't use a root directory.
+					 */
 				        globalRootFeed = new Feed(v);
 					return true;
 				}
