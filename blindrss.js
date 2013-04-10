@@ -549,7 +549,6 @@ function Feed(data){{{
 			})
 		);
 
-
 	$("#feeds").append(this.li);
 
 	if (this.isDirectory){
@@ -568,7 +567,6 @@ function Feed(data){{{
 	} else {
 		this.li.addClass("feed");
 	}
-
 }}}
 
 function Tag(entry, data){{{
