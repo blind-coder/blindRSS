@@ -6,13 +6,20 @@ mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS) || die (mysql_error());
 mysql_select_db($MYSQL_DB) || die (mysql_error());
 mysql_query("SET NAMES 'utf8';");
 
+function my_mysql_query($query){
+	$retval = mysql_query($query);
+	if (mysql_error()){
+		echo "Mysql error: ".mysql_error()."\nQuery was: $query\n";
+	}
+	return $retval;
+}
+
 /* Purge old entries */
-mysql_query("
+my_mysql_query("
 DELETE FROM `entries` WHERE `date` < SUBDATE(CURDATE(), INTERVAL (SELECT `value` FROM options WHERE `key` = 'purgeAfter') DAY)
 	AND `favorite` IN ('no', (SELECT `value` FROM options WHERE `key` = 'deleteFavorites'))
 	AND IF((SELECT `value` FROM options WHERE `key` = 'deleteTagged') = 'no', NOT(SELECT COUNT(ID) FROM entries_tags WHERE entryID = entries.ID LIMIT 1), 1);
 ");
-echo mysql_error();
 
 $q = mysql_query("SELECT `value` FROM options WHERE `key` = 'unreadOnChange'");
 $unreadOnChange = mysql_fetch_object($q);
@@ -32,14 +39,6 @@ function sanitize($v){ // substitute some Umlauts
 	$w = str_replace(html_entity_decode("&Uuml;"), "&Uuml;", $w);
 	$w = str_replace(html_entity_decode("&szlig;"), "&szlig;", $w);
 	return $w;
-}
-
-function my_mysql_query($query){
-	$retval = mysql_query($query);
-	if (mysql_error()){
-		echo "Mysql error: ".mysql_error()."\nQuery was: $query\n";
-	}
-	return $retval;
 }
 
 $query_feeds = my_mysql_query("SELECT * FROM feeds WHERE `url` != '' AND `url` IS NOT NULL AND `url` != 'SEARCHRESULTS'");
