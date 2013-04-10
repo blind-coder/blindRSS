@@ -784,11 +784,11 @@ function getFeeds(){{{
 				}
 				new Feed(v);
 			});
-			var f;
+
 			for (var ptr = 0; ptr < globalFeeds.length; ptr++){
-				if (f = globalFeeds[ptr]){
-					if (f.data.collapsed == "yes"){
-						f.collapse(true);
+				if (globalFeeds[ptr]){
+					if (globalFeeds[ptr].data.collapsed == "yes"){
+						globalFeeds[ptr].collapse(true);
 					}
 				}
 			}
