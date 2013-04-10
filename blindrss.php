@@ -21,24 +21,12 @@ DELETE FROM `entries` WHERE `date` < SUBDATE(CURDATE(), INTERVAL (SELECT `value`
 	AND IF((SELECT `value` FROM options WHERE `key` = 'deleteTagged') = 'no', NOT(SELECT COUNT(ID) FROM entries_tags WHERE entryID = entries.ID LIMIT 1), 1);
 ");
 
-$q = mysql_query("SELECT `value` FROM options WHERE `key` = 'unreadOnChange'");
+$q = my_mysql_query("SELECT `value` FROM options WHERE `key` = 'unreadOnChange'");
 $unreadOnChange = mysql_fetch_object($q);
 if ($unreadOnChange->value == "true"){
 	$unreadOnChange = true;
 } else {
 	$unreadOnChange = false;
-}
-
-function sanitize($v){ // substitute some Umlauts
-	$w = html_entity_decode(htmlentities($v));
-	$w = str_replace(html_entity_decode("&auml;"), "&auml;", $w);
-	$w = str_replace(html_entity_decode("&Auml;"), "&Auml;", $w);
-	$w = str_replace(html_entity_decode("&ouml;"), "&ouml;", $w);
-	$w = str_replace(html_entity_decode("&Ouml;"), "&Ouml;", $w);
-	$w = str_replace(html_entity_decode("&uuml;"), "&uuml;", $w);
-	$w = str_replace(html_entity_decode("&Uuml;"), "&Uuml;", $w);
-	$w = str_replace(html_entity_decode("&szlig;"), "&szlig;", $w);
-	return $w;
 }
 
 $query_feeds = my_mysql_query("SELECT * FROM feeds WHERE `url` != '' AND `url` IS NOT NULL AND `url` != 'SEARCHRESULTS'");
