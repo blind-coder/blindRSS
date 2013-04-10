@@ -511,6 +511,7 @@ function Feed(data){{{
 	this.nameFeed = $("<span href='#' class='nameFeed'>"+this.data.name+"</span>").append(this.numNew);
 
 	this.buttons = new Object();
+	/* This button will only be visible when the mouse overs over the feed/group to prevent cluttering the UI */
 	this.buttons.settings = $("<i class='icon-pencil floatRight editButton' />")
 		.on("click", function(){
 			that.showSettings();
@@ -523,9 +524,7 @@ function Feed(data){{{
 		});
 
 	var indent = 0;
-	for (var ptr = this.parent; ptr; ptr=ptr.parent){
-		indent = indent + 16;
-	}
+	for (var ptr = this.parent; ptr; ptr=ptr.parent, indent += 16);
 
 	this.li.attr("startID", this.data.startID)
 		.attr("endID",   this.data.endID)
