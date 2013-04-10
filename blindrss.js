@@ -322,6 +322,9 @@ function FeedGetEntries(today){{{
 
 	if (curFeed){
 		if (curFeed != this){
+			/* Delete entries Object from memory.
+			 * This is necessary for correct function of MarkAllRead
+			 */
 			delete(curFeed.entries);
 		}
 	}
