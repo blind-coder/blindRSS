@@ -1,7 +1,6 @@
 var labelNames = new Array("label-success", "label-warning", "label-important", "label-info", "label-inverse");
 var globalFeeds = new Array();
 var globalRootFeed;
-var globalUlEntries;
 
 var curFeed = false;
 function resize(){{{
@@ -51,7 +50,7 @@ function search(){{{
 }}}
 
 function showEntries(url, spin){{{
-	var e = globalUlEntries;
+	var e = $("#entries");
 	spin = "#"+spin;
 	e.empty();
 	e.append("<li class='nav-header'>Feedentries</li>");
@@ -82,7 +81,7 @@ function showEntries(url, spin){{{
 	});
 }}}
 function showTag(tagID, tag){{{
-	var e = globalUlEntries;
+	var e = $("#entries");
 	e.empty();
 	e.append("<li class='nav-header'>Feedentries</li>");
 	e.scroll(0);
@@ -336,7 +335,7 @@ function FeedGetEntries(today){{{
 		type: "GET",
 		dataType: "json",
 		success: function(data){
-			var e = globalUlEntries;
+			var e = $("#entries");
 
 			$("ul#feeds li.active").removeClass("active");
 			that.li.addClass("active");
@@ -381,7 +380,7 @@ function FeedGetEntries(today){{{
 				e.scroll(scrollTop);
 			}
 		},
-		complete: function(){ that.spin.spin(false); globalUlEntries.parent().spin(false); }
+		complete: function(){ that.spin.spin(false); $("#entries").parent().spin(false); }
 	});
 }}}
 function FeedMarkAllRead(){{{
@@ -412,7 +411,7 @@ function FeedMarkAllRead(){{{
 			if (data.status == "OK"){
 				if (curFeed == that){
 					/* TODO iterate through all new entries and turn this into real object oriented code */
-					globalUlEntries.find("li.new").removeClass("new");
+					$("#entries").find("li.new").removeClass("new");
 				}
 			} else {
 				alert(data.msg);
@@ -540,8 +539,7 @@ function Feed(data){{{
 						globalFeeds[ptr].entries = new Object();
 				}
 				that.date = new Date();
-				globalUlEntries.empty();
-				globalUlEntries.append("<li class='nav-header'>Feedentries</li>");
+				$("#entries").empty().append("<li class='nav-header'>Feedentries</li>");
 				that.getEntries();
 			})
 		);
@@ -758,7 +756,7 @@ function Entry(data){{{
 	this.li = $("<li id='entry_"+this.data.ID+"' />").append(this.a);
 
 	this.update();
-	globalUlEntries.append(this.li);
+	$("#entries").append(this.li);
 }}}
 
 function getFeeds(){{{
@@ -794,13 +792,15 @@ function getFeeds(){{{
 	});
 }}}
 function startup(){{{
+	/* Create bootstrap theme */
 	$("input[type=button]").button();
 	$(".selectpicker").selectpicker();
+
 	$("#specialFavorites").on("click", function(){ showEntries("rest.php/favorites", "spinFeed_specialFavorites"); });
 	$("#specialUnread").on("click", function(){ showEntries("rest.php/unread", "spinFeed_specialUnread"); });
 	$("#specialTags").on("click", getTags);
 	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); });
-	globalUlEntries = $("ul#entries");
+
 	resize();
 	getFeeds();
 	getOptions();
