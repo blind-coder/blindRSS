@@ -115,6 +115,7 @@ function rearrangeFeeds(){{{
 		dragAndDrop: true,
 		selectable: false,
 		onCanMove: function(node) {
+			/* Root feed can not be moved */
 			if (!node.parent.parent) {
 				return false;
 			} else {
@@ -122,6 +123,9 @@ function rearrangeFeeds(){{{
 			}
 		},
 		onCanMoveTo: function(moved_node, target_node, position) {
+			/* Can only move inside directories
+			 * Can not move outside Root feed
+			 */
 			if (position == "inside"){
 				return target_node.feed.isDirectory;
 			}
