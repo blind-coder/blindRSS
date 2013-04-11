@@ -628,11 +628,13 @@ function EntryToggleRead(){{{
 		this.data.isread = "1";
 	}
 	this.render();
+	this.spin.spin("tiny");
 	$.ajax({
-		url: "rest.php/entry/"+this.data.ID,
+		url: "rest.php/entry/"+that.data.ID,
 		type: "PUT",
 		dataType: "json",
-		data: JSON.stringify({ isread: this.data.isread }),
+		data: JSON.stringify({ isread: that.data.isread }),
+		complete: function(){ that.spin.spin(false); },
 		success: function(data){
 			if (data.status == "OK"){
 				var f;
@@ -655,11 +657,13 @@ function EntryToggleRead(){{{
 function EntryAddTag(){{{
 	var that = this;
 	var tag = $("#newTag").val();
+	this.spin.spin("tiny");
 	$.ajax({
 		url: "rest.php/entry/"+that.data.ID+"/tags",
 		type: "PUT",
 		dataType: "json",
 		data: JSON.stringify({ tags: tag }),
+		complete: function(){ that.spin.spin(false); },
 		success: function(data){
 			if (data.status != "OK"){
 				alert(data.msg);
@@ -673,10 +677,12 @@ function EntryShow(){{{
 	var that = this;
 	$("#content").empty().spin();
 	$("#headline").empty().attr("href", "#").html("Loading...");
+	that.spin.spin("tiny");
 	$.ajax({
 		url: "rest.php/entry/"+this.data.ID,
 		type: "GET",
 		dataType: "json",
+		complete: function(){ that.spin.spin(false) },
 		success: function(data){
 			if (data.status == "error"){
 				alert(data.msg);
@@ -698,8 +704,7 @@ function EntryShow(){{{
 			li = $("ul#entries li#entry_"+that.data.ID);
 			li.addClass("active");
 			that.markRead();
-		},
-		complete: function(){ $("#content").spin(false); }
+		}
 	})
 }}}
 function EntryRender(){{{
@@ -716,13 +721,7 @@ function EntryUpdate(){{{
 	} else {
 		this.li.removeClass("new");
 	}
-	this.iconNew.detach();
-	this.iconFav.detach();
-	this.a
-		.empty()
-		.append(this.iconFav)
-		.append(this.iconNew)
-		.append(this.data.title);
+	this.span.empty().append(this.data.title);
 }}}
 function Entry(data){{{
 	var that = this;
@@ -764,13 +763,19 @@ function Entry(data){{{
 		this.iconFav.toggleClass("icon-star icon-star-empty");
 	}
 
-	this.a = $("<a href='#' />")
-		.append(this.iconFav)
-		.append(this.iconNew)
+	this.spin = $("<span class='floatLeft spin' id='spinEntry_"+this.data.ID+"'>&nbsp;</span>");
+
+	this.span = $("<span />");
+	this.li = $("<li id='entry_"+this.data.ID+"' />")
+		.append($("<a href='#' />")
+			.append(this.spin)
+			.append(this.iconFav)
+			.append(this.iconNew)
+			.append(this.span)
+		)
 		.on("click", function(){
 			that.show();
 		});
-	this.li = $("<li id='entry_"+this.data.ID+"' />").append(this.a);
 
 	this.update();
 	$("#entries").append(this.li);
