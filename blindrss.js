@@ -186,6 +186,21 @@ function FeedJqTree(){{{
 	}
 	return retVal;
 }}}
+function FeedDirectories(){{{
+	var that = this;
+
+	if (!this.isDirectory){
+		return [];
+	}
+
+	var retVal = [this];
+	for (var ptr = 0; ptr < this.children.length; ptr++){
+		if (this.children[ptr].isDirectory){
+			retVal = retVal.concat(this.children[ptr].directories());
+		}
+	}
+	return retVal;
+}}}
 function FeedCollapse(collapse){{{
 	var that = this;
 	this.folder.toggleClass("icon-folder-open icon-folder-close");
@@ -493,6 +508,7 @@ function Feed(data){{{
 	this.collapse=FeedCollapse;
 	this.SQLDate=FeedSQLDate;
 	this.jqTree=FeedJqTree;
+	this.directories=FeedDirectories;
 	this.children = new Array();
 
 	if (this.data.startID != "1"){
@@ -856,21 +872,16 @@ function addFeed(){{{
 }}}
 function showAddFeed(){{{
 	var d = $("#addFeed");
-	var sortedFeeds = globalFeeds.slice(0); /* copy the array */
-	sortedFeeds.sort(function(a,b){return parseInt(a.data.startID) < parseInt(b.data.startID) ? -1 : 1;}); /* sort by startID ASC */
+
+	var sortedFeeds = globalRootFeed.directories();
 
 	var options = $("<select id='parent' class='selectpicker' />");
 	$.each(sortedFeeds, function(k,v){
-		if (v == undefined){
-			return true; // continue;
+		var s = "";
+		for (var x = v; x; x=x.parent){
+			s = "/"+x.data.name+s;
 		}
-		if (v.isDirectory){
-			var s = "";
-			for (var x = v; x; x=x.parent){
-				s = "/"+x.data.name+s;
-			}
-			options.append("<option value='"+v.data.ID+"'>"+s+"</option>");
-		}
+		options.append("<option value='"+v.data.ID+"'>"+s+"</option>");
 	});
 	options.val(globalRootFeed.data.ID);
 	d.find("#controlParent").empty().append(options);
