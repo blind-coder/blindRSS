@@ -605,6 +605,7 @@ function TagRemove(){{{
 		dataType: "json",
 		success: function(data){
 			that.span.remove();
+			resize(); /* necessary here because height might change a bit */
 			var i = 0;
 			$.each($("#headlineTags > .label"), function(k,v){
 				v = $(v);
@@ -679,7 +680,7 @@ function EntryAddTag(){{{
 		type: "PUT",
 		dataType: "json",
 		data: JSON.stringify({ tags: tag }),
-		complete: function(){ that.spin.spin(false); },
+		complete: function(){ that.spin.spin(false); resize(); /* necessary here because new tag might change height a bit */ },
 		success: function(data){
 			if (data.status != "OK"){
 				alert(data.msg);
@@ -709,6 +710,7 @@ function EntryShow(){{{
 			$("#headlineTags").empty();
 			$("#btnAddNewTag").show();
 			$("#frmAddNewTag").hide().unbind("submit").on("submit", function(){ that.addTag(); });
+			resize(); /* necessary here because the form is a bit taller than the button */
 			that.tags = new Object();
 			that.data.tags = data.tags;
 			if (data.tags.length){
@@ -839,7 +841,7 @@ function startup(){{{
 	$("#specialFavorites").on("click", function(){ showEntries("rest.php/favorites", "spinFeed_specialFavorites"); });
 	$("#specialUnread").on("click", function(){ showEntries("rest.php/unread", "spinFeed_specialUnread"); });
 	$("#specialTags").on("click", getTags);
-	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); });
+	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); resize(); /* necessary here because the form is a bit higher than the button */});
 
 	resize();
 	getFeeds();
