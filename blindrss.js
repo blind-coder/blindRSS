@@ -686,7 +686,9 @@ function EntryAddTag(){{{
 				alert(data.msg);
 				return;
 			}
-			that.tags[that.tags.length] = new Tag(that, {ID: 0, tag: tag});
+			$.each(tag.split(","), function(k,v){
+				that.tags[that.tags.length] = new Tag(that, {ID: 0, tag: v});
+			});
 		}
 	});
 }}}
