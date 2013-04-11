@@ -581,7 +581,7 @@ function Feed(data){{{
 	}
 }}}
 
-function TagRemove(){
+function TagRemove(){{{
 	var that = this;
 	$.ajax({
 		url: "rest.php/entry/"+that.entry.data.ID+"/tags/"+that.data.tag,
@@ -599,7 +599,7 @@ function TagRemove(){
 			});
 		}
 	});
-}
+}}}
 function Tag(entry, data){{{
 	var that = this;
 	this.remove = TagRemove;
