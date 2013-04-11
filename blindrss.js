@@ -448,7 +448,7 @@ function FeedUpdateCount(){{{
 				feed.renderCount();
 			})
 			for (var x = that.parent; x; x=x.parent){
-				/* only need to update parents */
+				/* Only need to update this feeds parents because we only get the unreadcount for this feeds children */
 				var newCount = 0;
 				for (var c = 0; c < x.children.length; c++){
 					newCount += parseInt(x.children[c].data.unreadCount);
