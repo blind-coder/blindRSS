@@ -190,6 +190,7 @@ function FeedCollapse(collapse){{{
 	var that = this;
 	this.folder.toggleClass("icon-folder-open icon-folder-close");
 	for (var ptr = this.li.next(); ptr.length; ptr = ptr.next()){
+		/* TODO: Is there a nicer way to do this? */
 		if (parseInt(ptr.attr("startID")) >= that.data.startID && parseInt(ptr.attr("endID")) <= that.data.endID){
 			if (collapse){
 				ptr.hide();
@@ -198,6 +199,9 @@ function FeedCollapse(collapse){{{
 			}
 		}
 	}
+	/* This might return false on when called from getFeeds()
+	 * Collapsed state is stored serverside and we don't need to update it to its current value
+	 */
 	if ((this.data.collapsed == "yes") != collapse){
 		$.ajax({
 			url: "rest.php/feed/"+this.data.ID,
