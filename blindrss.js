@@ -899,10 +899,6 @@ function addRSSHandler(){{{
 		window.navigator.registerContentHandler('application/vnd.mozilla.maybe.feed',address,"blindRSS " + addDir.text().replace(/^.*\//, ""));
 	}
 }}}
-function showOptions(){{{
-	var d = $("#modalOptions");
-	d.modal();
-}}}
 function toggleTextOrIcons(textOrIcons){{{
 	if (textOrIcons == "icons"){
 		$(".titleText").hide();
