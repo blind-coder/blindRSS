@@ -613,6 +613,7 @@ function TagRemove(){{{
 					v.removeClass(labelNames[j]);
 				}
 				v.addClass(labelNames[i]);
+				i++;
 			});
 		}
 	});
