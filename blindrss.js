@@ -581,32 +581,35 @@ function Feed(data){{{
 	}
 }}}
 
+function TagRemove(){
+	var that = this;
+	$.ajax({
+		url: "rest.php/entry/"+that.entry.data.ID+"/tags/"+that.data.tag,
+		type: "DELETE",
+		dataType: "json",
+		success: function(data){
+			that.span.remove();
+			var i = 0;
+			$.each($("#headlineTags > .label"), function(k,v){
+				v = $(v);
+				for (var j=0; j<labelNames.length; j++){
+					v.removeClass(labelNames[j]);
+				}
+				v.addClass(labelNames[i]);
+			});
+		}
+	});
+}
 function Tag(entry, data){{{
 	var that = this;
+	this.remove = TagRemove;
 	this.entry = entry;
 	this.data = data;
 
-	var a = $("<a title='Delete tag' href='#'>&times;</a>").on('click', function(){
-		$.ajax({
-			url: "rest.php/entry/"+that.entry.data.ID+"/tags/"+that.data.tag,
-			type: "DELETE",
-			dataType: "json",
-			success: function(data){
-				that.span.remove();
-				var i = 0;
-				$.each($("#headlineTags > .label"), function(k,v){
-					v = $(v);
-					for (var j=0; j<labelNames.length; j++){
-						v.removeClass(labelNames[j]);
-					}
-					v.addClass(labelNames[i]);
-				});
-			}
-		});
-	});
+	var a = $("<a title='Delete tag' href='#'>&times;</a>").on('click', function(){ that.remove() });
 	var i = $("#headlineTags > .label").length;
 	this.span = $("<span class='label "+(labelNames[i%labelNames.length])+"'>"+that.data.tag+" </span>")
-			.append(a)
+			.append(a);
 
 	$("#headlineTags").append(this.span);
 }}}
