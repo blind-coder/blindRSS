@@ -592,8 +592,7 @@ function Tag(entry, data){{{
 			type: "DELETE",
 			dataType: "json",
 			success: function(data){
-				$("#entry_"+that.entry.data.ID+"_tag_"+that.data.tag).remove();
-				delete(that);
+				that.span.remove();
 				var i = 0;
 				$.each($("#headlineTags > .label"), function(k,v){
 					v = $(v);
@@ -606,10 +605,10 @@ function Tag(entry, data){{{
 		});
 	});
 	var i = $("#headlineTags > .label").length;
-	$("#headlineTags").append(
-		$("<span id='entry_"+that.entry.data.ID+"_tag_"+that.data.tag+"' class='label "+(labelNames[i%labelNames.length])+"'>"+that.data.tag+" </span>")
+	this.span = $("<span class='label "+(labelNames[i%labelNames.length])+"'>"+that.data.tag+" </span>")
 			.append(a)
-	);
+
+	$("#headlineTags").append(this.span);
 }}}
 
 function EntryMarkRead(){{{
@@ -685,9 +684,9 @@ function EntryShow(){{{
 			$("#headlineTags").empty();
 			$("#btnAddNewTag").show();
 			$("#frmAddNewTag").hide().unbind("submit").on("submit", function(){ that.addTag(); });
+			that.tags = new Object();
 			that.data.tags = data.tags;
 			if (data.tags.length){
-				that.tags = new Object();
 				for (var i = 0; i < data.tags.length; i++){
 					that.tags[data.tags[i].ID] = new Tag(that, data.tags[i]);
 				}
