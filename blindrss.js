@@ -395,6 +395,11 @@ function FeedMarkAllRead(){{{
 	var that = this;
 	var maxID;
 
+	/* We're using the maximum entry ID we have to prevent the following race condition:
+	 * Client gets entries
+	 * Server updates feeds, gets new entries into database
+	 * Client "marks all as read" which would also cause entries unknown to the client to be marked
+	 */
 	if (!(maxID = parseInt(that.data.maxID))){
 		maxID = 0;
 	}
