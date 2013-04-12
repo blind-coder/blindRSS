@@ -222,8 +222,10 @@ switch ($path[0]){
 			$UPDATE = "ID = ID";
 			$update = json_decode(file_get_contents("php://input"));
 			foreach (array("name", "url", "cacheimages", "collapsed") as $k){
-				if ("".$update->$k != ""){
-					$UPDATE .= ", `$k` = \"".mres($update->$k)."\"";
+				if (property_exists($update, $k)){
+					if ("".$update->$k != ""){
+						$UPDATE .= ", `$k` = \"".mres($update->$k)."\"";
+					}
 				}
 			}
 			my_mysql_query("UPDATE feeds SET $UPDATE WHERE ID = ".mres($path[1])." LIMIT 1");
@@ -315,8 +317,10 @@ switch ($path[0]){
 				$UPDATE = "date = date";
 				$update = json_decode(file_get_contents("php://input"));
 				foreach (array("isread", "favorite") as $k){
-					if ("".$update->$k != ""){
-						$UPDATE .= ", `$k` = \"".mres($update->$k)."\"";
+					if (property_exists($update, $k)){
+						if ("".$update->$k != ""){
+							$UPDATE .= ", `$k` = \"".mres($update->$k)."\"";
+						}
 					}
 				}
 				if ($UPDATE == "date = date"){
