@@ -105,7 +105,7 @@ switch ($path[0]){
 						/* We need to get the first date with entries after one day before $path[4] */
 						$q = my_mysql_query($SQL = "SELECT DISTINCT `date` FROM `entries`
 							WHERE feedID IN (
-								SELECT ID FROM feeds WHERE startID >= {$r->{startID}} AND endID <= {$r->{endID}}
+								SELECT ID FROM feeds WHERE startID >= {$r->startID} AND endID <= {$r->endID}
 							)
 							AND `date` <= '".mres($path[3])." 23:59:59'
 							ORDER BY `date` DESC
@@ -117,7 +117,7 @@ switch ($path[0]){
 						$date = "AND `date` >= '".substr($d->{"date"}, 0, 10)." 00:00:00' AND `date` < '".mres($path[3])." 23:59:59'";
 					}
 					$q = my_mysql_query($SQL = "SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE feedID IN (
-						SELECT ID FROM feeds WHERE startID >= {$r->{startID}} AND endID <= {$r->{endID}}
+						SELECT ID FROM feeds WHERE startID >= {$r->startID} AND endID <= {$r->endID}
 					) $date ORDER BY `date` DESC");
 					while ($r = mysql_fetch_object($q)){
 						$data[] = $r;
@@ -296,7 +296,7 @@ switch ($path[0]){
 			$q = my_mysql_query("SELECT * FROM entries WHERE ID = ".mres($path[1]));
 			if ($r = mysql_fetch_object($q)){
 				$data = $r;
-				$q = my_mysql_query("SELECT * FROM tags WHERE ID IN (SELECT tagID FROM entries_tags WHERE entryID = {$r->{"ID"}})");
+				$q = my_mysql_query("SELECT * FROM tags WHERE ID IN (SELECT tagID FROM entries_tags WHERE entryID = {$r->ID})");
 				$data->{"tags"} = Array();
 				while ($r = mysql_fetch_object($q)){
 					$data->{"tags"}[] = $r;
