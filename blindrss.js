@@ -4,8 +4,8 @@ var globalRootFeed;
 
 var curFeed = false;
 function resize(){{{
-	$("#feeds").height(window.innerHeight-($("#feeds").position().top + 40));
-	$("#content").height($("#feeds").height() - ($("#content").position().top - $("#feeds").position().top) + 20);
+	$("#feedsParent").height(window.innerHeight-($("#feedsParent").position().top + 10));
+	$("#content").height($("#feedsParent").height() - ($("#content").position().top - $("#feedsParent").position().top) - 10);
 }}}
 window.onresize=resize;
 
@@ -53,7 +53,6 @@ function showEntries(url, spin){{{
 	var e = $("#entries");
 	spin = "#"+spin;
 	e.empty();
-	e.append("<li class='nav-header'>Feedentries</li>");
 	e.scroll(0);
 
 	$(spin).spin("tiny");
@@ -82,7 +81,6 @@ function showEntries(url, spin){{{
 function showTag(tagID, tag){{{
 	var e = $("#entries");
 	e.empty();
-	e.append("<li class='nav-header'>Feedentries</li>");
 	e.scroll(0);
 	$("#spinFeed_tag"+tag).spin("tiny");
 
@@ -572,7 +570,7 @@ function Feed(data){{{
 					v.entries = new Object();
 				});
 				that.date = new Date();
-				$("#entries").empty().append("<li class='nav-header'>Feedentries</li>");
+				$("#entries").empty();
 				that.getEntries(true);
 			})
 		);
@@ -803,8 +801,7 @@ function Entry(data){{{
 }}}
 
 function getFeeds(){{{
-	$("#feeds").find(".group").remove();
-	$("#feeds").find(".feed").remove();
+	$("#feeds").find("[id^=feed_]").remove();
 
 	$.ajax({
 		url: "rest.php/feeds",

@@ -1,3 +1,6 @@
+html,body {
+	height: 100%;
+}
 body {
 	padding-top: 60px;
 	padding-bottom: 0px !important;
@@ -30,53 +33,14 @@ li.active > div > a > [class^="icon-"] {
 	color: #FFFFFF;
 }
 .sidebar-nav > li > a {
-	padding: 0px 15px;
+	padding: 0px 15px 0px 0px;
 }
-.inactive :hover {
-	background-color: #EEEEEE;
-}
-li.group>a>i.editButton, li.feed>a>i.editButton {
-	visibility: hidden;
-}
-li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
-	visibility: visible;
-}
-#content {
-	overflow-y: scroll;
-	overflow-x: hidden;
-}
-.content {
-	padding: 0;
-	overflow-x: hidden;
-}
-.entries, .specials {
-	overflow-y: scroll;
-	overflow-x: hidden;
-	height: 135px !important;
-	width: 100%;
-	font-size: 12px;
-}
-.entries ul, .specials ul {
-	padding: 0;
-	margin: 0;
-}
-.entries ul > li, .specials ul > li {
-	max-height: 16px;
-	line-height: 16px;
-}
-.entries ul > li > a, .specials ul > li > a {
-	padding: 0px 15px;
-}
-
-.new {
-	font-weight: bold;
-}
-
 .sidebar-nav {
 	overflow-y: scroll;
 	overflow-x: hidden;
 	height: 100%;
-	padding: 9px 0;
+	padding: 0;
+	margin: 0px;
 }
 
 .sidebar-nav li {
@@ -105,6 +69,57 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 
 .sidebar-nav i.newmessage {
 	visibility: hidden;
+}
+
+.inactive :hover {
+	background-color: #EEEEEE;
+}
+li.group>a>i.editButton, li.feed>a>i.editButton {
+	visibility: hidden;
+}
+li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
+	visibility: visible;
+}
+#content {
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+.content {
+	padding: 0 0 10px 0;
+	overflow-x: hidden;
+}
+#entries {
+	display: block;
+	position: static;
+	margin-bottom: 5px;
+}
+#feedsParent {
+	display: block;
+	position: static;
+	margin-bottom: 0px;
+	padding: 0;
+}
+.entries, .specials {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	height: 135px !important;
+	width: 100%;
+	font-size: 12px;
+}
+.entries ul, .specials ul {
+	padding: 0;
+	margin: 0;
+}
+.entries ul > li, .specials ul > li {
+	max-height: 16px;
+	line-height: 16px;
+}
+.entries ul > li > a, .specials ul > li > a {
+	padding: 0px 15px;
+}
+
+.new {
+	font-weight: bold;
 }
 
 .sidebar-nav li.new i.newmessage {
@@ -181,4 +196,7 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 }
 .form {
 	margin: 0;
+}
+.accordion-inner {
+	padding-left: 0px;
 }
