@@ -3,6 +3,8 @@ blindRSS
 
 Simple Web-based RSS reader writtin in PHP.
 
+See the demo at http://www.crash-override.net/blindrss_demo/
+
 Installation
 ============
 
