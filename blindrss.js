@@ -9,58 +9,35 @@ function resize(){{{
 }}}
 window.onresize=resize;
 
-function hideTags() {{{
-	$(".navTag").remove();
-	var specialTags = $("#specialTags");
-	specialTags.find("i.icon-folder-open").toggleClass("icon-folder-close icon-folder-open");
-	specialTags.unbind("click");
-	specialTags.on("click", getTags);
-}}}
-function getTags(){{{
-	var that = this;
-	$("#spinFeed_specialTags").spin("tiny");
-	$.ajax({
-		url: "rest.php/tags",
-		type: "GET",
-		dataType: "json",
-		complete: function(){ $("#spinFeed_specialTags").spin(false); },
-		success: function(data){
-			if (data.status != "OK"){
-				alert(data.msg);
-				return;
-			}
-			var specialTags = $("#specialTags");
-			specialTags.find("i.icon-folder-close").toggleClass("icon-folder-close icon-folder-open");
-			specialTags.unbind("click");
-			specialTags.on("click", hideTags);
-			$(".navTag").remove();
-			data.tags = data.tags.reverse();
-			for (var i = 0; i < data.tags.length; i++){
-				var t = data.tags[i].tag;
-				var tID = data.tags[i].ID;
-				var a = $("<a href='#'>"+t+"</a>").attr("tagID", tID).attr("tag", t).on("click", function(){ showTag($(this).attr("tagID"), $(this).attr("tag")); });
-				a.append("<span class='floatLeft spin' id='spinFeed_tag"+t+"'> </span>");
-				specialTags.parent().after($("<li style='padding-left: 15px;' class='navTag'></li>").append(a));
-			}
-		}
-	});
-}}}
 function search(){{{
-	showEntries("rest.php/search/"+$("#frmSearch #txtSearch").val(), "spinFeed_specialSearch");
+	$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
+	$("#frmSearch [type=submit]").attr("disabled", "disabled");
+	showEntries("rest.php/search/"+$("#frmSearch #txtSearch").val(), function(){
+		$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
+		$("#frmSearch [type=submit]").attr("disabled", false);
+	});
 }}}
 
 function showEntries(url, spin){{{
 	var e = $("#entries");
-	spin = "#"+spin;
 	e.empty();
 	e.scroll(0);
 
-	$(spin).spin("tiny");
+	if (typeof spin != "function"){
+		spin = "#"+spin;
+		$(spin).spin("tiny");
+	}
 	$.ajax({
 		url: url,
 		type: "GET",
 		dataType: "json",
-		complete: function(){ $(spin).spin(false); },
+		complete: function(){
+			if (typeof spin != "function"){
+				$(spin).spin(false);
+			} else {
+				spin();
+			}
+		},
 		success: function(data){
 			var oldDate = "0000-00-00";
 			$.each(globalFeeds, function(k,v){
@@ -79,25 +56,7 @@ function showEntries(url, spin){{{
 	});
 }}}
 function showTag(tagID, tag){{{
-	var e = $("#entries");
-	e.empty();
-	e.scroll(0);
-	$("#spinFeed_tag"+tag).spin("tiny");
-
-	$.ajax({
-		url: "rest.php/tags/"+tagID,
-		type: "GET",
-		dataType: "json",
-		complete: function(){ $("#spinFeed_tag"+tag).spin(false); },
-		success: function(data){
-			$.each(data, function(k,v){
-				$.each(globalFeeds, function(k,v){
-					v.entries = new Object();
-				});
-				new Entry(v);
-			});
-		}
-	});
+	return showEntries("rest.php/tags/"+tagID, "spinFeed_tag"+tag);
 }}}
 
 function rearrangeFeeds(){{{
@@ -330,12 +289,17 @@ function FeedUpdateFeed(){{{
 	});
 }}}
 function FeedRenderCount(){{{
-	this.numNew.empty();
+	this.buttons.newMessage.empty();
 	if (parseInt(this.data.unreadCount) > 0){
-		this.numNew.append(this.data.unreadCount);
+		this.buttons.newMessage.append(this.data.unreadCount);
 		this.li.addClass("new");
 	} else {
 		this.li.removeClass("new");
+	}
+	if (this.data.startID == "1"){ /* All Feeds element */
+		if (parseInt(this.data.unreadCount) != NaN){
+			$("#numUnread").empty().append(this.data.unreadCount);
+		}
 	}
 }}}
 function FeedGetEntries(today){{{
@@ -534,17 +498,16 @@ function Feed(data){{{
 
 	this.li = $("<li id='feed_"+this.data.startID+"' />");
 	this.spin = $("<span class='floatLeft spin' id='spinFeed_"+this.data.startID+"'>&nbsp;</span>");
-	this.numNew = $("<a id='numNew_"+this.data.startID+"' class='numNewMessages' />");
-	this.nameFeed = $("<span href='#' class='nameFeed'>"+this.data.name+"</span>").append(this.numNew);
+	this.nameFeed = $("<span href='#' class='nameFeed'>"+this.data.name+"</span>");
 
 	this.buttons = new Object();
-	/* This button will only be visible when the mouse overs over the feed/group to prevent cluttering the UI */
+	/* This button will only be visible when the mouse hovers over the feed/group to prevent cluttering the UI */
 	this.buttons.settings = $("<i class='icon-pencil floatRight editButton' />")
 		.on("click", function(){
 			that.showSettings();
 			return false; // last 'click' handler
 		});
-	this.buttons.newMessage = $("<i id='newMessage_"+this.data.startID+"' class='icon-envelope newmessage floatRight' />")
+	this.buttons.newMessage = $("<span id='numNew_"+this.data.startID+"' class='badge floatRight ' />")
 		.on("click", function() {
 			that.markAllRead();
 			return false; // last 'click' handler
@@ -601,6 +564,7 @@ function TagRemove(){{{
 		url: "rest.php/entry/"+that.entry.data.ID+"/tags/"+that.data.tag,
 		type: "DELETE",
 		dataType: "json",
+		complete: function(){ getTags(); },
 		success: function(data){
 			that.span.remove();
 			resize(); /* necessary here because height might change a bit */
@@ -679,7 +643,7 @@ function EntryAddTag(){{{
 		type: "PUT",
 		dataType: "json",
 		data: JSON.stringify({ tags: tag }),
-		complete: function(){ that.spin.spin(false); resize(); /* necessary here because new tag might change height a bit */ },
+		complete: function(){ getTags(); that.spin.spin(false); resize(); /* necessary here because new tag might change height a bit */ },
 		success: function(data){
 			if (data.status != "OK"){
 				alert(data.msg);
@@ -742,6 +706,24 @@ function EntryUpdate(){{{
 	}
 	this.span.empty().append(this.data.title);
 }}}
+function EntryToggleFavorite(){{{
+	var that = this;
+
+	$.ajax({
+		url: "rest.php/entry/"+that.data.ID,
+		type: "PUT",
+		dataType: "json",
+		data: JSON.stringify({ favorite: (that.iconFav.hasClass("icon-star-empty") ? "yes" : "no") }),
+		complete: function(){ getFavoritesCount(); },
+		success: function(data){
+			if (data.status == "OK"){
+				that.iconFav.toggleClass("icon-star icon-star-empty");
+			} else {
+				alert(data.msg);
+			}
+		},
+	});
+}}}
 function Entry(data){{{
 	var that = this;
 	this.data = data;
@@ -751,6 +733,7 @@ function Entry(data){{{
 	this.render = EntryRender;
 	this.update = EntryUpdate;
 	this.addTag = EntryAddTag;
+	this.toggleFavorite = EntryToggleFavorite;
 
 	this.data.feed = globalFeeds[parseInt(this.data.feedID)];
 	this.data.feed.entries[this.data.ID] = this;
@@ -762,19 +745,7 @@ function Entry(data){{{
 		});
 	this.iconFav = $("<i class='floatLeft icon-star-empty' />")
 		.on("click", function(){
-			$.ajax({
-				url: "rest.php/entry/"+that.data.ID,
-				type: "PUT",
-				dataType: "json",
-				data: JSON.stringify({ favorite: (that.iconFav.hasClass("icon-star-empty") ? "yes" : "no") }),
-				success: function(data){
-					if (data.status == "OK"){
-						that.iconFav.toggleClass("icon-star icon-star-empty");
-					} else {
-						alert(data.msg);
-					}
-				},
-			});
+			that.toggleFavorite();
 			return false;
 		});
 
@@ -807,7 +778,6 @@ function getFeeds(){{{
 		url: "rest.php/feeds",
 		type: "GET",
 		dataType: "json",
-		async: false,
 		success: function(data){
 			if (!data){
 				return;
@@ -833,6 +803,57 @@ function getFeeds(){{{
 		},
 	});
 }}}
+function getTags(){{{
+	$.ajax({
+		url: "rest.php/tags",
+		type: "GET",
+		dataType: "json",
+		success: function(data){
+			if (data.status != "OK"){
+				alert(data.msg);
+				return;
+			}
+			var specialTags = $("#specialTags");
+
+			$(".tagRemove").remove();
+			data.tags = data.tags.reverse();
+
+			for (var i = 0; i < data.tags.length; i++){
+				var t = data.tags[i].tag;
+				var tID = data.tags[i].ID;
+				var num = data.tags[i].num;
+				var a = $("<a href='#' />")
+								.attr("tagID", tID)
+								.attr("tag", t)
+								.on("click", function(){
+									showTag($(this).attr("tagID"), $(this).attr("tag"));
+								});
+				a.append("<span class='floatLeft spin' id='spinFeed_tag"+t+"'> </span>")
+					.append("<i class='icon-tag'> </i>")
+					.append("<i class='icon-pencil floatRight hidden'></i>")
+					.append("<i class='floatRight badge'>"+num+"</i>")
+					.append("<span class='nameFeed'>"+t+"</span>");
+				specialTags.after(
+					$("<li class='tagRemove feed'></li>").append(a)
+				);
+			}
+		}
+	});
+}}}
+function getFavoritesCount(){{{
+	$.ajax({
+		url: "rest.php/favorites/count",
+		type: "GET",
+		dataType: "json",
+		success: function(data){
+			if (data.status != "OK"){
+				alert(data.msg);
+				return;
+			}
+			$("#numFavorites").empty().append(data.num);
+		}
+	});
+}}}
 function startup(){{{
 	/* Create bootstrap theme */
 	$("input[type=button]").button();
@@ -840,11 +861,12 @@ function startup(){{{
 
 	$("#specialFavorites").on("click", function(){ showEntries("rest.php/favorites", "spinFeed_specialFavorites"); });
 	$("#specialUnread").on("click", function(){ showEntries("rest.php/unread", "spinFeed_specialUnread"); });
-	$("#specialTags").on("click", getTags);
 	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); resize(); /* necessary here because the form is a bit higher than the button */});
 
 	resize();
 	getFeeds();
+	getTags();
+	getFavoritesCount();
 	getOptions();
 }}}
 $(document).ready(startup);

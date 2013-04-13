@@ -20,21 +20,6 @@ li.active > div > a > [class^="icon-"] {
 	list-style: none;
 	list-style-image: none;
 }
-.sidebar-nav .active, .sidebar-nav li:hover {
-	background-color: #0081C2;
-	background-image: linear-gradient(to bottom, #0088CC, #0077B3);
-	background-repeat: repeat-x;
-	color: #FFFFFF;
-}
-.sidebar-nav .active a, .sidebar-nav .active a :hover,
-.sidebar-nav .active a a, .sidebar-nav .active a :hover a,
-.sidebar-nav li:hover span a
-{
-	color: #FFFFFF;
-}
-.sidebar-nav > li > a {
-	padding: 0px 15px 0px 0px;
-}
 .sidebar-nav {
 	overflow-y: scroll;
 	overflow-x: hidden;
@@ -42,33 +27,48 @@ li.active > div > a > [class^="icon-"] {
 	padding: 0;
 	margin: 0px;
 }
-
 .sidebar-nav li {
 	min-height: 16px;
 }
-
-.sidebar-nav li a{
+.sidebar-nav li.active, .sidebar-nav li[class!=nav-header]:hover {
+	background-color: #0081C2;
+	background-image: linear-gradient(to bottom, #0088CC, #0077B3);
+	background-repeat: repeat-x;
+	color: #FFFFFF;
+}
+.sidebar-nav li a {
+	padding: 0px 15px 0px 0px;
 	white-space: normal;
 }
 .sidebar-nav li .nameFeed {
 	min-height: 16px;
 	margin-right: 48px;
 }
-
 .sidebar-nav li.group .nameFeed {
 	font-weight: bold;
 	font-variant: small-caps;
 	font-size: 12px;
 }
-
-.sidebar-nav li.feed {
+.sidebar-nav li.feed .nameFeed {
 	font-weight: normal;
 	font-variant: normal;
 	font-size: 11px;
 }
-
-.sidebar-nav i.newmessage {
+.sidebar-nav li.new .nameFeed, .entries li.new > a {
+	font-weight: bold;
+}
+.sidebar-nav li i.newmessage {
 	visibility: hidden;
+}
+.sidebar-nav li.new i.newmessage {
+	visibility: visible;
+}
+.sidebar-nav .numNewMessages {
+	font-size: 10px;
+	color: #808080;
+}
+.numNewMessages:hover {
+	text-decoration: none;
 }
 
 .inactive :hover {
@@ -122,10 +122,6 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 	font-weight: bold;
 }
 
-.sidebar-nav li.new i.newmessage {
-	visibility: visible;
-}
-
 .entries li:hover i.newmessage {
 	visibility: visible;
 	opacity: 0.5;
@@ -137,17 +133,6 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 	filter:Alpha(opacity=100); /* IE8 and earlier */
 }
 
-.sidebar-nav li.new .nameFeed, .entries li.new > a {
-	font-weight: bold;
-}
-
-.numNewMessages {
-	font-size: 10px;
-	color: #808080;
-}
-.numNewMessages:hover {
-	text-decoration: none;
-}
 .headline {
 	width: 100%;
 	color: #000000;
@@ -197,6 +182,16 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 .form {
 	margin: 0;
 }
+.form-search {
+	margin-bottom: 0;
+	padding-top: 5px;
+}
 .accordion-inner {
 	padding-left: 0px;
+}
+.icon-1dot5x {
+	font-size: 1.5em;
+}
+.hidden {
+	visibility: hidden;
 }

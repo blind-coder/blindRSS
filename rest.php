@@ -404,6 +404,19 @@ switch ($path[0]){
 			}
 			break;
 		}
+		else if (count($path) == 2){
+			if ($path[1] == "count"){
+				# GET /favorites/count
+				$data = Array();
+				$q = my_mysql_query("SELECT COUNT(*) AS num FROM entries WHERE favorite = 'yes'");
+				while ($r = mysql_fetch_object($q)){
+					$data["status"] = "OK";
+					$data["msg"] = "";
+					$data["num"] = $r->num;
+				}
+				break;
+			}
+		}
 		break;
 		// }}}
 	case "unread": // {{{
@@ -425,7 +438,7 @@ switch ($path[0]){
 				$data["status"] = "OK";
 				$data["msg"] = "";
 				$data["tags"] = Array();
-				$q = my_mysql_query("SELECT * FROM tags ORDER BY tag ASC");
+				$q = my_mysql_query("SELECT tags.*, COUNT(entries_tags.ID) AS num FROM tags LEFT JOIN entries_tags ON tagID = tags.ID GROUP BY entries_tags.tagID ORDER BY tag ASC");
 				if (mysql_error()){
 					$data["status"] = "error";
 					$data["msg"] = "Unknown Error! ".mysql_error();
