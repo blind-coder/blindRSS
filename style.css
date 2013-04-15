@@ -85,7 +85,8 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 	overflow-x: hidden;
 }
 .content {
-	padding: 0 0 10px 0;
+	padding: 0;
+	border: 1px;
 	overflow-x: hidden;
 }
 #entries {
@@ -194,4 +195,7 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 }
 .hidden {
 	visibility: hidden;
+}
+.icon-spin {
+	height: auto;
 }

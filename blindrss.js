@@ -5,7 +5,7 @@ var globalRootFeed;
 var curFeed = false;
 function resize(){{{
 	$("#feedsParent").height(window.innerHeight-($("#feedsParent").position().top + 10));
-	$("#content").height($("#feedsParent").height() - ($("#content").position().top - $("#feedsParent").position().top) - 10);
+	$("#content").height($("#feedsParent").height() - ($("#content").position().top - $("#feedsParent").position().top));
 }}}
 window.onresize=resize;
 
@@ -411,12 +411,22 @@ function FeedMarkAllRead(){{{
 }}}
 function FeedUpdateCount(){{{
 	var that = this;
-	that.spin.spin("tiny");
+	if (!this.parent){
+		$("#spin_Refresh").addClass("icon-spin").removeClass("icon-refresh");
+	} else {
+		that.spin.spin("tiny");
+	}
 	$.ajax({
 		url: "rest.php/unreadcount/"+that.data.ID,
 		dataType: "json",
 		type: "GET",
-		complete: function(){ that.spin.spin(false); },
+		complete: function(){
+			if (!that.parent){
+				$("#spin_Refresh").removeClass("icon-spin").addClass("icon-refresh");
+			} else {
+				that.spin.spin(false);
+			}
+		},
 		success: function(data){
 			$.each(data, function(k, v){
 				var feed = globalFeeds[parseInt(v.ID)];
