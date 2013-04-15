@@ -412,7 +412,7 @@ function FeedMarkAllRead(){{{
 function FeedUpdateCount(){{{
 	var that = this;
 	if (!this.parent){
-		$("#spin_Refresh").addClass("icon-spin").removeClass("icon-refresh");
+		$("#spin_Refresh").addClass("icon-spin");
 	} else {
 		that.spin.spin("tiny");
 	}
@@ -422,7 +422,7 @@ function FeedUpdateCount(){{{
 		type: "GET",
 		complete: function(){
 			if (!that.parent){
-				$("#spin_Refresh").removeClass("icon-spin").addClass("icon-refresh");
+				$("#spin_Refresh").removeClass("icon-spin");
 			} else {
 				that.spin.spin(false);
 			}

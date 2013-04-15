@@ -197,5 +197,5 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 	visibility: hidden;
 }
 .icon-spin {
-	height: auto;
+	height: auto !important;
 }
