@@ -12,7 +12,7 @@ window.onresize=resize;
 function search(){{{
 	$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
 	$("#frmSearch [type=submit]").attr("disabled", "disabled");
-	showEntries("rest.php/search/"+$("#frmSearch #txtSearch").val(), function(){
+	showEntries("rest.php/search/"+encodeURIComponent($("#frmSearch #txtSearch").val()), function(){
 		$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
 		$("#frmSearch [type=submit]").attr("disabled", false);
 	});
