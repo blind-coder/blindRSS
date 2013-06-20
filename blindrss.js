@@ -7,7 +7,6 @@ function resize(){{{
 	$("#feedsParent").height(window.innerHeight-($("#feedsParent").position().top + 10));
 	$("#content").height($("#feedsParent").height() - ($("#content").position().top - $("#feedsParent").position().top));
 }}}
-window.onresize=resize;
 
 function search(){{{
 	$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
@@ -202,9 +201,9 @@ function FeedShowSettings(){{{
 			  .on("switch-change", function(e, data){
 				  var value = data.value;
 				  d.find("#url").attr("disabled", value == "1");
-			  })
-	                  .switch("setState", that.isDirectory);
+			  }).switch("setState", that.isDirectory);
 	d.find("#cacheimages").switch("setState", that.data.cacheimages == "yes");
+	d.find("#unreadOnChange").switch("setState", that.data.unreadOnChange == "yes");
 	d.find("#deleteFeed").button().on("click", function(){
 		if (confirm("Really delete feed? This cannot be undone!")){
 			if (parseInt(that.data.startID) == 1){
@@ -271,6 +270,7 @@ function FeedUpdateFeed(){{{
 			name: d.find("#name").val(),
 			url: (d.find("#isgroup input").attr("checked") == "checked" ? "" : d.find("#url").val()),
 			cacheimages: d.find("#cacheimages input").attr("checked") == "checked" ? "yes" : "no",
+			unreadOnChange: d.find("#unreadOnChange input").attr("checked") == "checked" ? "yes" : "no",
 			filter: filter
 		}),
 		success: function(data){
@@ -280,6 +280,7 @@ function FeedUpdateFeed(){{{
 			}
 			that.data.name = d.find("#name").val();
 			that.data.cacheimages = d.find("input[name=cacheimages]:checked").val();
+			that.data.unreadOnChange = d.find("input[name=unreadOnChange]:checked").val();
 			that.data.url = d.find("input[name=isgroup]:checked").val() == "1" ? "" : d.find("#url").val();
 			that.nameFeed.empty().append(d.find("#name").val());
 		},
@@ -878,6 +879,7 @@ function startup(){{{
 	getTags();
 	getFavoritesCount();
 	getOptions();
+	window.onresize=resize;
 }}}
 $(document).ready(startup);
 
@@ -891,7 +893,8 @@ function addFeed(){{{
 			parent: d.find("#parent").val(),
 			name: d.find("#name").val(),
 			url: (d.find("#isgroup input").attr("checked") == "checked" ? "" : d.find("#url").val()),
-			cacheimages: d.find("#cacheimages input").attr("checked") == "checked" ? "yes" : "no"
+			cacheimages: d.find("#cacheimages input").attr("checked") == "checked" ? "yes" : "no",
+			unreadOnChange: d.find("#unreadOnChange input").attr("checked") == "checked" ? "yes" : "no"
 		},
 		success: function(data){
 			if (data.status == "OK"){
@@ -949,12 +952,6 @@ function getOptions(){{{
 		dataType: "json", 
 		success: function(data){
 			$("#selectPurgeAfter").val(data.purgeAfter.value);
-			$("#buttonUnreadOnChange").attr("checked", data.unreadOnChange.value == "true" ? "checked" : "")
-						  .switch("setState", data.unreadOnChange.value == "true");
-			$("#buttonUnreadOnChange").on("switch-change", function(e, data){
-				var value = data.value;
-				setOption("unreadOnChange", value ? "true" : "false");
-			});
 			$("#selectPurgeAfter").on("change", function(e){
 				var value = $("#selectPurgeAfter").val();
 				setOption("purgeAfter", value);

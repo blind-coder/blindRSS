@@ -21,14 +21,6 @@ DELETE FROM `entries` WHERE `date` < SUBDATE(CURDATE(), INTERVAL (SELECT `value`
 	AND IF((SELECT `value` FROM options WHERE `key` = 'deleteTagged') = 'no', NOT(SELECT COUNT(ID) FROM entries_tags WHERE entryID = entries.ID LIMIT 1), 1);
 ");
 
-$q = my_mysql_query("SELECT `value` FROM options WHERE `key` = 'unreadOnChange'");
-$unreadOnChange = mysql_fetch_object($q);
-if ($unreadOnChange->value == "true"){
-	$unreadOnChange = true;
-} else {
-	$unreadOnChange = false;
-}
-
 $query_feeds = my_mysql_query("SELECT * FROM feeds WHERE `url` != '' AND `url` IS NOT NULL AND `url` != 'SEARCHRESULTS'");
 while ($feed = mysql_fetch_object($query_feeds)){
 	echo "Fetching $feed->url\n";
@@ -148,7 +140,7 @@ while ($feed = mysql_fetch_object($query_feeds)){
 						$oldFeedEntry["ID"]);
 					my_mysql_query($query);
 				}
-				elseif ($unreadOnChange){
+				elseif ($feed->unreadOnChange == "yes"){
 					if ($oldFeedEntry["isread"] == "1" && $isread == "0"){
 						$query = sprintf("UPDATE entries SET isread='0' WHERE ID = '%s'",
 							$oldFeedEntry["ID"]);

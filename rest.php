@@ -61,8 +61,8 @@ switch ($path[0]){
 			$r = mysql_fetch_object($q);
 			my_mysql_query("UPDATE feeds SET endID=endID+2 WHERE endID >= $r->endID");
 			my_mysql_query("UPDATE feeds SET startID=startID+2 WHERE startID >= $r->endID"); # $r->endID is correct!
-			$q = my_mysql_query("INSERT INTO feeds (startID, endID, cacheimages, name, url)
-				VALUES ({$r->endID}, {$r->endID}+1, '".mres($_REQUEST["cacheimages"])."', '".mres($_REQUEST["name"])."', '".mres($_REQUEST["url"])."')");
+			$q = my_mysql_query("INSERT INTO feeds (startID, endID, cacheimages, unreadOnChange, name, url)
+				VALUES ({$r->endID}, {$r->endID}+1, '".mres($_REQUEST["cacheimages"])."', '".mres($_REQUEST["unreadOnChange"])."', '".mres($_REQUEST["name"])."', '".mres($_REQUEST["url"])."')");
 			if (mysql_error()){
 				$data["status"] = "Error";
 				$data["msg"] = mysql_error();
@@ -221,7 +221,7 @@ switch ($path[0]){
 			# PUT /feed/1
 			$UPDATE = "ID = ID";
 			$update = json_decode(file_get_contents("php://input"));
-			foreach (array("name", "url", "cacheimages", "collapsed") as $k){
+			foreach (array("name", "url", "cacheimages", "unreadOnChange", "collapsed") as $k){
 				if (property_exists($update, $k)){
 					if ("".$update->$k != ""){
 						$UPDATE .= ", `$k` = \"".mres($update->$k)."\"";
