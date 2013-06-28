@@ -133,7 +133,7 @@ function getEntries(url, spin){{{
 		}
 	});
 }}}
-function showTag(tagID){{{
+function getTag(tagID){{{
 	return getEntries("rest.php/tags/"+tagID, "spinFeed_tag"+tagID);
 }}}
 
@@ -884,7 +884,7 @@ function getTags(){{{
 				var t = data.tags[i].tag;
 				var tID = data.tags[i].ID;
 				var num = data.tags[i].num;
-				tree.push({ id: tID, label: t, num: num, action: function(event){ showTag(event.node.id); }});
+				tree.push({ id: tID, label: t, num: num, action: function(event){ getTag(event.node.id); }});
 			}
 			var t = dBody.tree({
 				data: tree,
