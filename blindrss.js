@@ -1,5 +1,6 @@
 var globalFeedsTree;
 var globalSpecialFeedsTree;
+var globalEntriesTree;
 var labelNames = new Array("label-success", "label-warning", "label-important", "label-info", "label-inverse");
 var globalFeeds = new Object();
 var globalRootFeed;
@@ -19,16 +20,98 @@ function resize(){{{
 function search(){{{
 	$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
 	$("#frmSearch [type=submit]").attr("disabled", "disabled");
-	showEntries("rest.php/search/"+encodeURIComponent($("#frmSearch #txtSearch").val()), function(){
+	getEntries("rest.php/search/"+encodeURIComponent($("#frmSearch #txtSearch").val()), function(){
 		$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
 		$("#frmSearch [type=submit]").attr("disabled", false);
 	});
 }}}
+function showEntries(tree, append=false){{{
+	if (!append){
+		var dBody = $("#entries");
+		dBody.tree(false);
+		dBody.empty();
+		var t = dBody.tree({
+			data: tree,
+			autoOpen: 1,
+			dragAndDrop: false,
+			selectable: true,
+			useContextMenu: false,
+			onCreateLi: function(node, $li){
+				if (!node.entry){
+					return;
+				}
+				var iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
+				.on("click", function(){
+					node.entry.toggleRead();
+					return false;
+				});
+				var iconFav = $("<i class='floatLeft icon-star-empty' />")
+				.on("click", function(){
+					node.entry.toggleFavorite();
+					return false;
+				});
+				if (node.entry.data.favorite == "yes"){
+					iconFav.toggleClass("icon-star icon-star-empty");
+				}
+				if (node.entry.data.isread == "0"){
+					$li.find(".jqtree-title").addClass("new");
+				} else {
+					$li.find(".jqtree-title").removeClass("new");
+				}
+				var spin = $("<span class='floatLeft spin' id='spinEntry_"+node.entry.data.ID+"'>&nbsp;</span>");
+				node.entry.spin = spin;
+				node.entry.iconFav = iconFav;
+				node.entry.iconNew = iconNew;
+				node.entry.span = $li.find(".jqtree-title");
 
-function showEntries(url, spin){{{
-	var e = $("#entries");
-	e.empty();
-	e.scroll(0);
+				$li.find(".jqtree-title")
+					.prepend(spin)
+					.prepend(iconFav)
+					.prepend(iconNew);
+			}
+		});
+		t.bind(
+			'tree.click',
+			function(event){
+				if (!event.node){
+					return;
+				}
+				if (event.node.action){
+					event.node.action(event);
+					return;
+				}
+				var that = event.node.entry;
+				that.show();
+			}
+		);
+		globalEntriesTree = t;
+	} else {
+		$.each(tree, function(k,v){ globalEntriesTree.tree('appendNode', v); });
+	}
+}}}
+function parseEntries(data){{{
+	var oldDate;
+	var tree = [];
+	$.each(data, function(k, v){
+		var newDate = v.date.match(/^(....)-0?(.?.)-0?(.?.)/);
+		newDate = newDate[0];
+		if (newDate != oldDate){
+			tree.push({id: "date_"+newDate, label: newDate, entry: undefined, action: function(e){ return; }});
+			oldDate = newDate;
+		}
+		var e = new Entry(v);
+		tree.push({id: e.data.ID, label: e.data.title, entry: e});
+	});
+	return tree;
+}}}
+function getEntries(url, spin){{{
+	/* Reset all feeds' entries Object.
+	 * This is necessary for correct function of MarkAllRead
+	 */
+	$.each(globalFeeds, function(k,v){
+		if (v.entries){ delete(v.entries); }
+		v.entries = new Object();
+	});
 
 	if (typeof spin != "function"){
 		spin = "#"+spin;
@@ -46,24 +129,12 @@ function showEntries(url, spin){{{
 			}
 		},
 		success: function(data){
-			var oldDate = "0000-00-00";
-			$.each(globalFeeds, function(k,v){
-				v.entries = new Object();
-			});
-			$.each(data, function(k,v){
-				var newDate = v.date.match(/^(....)-0?(.?.)-0?(.?.)/);
-				newDate = newDate[0];
-				if (newDate != oldDate){
-					oldDate = newDate;
-					e.append("<li class='nav-header'>"+oldDate+"</li>");
-				}
-				new Entry(v);
-			});
+			showEntries(parseEntries(data));
 		}
 	});
 }}}
 function showTag(tagID){{{
-	return showEntries("rest.php/tags/"+tagID, "spinFeed_tag"+tagID);
+	return getEntries("rest.php/tags/"+tagID, "spinFeed_tag"+tagID);
 }}}
 
 function FeedJqTree(){{{
@@ -226,18 +297,17 @@ function FeedRenderCount(){{{
 		}
 	}
 }}}
-function FeedGetEntries(today){{{
+function FeedGetEntries(append){{{
 	var that = this;
-
-	if (curFeed){
-		if (curFeed != this){
-			/* Delete entries Object from memory.
-			 * This is necessary for correct function of MarkAllRead
-			 */
-			delete(curFeed.entries);
-		}
+	if (curFeed != this){
+		/* Reset all feeds' entries Object.
+		 * This is necessary for correct function of MarkAllRead
+		 */
+		$.each(globalFeeds, function(k,v){
+			if (v.entries){ delete(v.entries); }
+			v.entries = new Object();
+		});
 	}
-	curFeed = this;
 
 	that.spin.spin("tiny");
 	$.ajax({
@@ -245,47 +315,33 @@ function FeedGetEntries(today){{{
 		type: "GET",
 		dataType: "json",
 		success: function(data){
-			var e = $("#entries");
-
+			if (append){
+				globalEntriesTree.tree('removeNode', globalEntriesTree.tree('getNodeById', 'loadMore'));
+			}
 			if (data.length == 0){
-				e.find(".loadMore").remove();
-				e.append("<li class='loadMore'>[ No more entries ]</li>");
+				globalEntriesTree.tree('appendNode', { id: "noMoreEntries", label: "[ No more entries ]", action: function(e){ return; }});
 				return;
 			}
 
-			e.append("<li class='nav-header'>"+data[0].date.substr(0, 10)+"</li>");
-			var scrollTop = e.scrollTop();
-			if (today){
-				scrollTop = 0;
-				$.each(globalFeeds, function(k,v){
-					v.entries = new Object();
-				});
-			} else {
-				e.find(".loadMore").remove();
-			}
-
-			var newDate;
-			$.each(data, function(k, v){
-				new Entry(v);
-				newDate = v.date;
-			});
-
-			var li = $("<li class='loadMore' />");
-			li.append(
-				$("<a href='#'>[ Load next day ]</a>")
-				.on("click", function(){
-					var d = newDate.match(/^(....)-0?(.?.)-0?(.?.)/);
-					that.date = new Date(parseInt(d[1]), parseInt(d[2])-1, parseInt(d[3])-1);
-					that.getEntries(false);
-				})
+			var tree = parseEntries(data);
+			oldDate = data[0].date.match(/^(....)-0?(.?.)-0?(.?.)/)[0];
+			tree.push(
+				{
+					id: "loadMore",
+					label: "[ Load next day ]",
+					entry: undefined,
+					feed: that,
+					oldDate: oldDate,
+					action: function(event){
+						var that = event.node.feed;
+						var d = event.node.oldDate.match(/^(....)-0?(.?.)-0?(.?.)/);
+						that.date = new Date(parseInt(d[1]), parseInt(d[2])-1, parseInt(d[3])-1);
+						event.node.feed.getEntries(true);
+					}
+				}
 			);
-			e.append(li);
-
-			if (today){
-				e.scrollTop(0);
-			} else {
-				e.scroll(scrollTop);
-			}
+			showEntries(tree, append);
+			curFeed = that;
 		},
 		complete: function(){ that.spin.spin(false); $("#entries").parent().spin(false); }
 	});
@@ -565,9 +621,6 @@ function EntryShow(){{{
 					that.tags[data.tags[i].ID] = new Tag(that, data.tags[i]);
 				}
 			}
-			$("ul#entries li.active").removeClass("active");
-			li = $("ul#entries li#entry_"+that.data.ID);
-			li.addClass("active");
 			that.markRead();
 		}
 	})
@@ -575,18 +628,17 @@ function EntryShow(){{{
 function EntryRender(){{{
 	var that = this;
 	if (this.data.isread == "1"){
-		this.li.removeClass("new");
+		this.span.removeClass("new");
 	} else {
-		this.li.addClass("new");
+		this.span.addClass("new");
 	}
 }}}
 function EntryUpdate(){{{
 	if (this.data.isread == "0"){
-		this.li.addClass("new");
+		this.span.addClass("new");
 	} else {
-		this.li.removeClass("new");
+		this.span.removeClass("new");
 	}
-	this.span.empty().append(this.data.title);
 }}}
 function EntryToggleFavorite(){{{
 	var that = this;
@@ -620,37 +672,7 @@ function Entry(data){{{
 	this.data.feed = globalFeeds[parseInt(this.data.feedID)];
 	this.data.feed.entries[this.data.ID] = this;
 
-	this.iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
-		.on("click", function(){
-			that.toggleRead();
-			return false;
-		});
-	this.iconFav = $("<i class='floatLeft icon-star-empty' />")
-		.on("click", function(){
-			that.toggleFavorite();
-			return false;
-		});
-
-	if (this.data.favorite == "yes"){
-		this.iconFav.toggleClass("icon-star icon-star-empty");
-	}
-
-	this.spin = $("<span class='floatLeft spin' id='spinEntry_"+this.data.ID+"'>&nbsp;</span>");
-
-	this.span = $("<span />");
-	this.li = $("<li id='entry_"+this.data.ID+"' />")
-		.append($("<a href='#' />")
-			.append(this.spin)
-			.append(this.iconFav)
-			.append(this.iconNew)
-			.append(this.span)
-		)
-		.on("click", function(){
-			that.show();
-		});
-
-	this.update();
-	$("#entries").append(this.li);
+	return;
 }}}
 
 function showFeeds(){{{
@@ -736,7 +758,7 @@ function showFeeds(){{{
 	);
 
 	t.bind(
-		'tree.select',
+		'tree.click',
 		function(event){
 			if (!event.node){
 				return;
@@ -746,11 +768,12 @@ function showFeeds(){{{
 			 * This is necessary for correct function of MarkAllRead
 			 */
 			$.each(globalFeeds, function(k,v){
+				if (v.entries){ delete(v.entries); }
 				v.entries = new Object();
 			});
 			that.date = new Date();
 			$("#entries").empty();
-			that.getEntries(true);
+			that.getEntries(false);
 		}
 	);
 
@@ -848,12 +871,12 @@ function getTags(){{{
 				{ id: "specialUnread",
 					label: "Unread entries",
 					num: 0,
-					action: function(event){ showEntries("rest.php/unread", "spinFeed_specialUnread"); }
+					action: function(event){ getEntries("rest.php/unread", "spinFeed_specialUnread"); }
 				},
 				{ id: "specialFavorites",
 					label: "Favorites",
 					num: 0,
-					action: function(event){ showEntries("rest.php/favorites", "spinFeed_specialFavorites"); }
+					action: function(event){ getEntries("rest.php/favorites", "spinFeed_specialFavorites"); }
 				}
 			];
 
@@ -862,22 +885,6 @@ function getTags(){{{
 				var tID = data.tags[i].ID;
 				var num = data.tags[i].num;
 				tree.push({ id: tID, label: t, num: num, action: function(event){ showTag(event.node.id); }});
-				/*
-				var a = $("<a href='#' />")
-								.attr("tagID", tID)
-								.attr("tag", t)
-								.on("click", function(){
-									showTag($(this).attr("tagID"), $(this).attr("tag"));
-								});
-				a.append("<span class='floatLeft spin' id='spinFeed_tag"+t+"'> </span>")
-					.append("<i class='icon-tag'> </i>")
-					.append("<i class='icon-pencil floatRight hidden'></i>")
-					.append("<i class='floatRight badge'>"+num+"</i>")
-					.append("<span class='nameFeed'>"+t+"</span>");
-				specialTags.after(
-					$("<li class='tagRemove feed'></li>").append(a)
-				);
-				*/
 			}
 			var t = dBody.tree({
 				data: tree,
@@ -894,7 +901,7 @@ function getTags(){{{
 				}
 			});
 			t.bind(
-				'tree.select',
+				'tree.click',
 				function(event){
 					if (!event.node){
 						return;

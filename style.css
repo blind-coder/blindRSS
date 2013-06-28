@@ -53,10 +53,10 @@ li.active > div > a > [class^="icon-"] {
 .sidebar-nav li.new .nameFeed, .entries li.new > a {
 	font-weight: bold;
 }
-.sidebar-nav li i.newmessage {
+.sidebar-nav span i.newmessage {
 	visibility: hidden;
 }
-.sidebar-nav li.new i.newmessage {
+.sidebar-nav span.new i.newmessage {
 	visibility: visible;
 }
 .sidebar-nav .numNewMessages {
@@ -113,12 +113,12 @@ div.jqtree-element:hover>a>i.editButton {
 	font-weight: bold;
 }
 
-.entries li:hover i.newmessage {
+.entries .jqtree-element:hover i.newmessage {
 	visibility: visible;
 	opacity: 0.5;
 	filter:Alpha(opacity=50); /* IE8 and earlier */
 }
-.entries li.new:hover i.newmessage {
+.entries .jqtree-element:hover .new i.newmessage {
 	visibility: visible;
 	opacity: 1;
 	filter:Alpha(opacity=100); /* IE8 and earlier */
