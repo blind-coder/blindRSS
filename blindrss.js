@@ -1,10 +1,13 @@
+var globalFeedsTree;
 var labelNames = new Array("label-success", "label-warning", "label-important", "label-info", "label-inverse");
 var globalFeeds = new Object();
 var globalRootFeed;
 
 var curFeed = false;
+ 
 function resize(){{{
 	$("#feedsParent").height(window.innerHeight-($("#feedsParent").position().top + 10));
+	$("#feeds").height($("#feedsParent").height() - ($("#feeds").position().top - $("#feedsParent").position().top));
 	$("#content").height($("#feedsParent").height() - ($("#content").position().top - $("#feedsParent").position().top));
 }}}
 
@@ -58,80 +61,6 @@ function showTag(tagID, tag){{{
 	return showEntries("rest.php/tags/"+tagID, "spinFeed_tag"+tag);
 }}}
 
-function rearrangeFeeds(){{{
-	var d = $("#rearrangeFeeds");
-	var dBody = d.find(".modal-body").empty();
-	dBody.tree(false);
-
-	var tree = globalRootFeed.jqTree();
-
-	var t = $("<div id='rearrangeTree' />").tree({
-		data: [tree],
-		autoOpen: 1,
-		dragAndDrop: true,
-		selectable: true,
-		openedIcon: '<i class="icon-folder-open"></i>',
-		closedIcon: '<i class="icon-folder-close"></i>',
-		onCanMove: function(node) {
-			/* Root feed can not be moved */
-			if (!node.parent.parent) {
-				return false;
-			} else {
-				return true;
-			}
-		},
-		onCanMoveTo: function(moved_node, target_node, position) {
-			/* Can only move inside directories
-			 * Can not move outside Root feed
-			 */
-			if (position == "inside"){
-				return target_node.feed.isDirectory;
-			}
-			if (!target_node.parent.parent){
-				return false;
-			}
-			return true;
-		}
-	});
-
-	t.bind(
-		'tree.move',
-		function(event){
-			/* event.move_info.moved_node
-			 * event.move_info.target_node
-			 * event.move_info.position: ['before','after','inside']
-			 * event.move_info.previous_parent
-			 */
-			var data = {};
-			if (event.move_info.position == 'after'){
-				data = { moveAfterFeed: event.move_info.target_node.feed.data.ID };
-			}
-			else if (event.move_info.position == 'before'){
-				data = { moveBeforeFeed: event.move_info.target_node.feed.data.ID };
-			}
-			else if (event.move_info.position == 'inside'){
-				data = { moveIntoCategory: event.move_info.target_node.feed.data.ID };
-			}
-			$.ajax({
-				url: "rest.php/feed/"+event.move_info.moved_node.feed.data.ID+"/move",
-				type: "POST",
-				dataType: "json",
-				data: data,
-				success: function(data) {
-					if (data.status != "OK"){
-						alert(data.msg);
-						return;
-					}
-					getFeeds();
-				}
-			});
-		}
-	);
-	dBody.append(t);
-	d.modal();
-
-	return;
-}}}
 function FeedJqTree(){{{
 	var that = this;
 
@@ -161,17 +90,6 @@ function FeedDirectories(){{{
 }}}
 function FeedCollapse(collapse){{{
 	var that = this;
-	this.folder.toggleClass("icon-folder-open icon-folder-close");
-	for (var ptr = this.li.next(); ptr.length; ptr = ptr.next()){
-		/* TODO: Is there a nicer way to do this? */
-		if (parseInt(ptr.attr("startID")) >= that.data.startID && parseInt(ptr.attr("endID")) <= that.data.endID){
-			if (collapse){
-				ptr.hide();
-			} else {
-				ptr.show();
-			}
-		}
-	}
 	/* This might return false on when called from getFeeds()
 	 * Collapsed state is stored serverside and we don't need to update it to its current value
 	 */
@@ -295,9 +213,6 @@ function FeedRenderCount(){{{
 	this.buttons.newMessage.empty();
 	if (parseInt(this.data.unreadCount) > 0){
 		this.buttons.newMessage.append(this.data.unreadCount);
-		this.li.addClass("new");
-	} else {
-		this.li.removeClass("new");
 	}
 	if (this.data.startID == "1"){ /* All Feeds element */
 		if (parseInt(this.data.unreadCount) != NaN){
@@ -326,8 +241,6 @@ function FeedGetEntries(today){{{
 		success: function(data){
 			var e = $("#entries");
 
-			$("ul#feeds li.active").removeClass("active");
-			that.li.addClass("active");
 			if (data.length == 0){
 				e.find(".loadMore").remove();
 				e.append("<li class='loadMore'>[ No more entries ]</li>");
@@ -489,18 +402,24 @@ function Feed(data){{{
 	if (this.data.startID != "1"){
 		/* unless this is the root feed, we need a pointer to our parent feed */
 		var keys = [];
-		foreach (var k in globalFeeds){ keys.push[k]; };
+		for (k in globalFeeds){ keys.push(k); };
+		var parents =
+			$.grep(keys, function(i, n){
+				var f = globalFeeds[i];
+				return parseInt(f.data.startID) <= parseInt(that.data.startID) &&
+					parseInt(f.data.endID) >= parseInt(that.data.endID) &&
+					f.isDirectory;
+				});
 		min = parseInt(globalRootFeed.data.endID) + 1;
 		for (idx in parents){
 			var f = globalFeeds[parents[idx]];
 			var diff = parseInt(f.data.endID) - parseInt(f.data.startID);
 			if (diff < min){
 				min = diff;
-				that.parent = newParent;
+				that.parent = f;
 			}
 		}
-		this.parent = newParent;
-		this.parent.children[parentFeed.children.length] = this;
+		this.parent.children.push(this);
 	}
 
 	/* unfortunately, any of these tend to be sent from the server */
@@ -512,66 +431,7 @@ function Feed(data){{{
 		this.isDirectory=false;
 	}
 
-	this.li = $("<li id='feed_"+this.data.startID+"' />");
-	this.spin = $("<span class='floatLeft spin' id='spinFeed_"+this.data.startID+"'>&nbsp;</span>");
-	this.nameFeed = $("<span href='#' class='nameFeed'>"+this.data.name+"</span>");
-
-	this.buttons = new Object();
-	/* This button will only be visible when the mouse hovers over the feed/group to prevent cluttering the UI */
-	this.buttons.settings = $("<i class='icon-pencil floatRight editButton' />")
-		.on("click", function(){
-			that.showSettings();
-			return false; // last 'click' handler
-		});
-	this.buttons.newMessage = $("<span id='numNew_"+this.data.startID+"' class='badge floatRight ' />")
-		.on("click", function() {
-			that.markAllRead();
-			return false; // last 'click' handler
-		});
-
-	var indent = 0;
-	for (var ptr = this.parent; ptr; ptr=ptr.parent, indent += 16);
-
-	this.li.attr("startID", this.data.startID)
-		.attr("endID",   this.data.endID)
-		.attr("ID",      this.data.ID)
-		.css("padding-left", indent + "px")
-		.append($("<a href='#' />")
-			.append(this.buttons.settings)
-			.append(this.buttons.newMessage)
-			.append(this.spin)
-			.append(this.nameFeed)
-			.on("click", function(){
-				/* Reset all feeds' entries Object.
-				 * This is necessary for correct function of MarkAllRead
-				 */
-				$.each(globalFeeds, function(k,v){
-					v.entries = new Object();
-				});
-				that.date = new Date();
-				$("#entries").empty();
-				that.getEntries(true);
-			})
-		);
-
-	$("#feeds").append(this.li);
-
-	if (this.isDirectory){
-		this.li.addClass("group");
-		this.folder = $("<i class='icon-folder-open'></i>");
-		this.folder.on("click", function(){
-			var open = that.folder.hasClass("icon-folder-open");
-			if (open){
-				that.collapse(true);
-			} else {
-				that.collapse(false);
-			}
-			return false;
-		});
-		this.nameFeed.before(this.folder);
-	} else {
-		this.li.addClass("feed");
-	}
+	return;
 }}}
 
 function TagRemove(){{{
@@ -787,9 +647,146 @@ function Entry(data){{{
 	$("#entries").append(this.li);
 }}}
 
-function getFeeds(){{{
-	$("#feeds").find("[id^=feed_]").remove();
+function showFeeds(){{{
+	if (globalFeedsTree){
+		globalFeedsTree.tree("destroy");
+		globalFeedsTree = false;
+	}
+	var dBody = $("#feedsParent #feeds");
+	dBody.tree(false);
+	dBody.empty();
 
+	var tree = globalRootFeed.jqTree();
+
+	var t = dBody.tree({
+		data: [tree],
+		autoOpen: 1,
+		dragAndDrop: true,
+		selectable: true,
+		openedIcon: '<i class="icon-folder-open"></i>',
+		closedIcon: '<i class="icon-folder-close"></i>',
+		useContextMenu: false,
+		onCanMove: function(node) {
+			/* Root feed can not be moved */
+			if (!node.parent.parent) {
+				return false;
+			} else {
+				return true;
+			}
+		},
+		onCanMoveTo: function(moved_node, target_node, position) {
+			/* Can only move inside directories
+			 * Can not move outside Root feed
+			 */
+			if (position == "inside"){
+				return target_node.feed.isDirectory;
+			}
+			if (!target_node.parent.parent){
+				return false;
+			}
+			return true;
+		},
+		onCreateLi: function(node, $li){
+			var that = node.feed; // passed from .jqTree()
+
+			that.spin = $("<span class='floatLeft spin' id='spinFeed_"+that.data.startID+"'>&nbsp;</span>");
+			that.nameFeed = $li.find(".jqtree-title");
+
+			that.buttons = new Object();
+			/* This button will only be visible when the mouse hovers over the feed/group to prevent cluttering the UI */
+			that.buttons.settings = $("<i class='icon-pencil floatRight editButton' />")
+				.on("click", function(){
+					that.showSettings();
+					return false; // last 'click' handler
+				});
+			that.buttons.newMessage = $("<span id='numNew_"+that.data.startID+"' class='badge floatRight ' />")
+				.on("click", function() {
+					that.markAllRead();
+					return false; // last 'click' handler
+				});
+
+			$li.find(".jqtree-element")
+				.prepend(that.spin)
+				.append($("<a href='#' />")
+					.append(that.buttons.settings)
+					.append(that.buttons.newMessage)
+				);
+		}
+	});
+
+	t.bind(
+		'tree.open',
+		function(event){
+			var that = event.node.feed;
+			that.collapse(false);
+		}
+	);
+	t.bind(
+		'tree.close',
+		function(event){
+			var that = event.node.feed;
+			that.collapse(true);
+		}
+	);
+
+	t.bind(
+		'tree.select',
+		function(event){
+			if (!event.node){
+				return;
+			}
+			var that = event.node.feed;
+			/* Reset all feeds' entries Object.
+			 * This is necessary for correct function of MarkAllRead
+			 */
+			$.each(globalFeeds, function(k,v){
+				v.entries = new Object();
+			});
+			that.date = new Date();
+			$("#entries").empty();
+			that.getEntries(true);
+		}
+	);
+
+	t.bind(
+		'tree.move',
+		function(event){
+			/* event.move_info.moved_node
+			 * event.move_info.target_node
+			 * event.move_info.position: ['before','after','inside']
+			 * event.move_info.previous_parent
+			 */
+			var data = {};
+			if (event.move_info.position == 'after'){
+				data = { moveAfterFeed: event.move_info.target_node.feed.data.ID };
+			}
+			else if (event.move_info.position == 'before'){
+				data = { moveBeforeFeed: event.move_info.target_node.feed.data.ID };
+			}
+			else if (event.move_info.position == 'inside'){
+				data = { moveIntoCategory: event.move_info.target_node.feed.data.ID };
+			}
+			$.ajax({
+				url: "rest.php/feed/"+event.move_info.moved_node.feed.data.ID+"/move",
+				type: "POST",
+				dataType: "json",
+				data: data,
+				success: function(data) {
+					if (data.status != "OK"){
+						alert(data.msg);
+						return;
+					}
+					getFeeds();
+				}
+			});
+		}
+	);
+
+	globalFeedsTree = t;
+	resize();
+	return;
+}}}
+function getFeeds(){{{
 	$.ajax({
 		url: "rest.php/feeds",
 		type: "GET",
@@ -811,9 +808,13 @@ function getFeeds(){{{
 				new Feed(v);
 			});
 
+			showFeeds();
+			globalRootFeed.updateCount();
+
 			$.each(globalFeeds, function(k,v){
 				if (v.data.collapsed == "yes"){
-					v.collapse(true);
+					var node = globalFeedsTree.tree('getNodeById', v.data.ID);
+					globalFeedsTree.tree('closeNode', node, false);
 				}
 			});
 		},
@@ -879,11 +880,11 @@ function startup(){{{
 	$("#specialUnread").on("click", function(){ showEntries("rest.php/unread", "spinFeed_specialUnread"); });
 	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); resize(); /* necessary here because the form is a bit higher than the button */});
 
-	resize();
 	getFeeds();
 	getTags();
 	getFavoritesCount();
 	getOptions();
+	resize();
 	window.onresize=resize;
 }}}
 $(document).ready(startup);

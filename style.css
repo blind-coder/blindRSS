@@ -23,7 +23,7 @@ li.active > div > a > [class^="icon-"] {
 .sidebar-nav {
 	overflow-y: scroll;
 	overflow-x: hidden;
-	height: 100%;
+	/*height: 100%;*/
 	padding: 0;
 	margin: 0px;
 }
@@ -74,10 +74,10 @@ li.active > div > a > [class^="icon-"] {
 .inactive :hover {
 	background-color: #EEEEEE;
 }
-li.group>a>i.editButton, li.feed>a>i.editButton {
+div.jqtree-element>a>i.editButton {
 	visibility: hidden;
 }
-li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
+div.jqtree-element:hover>a>i.editButton {
 	visibility: visible;
 }
 #content {
@@ -156,9 +156,14 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 	float: left;
 }
 .spin {
+	position: absolute;
+	left: -1.5em;
 	padding-top: 0px;
 	min-width: 16px;
 	min-height: 16px;
+}
+.jqtree-folder>.jqtree-element>.spin {
+	left: -2.5em;
 }
 .loadMore {
 	padding-left: 25px;
@@ -198,4 +203,7 @@ li.group:hover>a>i.editButton, li.feed:hover>a>i.editButton {
 }
 .icon-spin {
 	height: auto !important;
+}
+.jqtree-tree {
+	padding: 3px 25px !important;
 }

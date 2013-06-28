@@ -37,7 +37,6 @@
 						<ul class="nav">
 							<li><a href="javascript:globalRootFeed.updateCount();"><span class='titleText'>Refresh</span><i id='spin_Refresh' class="titleIcon icon-refresh icon-1dot5x"></i></a></li>
 							<li><a href="javascript:showAddFeed();"><span class='titleText'>Add feed</span><i class="titleIcon icon-white icon-plus icon-1dot5x"></i></a></li>
-							<li><a href="javascript:rearrangeFeeds();"><span class='titleText'>Rearrange feeds</span><i class="titleIcon icon-white icon-random icon-1dot5x"></i></a></li>
 						</ul>
 						<ul class="nav pull-right">
 							<li><!--{{{search-->
@@ -115,7 +114,7 @@
 		<div class="container-fluid">
 			<div class="row-fluid">
 				<div id="feedsParent" class="span3 dropdown-menu printRemove">
-					<ul id="feeds" class="sidebar-nav"> <!-- {{{ -->
+					<ul id="specialFeeds" class="sidebar-nav" style="height: auto;"> <!-- {{{ -->
 						<li class='nav-header'>Specials</li>
 						<li class='feed'><!--{{{specialUnread-->
 							<a href='#' id='specialUnread'>
@@ -140,8 +139,9 @@
 							</a>
 						</li><!--}}}-->
 						<li class='hide' id='specialTags'> </li>
-						<li class='nav-header'>RSS Feeds</li>
-					</ul><!-- }}} -->
+					</ul>
+					<div class='nav-header'>RSS Feeds</div>
+					<div id="feeds" class='sidebar-nav'> </div>
 				</div><!--/span3-->
 
 				<div class="span9" style="margin-bottom: 5px;">
