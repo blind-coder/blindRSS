@@ -44,7 +44,6 @@ li.active > div > a > [class^="icon-"] {
 .sidebar-nav li.group .nameFeed {
 	font-weight: bold;
 	font-variant: small-caps;
-	font-size: 12px;
 }
 .sidebar-nav li.feed .nameFeed {
 	font-weight: normal;
@@ -101,7 +100,6 @@ div.jqtree-element:hover>a>i.editButton {
 	overflow: hidden;
 	height: 135px !important;
 	width: 100%;
-	font-size: 12px;
 }
 .entries ul, .specials ul {
 	padding: 0;
@@ -198,6 +196,7 @@ div.jqtree-element:hover>a>i.editButton {
 }
 .jqtree-tree {
 	padding: 3px 0px 3px 25px !important;
+	font-size: 12px;
 }
 .jqtree-element:hover {
     background-color: #97BDD6;
