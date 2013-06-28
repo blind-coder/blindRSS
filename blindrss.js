@@ -27,6 +27,10 @@ function search(){{{
 }}}
 function showEntries(tree, append=false){{{
 	if (!append){
+		if (globalEntriesTree){
+			globalEntriesTree.tree("destroy");
+			globalEntriesTree = false;
+		}
 		var dBody = $("#entries");
 		dBody.tree(false);
 		dBody.empty();
@@ -377,10 +381,14 @@ function FeedMarkAllRead(){{{
 		complete: function(){ that.updateCount(); },
 		success: function(data){
 			if (data.status == "OK"){
-				if (curFeed == that){
-					/* TODO iterate through all new entries and turn this into real object oriented code */
-					$("#entries").find("li.new").removeClass("new");
-				}
+				$.each(globalFeeds, function(k,f){
+					if (parseInt(f.data.startID) >= parseInt(that.data.startID) && parseInt(f.data.endID) <= parseInt(that.data.endID)){
+						$.each(f.entries, function(k,v){
+							v.data.isread="1";
+							v.update();
+						});
+					}
+				});
 			} else {
 				alert(data.msg);
 			}
