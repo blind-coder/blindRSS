@@ -27,9 +27,6 @@ li.active > div > a > [class^="icon-"] {
 	padding: 0;
 	margin: 0px;
 }
-.sidebar-nav li {
-	min-height: 16px;
-}
 .sidebar-nav li.active, .sidebar-nav li[class!=nav-header]:hover {
 	background-color: #0081C2;
 	background-image: linear-gradient(to bottom, #0088CC, #0077B3);
@@ -101,8 +98,7 @@ div.jqtree-element:hover>a>i.editButton {
 	padding: 0;
 }
 .entries, .specials {
-	overflow-y: scroll;
-	overflow-x: hidden;
+	overflow: hidden;
 	height: 135px !important;
 	width: 100%;
 	font-size: 12px;
@@ -110,10 +106,6 @@ div.jqtree-element:hover>a>i.editButton {
 .entries ul, .specials ul {
 	padding: 0;
 	margin: 0;
-}
-.entries ul > li, .specials ul > li {
-	max-height: 16px;
-	line-height: 16px;
 }
 .entries ul > li > a, .specials ul > li > a {
 	padding: 0px 15px;
@@ -205,5 +197,8 @@ div.jqtree-element:hover>a>i.editButton {
 	height: auto !important;
 }
 .jqtree-tree {
-	padding: 3px 25px !important;
+	padding: 3px 0px 3px 25px !important;
+}
+.well {
+	padding: 0 !important;
 }

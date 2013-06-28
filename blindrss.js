@@ -6,9 +6,14 @@ var globalRootFeed;
 var curFeed = false;
 
 function resize(){{{
-	$("#feedsParent").height(window.innerHeight-($("#feedsParent").position().top + 10));
-	$("#feeds").height($("#feedsParent").height() - ($("#feeds").position().top - $("#feedsParent").position().top));
-	$("#content").height($("#feedsParent").height() - ($("#content").position().top - $("#feedsParent").position().top));
+	$.each(["#content", "#feeds"], function(k,v){
+		var x = $(v);
+		x.height(window.innerHeight - (x.position().top + 10));
+	});
+	$.each(["#specialFeeds", "#entries"], function(k,v){
+		var x = $(v);
+		x.height(x.parent().innerHeight() - (x.position().top - x.parent().position().top));
+	});
 }}}
 function search(){{{
 	$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
@@ -652,7 +657,7 @@ function showFeeds(){{{
 		globalFeedsTree.tree("destroy");
 		globalFeedsTree = false;
 	}
-	var dBody = $("#feedsParent #feeds");
+	var dBody = $("#feeds");
 	dBody.tree(false);
 	dBody.empty();
 
