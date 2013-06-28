@@ -1,4 +1,5 @@
 var globalFeedsTree;
+var globalSpecialFeedsTree;
 var labelNames = new Array("label-success", "label-warning", "label-important", "label-info", "label-inverse");
 var globalFeeds = new Object();
 var globalRootFeed;
@@ -61,8 +62,8 @@ function showEntries(url, spin){{{
 		}
 	});
 }}}
-function showTag(tagID, tag){{{
-	return showEntries("rest.php/tags/"+tagID, "spinFeed_tag"+tag);
+function showTag(tagID){{{
+	return showEntries("rest.php/tags/"+tagID, "spinFeed_tag"+tagID);
 }}}
 
 function FeedJqTree(){{{
@@ -221,7 +222,7 @@ function FeedRenderCount(){{{
 	}
 	if (this.data.startID == "1"){ /* All Feeds element */
 		if (parseInt(this.data.unreadCount) != NaN){
-			$("#numUnread").empty().append(this.data.unreadCount);
+			$("#num_specialUnread").empty().append(this.data.unreadCount);
 		}
 	}
 }}}
@@ -835,15 +836,33 @@ function getTags(){{{
 				alert(data.msg);
 				return;
 			}
-			var specialTags = $("#specialTags");
+			if (globalSpecialFeedsTree){
+				globalSpecialFeedsTree.tree("destroy");
+				globalSpecialFeedsTree = false;
+			}
+			var dBody = $("#specialFeeds");
+			dBody.tree(false);
+			dBody.empty();
 
-			$(".tagRemove").remove();
-			data.tags = data.tags.reverse();
+			var tree = [
+				{ id: "specialUnread",
+					label: "Unread entries",
+					num: 0,
+					action: function(event){ showEntries("rest.php/unread", "spinFeed_specialUnread"); }
+				},
+				{ id: "specialFavorites",
+					label: "Favorites",
+					num: 0,
+					action: function(event){ showEntries("rest.php/favorites", "spinFeed_specialFavorites"); }
+				}
+			];
 
 			for (var i = 0; i < data.tags.length; i++){
 				var t = data.tags[i].tag;
 				var tID = data.tags[i].ID;
 				var num = data.tags[i].num;
+				tree.push({ id: tID, label: t, num: num, action: function(event){ showTag(event.node.id); }});
+				/*
 				var a = $("<a href='#' />")
 								.attr("tagID", tID)
 								.attr("tag", t)
@@ -858,7 +877,32 @@ function getTags(){{{
 				specialTags.after(
 					$("<li class='tagRemove feed'></li>").append(a)
 				);
+				*/
 			}
+			var t = dBody.tree({
+				data: tree,
+				autoOpen: 1,
+				dragAndDrop: false,
+				selectable: true,
+				useContextMenu: false,
+				onCreateLi: function(node, $li){
+					$li.find(".jqtree-title")
+						.prepend("<i id='num_"+node.id+"' class='floatRight badge'>"+node.num+"</i>")
+						.prepend("<i class='icon-tag'> </i>")
+						.prepend("<span class='floatLeft spin' id='spinFeed_tag"+node.id+"'>&nbsp;</span>")
+						.prepend("<i class='icon-pencil floatRight hidden'></i>");
+				}
+			});
+			t.bind(
+				'tree.select',
+				function(event){
+					if (!event.node){
+						return;
+					}
+					event.node.action(event);
+				}
+			);
+			globalSpecialFeedsTree = t;
 		}
 	});
 }}}
@@ -872,7 +916,7 @@ function getFavoritesCount(){{{
 				alert(data.msg);
 				return;
 			}
-			$("#numFavorites").empty().append(data.num);
+			$("#num_specialFavorites").empty().append(data.num);
 		}
 	});
 }}}
@@ -881,8 +925,6 @@ function startup(){{{
 	$("input[type=button]").button();
 	$(".selectpicker").selectpicker();
 
-	$("#specialFavorites").on("click", function(){ showEntries("rest.php/favorites", "spinFeed_specialFavorites"); });
-	$("#specialUnread").on("click", function(){ showEntries("rest.php/unread", "spinFeed_specialUnread"); });
 	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); resize(); /* necessary here because the form is a bit higher than the button */});
 
 	getFeeds();
