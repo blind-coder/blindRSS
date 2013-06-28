@@ -294,6 +294,9 @@ function FeedRenderCount(){{{
 	this.buttons.newMessage.empty();
 	if (parseInt(this.data.unreadCount) > 0){
 		this.buttons.newMessage.append(this.data.unreadCount);
+		this.nameFeed.addClass("new");
+	} else {
+		this.nameFeed.removeClass("new");
 	}
 	if (this.data.startID == "1"){ /* All Feeds element */
 		if (parseInt(this.data.unreadCount) != NaN){
