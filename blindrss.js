@@ -69,7 +69,9 @@ function rearrangeFeeds(){{{
 		data: [tree],
 		autoOpen: 1,
 		dragAndDrop: true,
-		selectable: false,
+		selectable: true,
+		openedIcon: '<i class="icon-folder-open"></i>',
+		closedIcon: '<i class="icon-folder-close"></i>',
 		onCanMove: function(node) {
 			/* Root feed can not be moved */
 			if (!node.parent.parent) {
@@ -486,16 +488,19 @@ function Feed(data){{{
 
 	if (this.data.startID != "1"){
 		/* unless this is the root feed, we need a pointer to our parent feed */
-		/* TODO: Maybe there's an easier way than to parse the DOM tree, query its elements' attributes and then get an array element? */
-		/* TODO: I'm quite sure there is */
-		var parentFeed = $("li").filter(function(){
-			return  $(this).attr("startID") <= parseInt(that.data.startID) &&
-				$(this).attr("endID")   >= parseInt(that.data.endID)   &&
-			globalFeeds[parseInt($(this).attr("ID"))].isDirectory;
-		}).last().attr("ID");
-		parentFeed = globalFeeds[parseInt(parentFeed)];
-		this.parent = parentFeed;
-		parentFeed.children[parentFeed.children.length] = this;
+		var keys = [];
+		foreach (var k in globalFeeds){ keys.push[k]; };
+		min = parseInt(globalRootFeed.data.endID) + 1;
+		for (idx in parents){
+			var f = globalFeeds[parents[idx]];
+			var diff = parseInt(f.data.endID) - parseInt(f.data.startID);
+			if (diff < min){
+				min = diff;
+				that.parent = newParent;
+			}
+		}
+		this.parent = newParent;
+		this.parent.children[parentFeed.children.length] = this;
 	}
 
 	/* unfortunately, any of these tend to be sent from the server */
@@ -800,7 +805,7 @@ function getFeeds(){{{
 					 * Backwards compatibility means we might encounter
 					 * an installation which didn't use a root directory.
 					 */
-				        globalRootFeed = new Feed(v);
+					globalRootFeed = new Feed(v);
 					return true;
 				}
 				new Feed(v);
