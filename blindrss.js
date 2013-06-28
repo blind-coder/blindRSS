@@ -4,13 +4,12 @@ var globalFeeds = new Object();
 var globalRootFeed;
 
 var curFeed = false;
- 
+
 function resize(){{{
 	$("#feedsParent").height(window.innerHeight-($("#feedsParent").position().top + 10));
 	$("#feeds").height($("#feedsParent").height() - ($("#feeds").position().top - $("#feedsParent").position().top));
 	$("#content").height($("#feedsParent").height() - ($("#content").position().top - $("#feedsParent").position().top));
 }}}
-
 function search(){{{
 	$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
 	$("#frmSearch [type=submit]").attr("disabled", "disabled");
@@ -74,6 +73,7 @@ function FeedJqTree(){{{
 	return retVal;
 }}}
 function FeedDirectories(){{{
+	/* returns all directories below current directory, _including_ current directory */
 	var that = this;
 
 	if (!this.isDirectory){
@@ -955,7 +955,7 @@ function getOptions(){{{
 	$.ajax({
 		url: "rest.php/options",
 		type: "GET",
-		dataType: "json", 
+		dataType: "json",
 		success: function(data){
 			$("#selectPurgeAfter").val(data.purgeAfter.value);
 			$("#selectPurgeAfter").on("change", function(e){
