@@ -36,7 +36,7 @@ function showEntries(tree, append=false){{{
 		dBody.empty();
 		var t = dBody.tree({
 			data: tree,
-			autoOpen: 1,
+			autoOpen: true,
 			dragAndDrop: false,
 			selectable: true,
 			useContextMenu: false,
@@ -699,7 +699,7 @@ function showFeeds(){{{
 
 	var t = dBody.tree({
 		data: [tree],
-		autoOpen: 1,
+		autoOpen: true,
 		dragAndDrop: true,
 		selectable: true,
 		openedIcon: '<i class="icon-folder-open"></i>',
@@ -899,7 +899,7 @@ function getTags(){{{
 			}
 			var t = dBody.tree({
 				data: tree,
-				autoOpen: 1,
+				autoOpen: true,
 				dragAndDrop: false,
 				selectable: true,
 				useContextMenu: false,
