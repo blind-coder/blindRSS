@@ -23,8 +23,3 @@ ALTER TABLE `entries_tags` ADD UNIQUE `onlyonce` ( `entryID` , `tagID` );
 INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'deleteFavorites', 'no');
 INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'deleteTagged', 'no');
 INSERT INTO `options` (`ID` , `key` , `value`) VALUES (NULL , 'textOrIcons', 'text');
-
-SELECT `value` INTO @uoC FROM `options` WHERE `key` = "unreadOnChange";
-ALTER TABLE `feeds` ADD `unreadOnChange` ENUM( 'yes', 'no' ) NOT NULL DEFAULT 'yes' AFTER `cacheimages`;
-UPDATE feeds SET unreadOnChange = IF(@uoC='false','no','yes');
-DELETE FROM `options` WHERE `key` = 'unreadOnChange';
