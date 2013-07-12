@@ -91,6 +91,23 @@
 										</form>
 									</li><!--}}}-->
 									<li class="divider"></li>
+									<li><!--{{{ reloadEvery-->
+										<form class="form-horizontal">
+											<div class='control-group'>
+												<label class='control-label' for='selectReloadEvery'>Automatically reload:</label>
+												<div class='controls'>
+													<select id='selectReloadEvery'>
+														<option value='-1'>Never</option>
+														<option value='15'>15 minutes</option>
+														<option value='30'>30 minutes</option>
+														<option value='60'>60 minutes</option>
+														<option value='other'>other</option>
+													</select>
+													<input type="text" id="reloadEveryOther" class="hide" />
+												</div>
+											</div>
+										</form>
+									</li><!--}}}-->
 									<li><!--{{{ textOrIcons-->
 										<form class="form-horizontal">
 											<div class='control-group'>

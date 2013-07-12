@@ -7,6 +7,27 @@ var globalRootFeed;
 
 var curFeed = false;
 
+var cronjobTimer = setInterval(cronjob, 60000); // every minute
+var cronjobData = {lastRun: new Date()};
+
+function cronjob(){{{
+	var reloadEvery = $("#selectReloadEvery").val();
+	if (reloadEvery == "other"){
+		reloadEvery = $("#reloadEveryOther").val();
+	}
+	reloadEvery = parseInt(reloadEvery);
+	if (reloadEvery <= 0){
+		return;
+	}
+
+	var now = new Date();
+	console.log("cronjob: checking " + now + " - " + cronjobData.lastRun + " >= " + (reloadEvery * 60000));
+	if (now - cronjobData.lastRun >= reloadEvery * 60000){
+		globalRootFeed.updateCount();
+		cronjobData.lastRun = now;
+	}
+}}}
+
 function resize(){{{
 	$.each(["#content", "#feeds"], function(k,v){
 		var x = $(v);
@@ -1046,6 +1067,37 @@ function getOptions(){{{
 				var value = data.value;
 				setOption("textOrIcons", value ? "text" : "icons");
 				toggleTextOrIcons(value ? "text" : "icons");
+			});
+			if (data.reloadEvery.value == "-1" ||
+					data.reloadEvery.value == "15" ||
+					data.reloadEvery.value == "30" ||
+					data.reloadEvery.value == "60"){
+					$("#selectReloadEvery").val(data.reloadEvery.value);
+					$("#reloadEveryOther").hide();
+			} else {
+				$("#selectReloadEvery").val("other");
+				$("#reloadEveryOther").val(data.reloadEvery.value).show();
+			}
+			if (parseInt(data.reloadEvery.value) > 0){
+				var now = new Date();
+				cronjobData.lastRun = new Date(now - (now % (parseInt(data.reloadEvery.value) * 60000)));
+			}
+			$("#selectReloadEvery").on("change", function(){
+				var val = -1;
+				if ($(this).val() == "other"){
+					$("#reloadEveryOther").show();
+				} else {
+					$("#reloadEveryOther").hide();
+					setOption("reloadEvery", $(this).val());
+				}
+			});
+			$("#reloadEveryOther").popover({
+				trigger: "focus",
+				placement: "left",
+				content: "Enter reload time in whole minutes:"
+			});
+			$("#reloadEveryOther").on("change", function(){
+				setOption("reloadEvery", $(this).val());
 			});
 		}
 	});
