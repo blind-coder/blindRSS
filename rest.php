@@ -7,6 +7,51 @@ function my_mysql_query($x){
 	//error_log($x);
 	return mysql_query($x);
 }
+function xml_encode($mixed, $domElement=null, $DOMDocument=null) {
+	if (is_null($DOMDocument)) {
+		$DOMDocument =new DOMDocument;
+		$DOMDocument->formatOutput = true;
+		xml_encode($mixed, $DOMDocument, $DOMDocument);
+		return $DOMDocument->saveXML();
+	}
+	else {
+		if (is_array($mixed)) {
+			foreach ($mixed as $index => $mixedElement) {
+				if (is_int($index)) {
+					if ($index === 0) {
+						$node = $domElement;
+					}
+					else {
+						$node = $DOMDocument->createElement($domElement->tagName);
+						$domElement->parentNode->appendChild($node);
+					}
+				}
+				elseif (is_string($mixedElement)){
+					$domAttr = $DOMDocument->createAttribute($index);
+					$domAttr->value = $mixedElement;
+					$domElement->appendChild($domAttr);
+					$node = $domElement;
+					continue;
+				}
+				else {
+					$plural = $DOMDocument->createElement($index);
+					$domElement->appendChild($plural);
+					$node = $plural;
+					if (!(rtrim($index, 's') === $index)) {
+						$singular = $DOMDocument->createElement(rtrim($index, 's'));
+						$plural->appendChild($singular);
+						$node = $singular;
+					}
+				}
+
+				xml_encode($mixedElement, $node, $DOMDocument);
+			}
+		}
+		else {
+			$domElement->appendChild($DOMDocument->createTextNode($mixed));
+		}
+	}
+}
 
 mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
 mysql_select_db($MYSQL_DB);
@@ -511,9 +556,56 @@ switch ($path[0]){
 		}
 		break;
 		// }}}
+	case "opml": // {{{
+		if ($method == "GET"){
+			# GET /opml
+			$q = my_mysql_query("SELECT * FROM feeds ORDER BY startID ASC");
+			$feeds = Array();
+			while ($r = mysql_fetch_object($q)){
+				$feeds[] = $r;
+			}
+
+			$data = Array();
+			$data["head"] = Array("title" => "Subscriptions");
+			$data["body"] = Array();
+
+			function iterate(&$feeds, $parent){
+				$retVal = Array();
+				while ($f = current($feeds)){
+					if ($f->startID > $parent->endID)
+						break;
+					next($feeds);
+					$f->name = htmlspecialchars($f->name);
+					$f->url = htmlspecialchars($f->url);
+					if ("x".$f->url == "x"){
+						$n = Array("title" => $f->name, "text" => $f->name, "outline" => iterate($feeds, $f));
+					} else {
+						$n = Array("title" => $f->name, "text" => $f->name, "type" => "rss", "xmlUrl" => $f->url);
+					}
+					$retVal[] = $n;
+				}
+				return $retVal;
+			}
+			reset($feeds);
+			$data["body"]["outline"] = iterate($feeds, $feeds[0]);
+		}
+		break;
+		// }}}
 }
 
 switch ($format){
+case "xml":
+	header ("Content-Type: application/octet-stream;charset=utf8");
+	foreach ($data as $k => $v){
+		if (is_object($v))
+			$data[$k] = get_object_vars($v);
+	}
+	if ($path[0] == "opml"){
+		$data = array("opml" => array("version" => "2.0", $data));
+		echo xml_encode($data);
+	} else 
+		echo xml_encode(array($path[0] => $data));
+	break;
 case "json":
 default:
 	header ("Content-Type: text/plain;charset=utf8");
