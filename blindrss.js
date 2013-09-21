@@ -966,6 +966,35 @@ function startup(){{{
 
 	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); resize(); /* necessary here because the form is a bit higher than the button */});
 
+	$("#importOPML").fileupload({
+		url: "rest.php/opml",
+		dataType: "json",
+		add: function(e, data){
+			data.context = $('#buttonImportOPML').text('Upload').attr("disabled", false)
+			.one("click", function(){
+				$("#importOPML").fileupload("option", "url", "rest.php/opml/"+$("#importOPMLParent").val());
+				data.context.text("Uploading...").attr("disabled", "disabled");
+				data.submit();
+			});
+
+			var sortedFeeds = globalRootFeed.directories();
+
+			var options = $("select#importOPMLParent").empty().append("<option>[Select parent]</option>");
+			$.each(sortedFeeds, function(k,v){
+				var s = "";
+				for (var x = v; x; x=x.parent){
+					s = "/"+x.data.name+s;
+				}
+				options.append("<option value='"+v.data.ID+"'>"+s+"</option>");
+			});
+			options.val(globalRootFeed.data.ID).attr("disabled", false);
+		},
+		done: function(data){
+			$("#buttonImportOPML").text('Upload finished.');
+			getFeeds();
+		}
+	});
+
 	getFeeds();
 	getTags();
 	getFavoritesCount();

@@ -3,11 +3,11 @@ include("etc/config.php");
 function mres($x){
 	return mysql_real_escape_string($x);
 }
-function my_mysql_query($x){
+function my_mysql_query($x){/*{{{*/
 	//error_log($x);
 	return mysql_query($x);
-}
-function xml_encode($mixed, $domElement=null, $DOMDocument=null) {
+}/*}}}*/
+function xml_encode($mixed, $domElement=null, $DOMDocument=null) {/*{{{*/
 	if (is_null($DOMDocument)) {
 		$DOMDocument =new DOMDocument;
 		$DOMDocument->formatOutput = true;
@@ -51,7 +51,46 @@ function xml_encode($mixed, $domElement=null, $DOMDocument=null) {
 			$domElement->appendChild($DOMDocument->createTextNode($mixed));
 		}
 	}
-}
+}/*}}}*/
+function addFeed($feed){/*{{{*/
+	$retVal = Array();
+	global $ISDEMO;
+	if ($ISDEMO){
+		$retVal["status"] = "error";
+		$retVal["msg"] = "This is a demo :-)";
+		return $retVal;
+	}
+	$q = my_mysql_query("SELECT * FROM feeds WHERE `url` = '".$feed["url"]."' AND `url` != ''");
+	if (mysql_num_rows($q) > 0){
+		$r = mysql_fetch_object($q);
+		$retVal["status"] = "Error";
+		$retVal["msg"] = "Duplicate URL! URL already in use in Feed {$r->name}!";
+		return $retVal;
+	}
+
+	$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($feed["parent"]));
+	if (mysql_error()){
+		$retVal["status"] = "Error";
+		$retVal["msg"] = "Unknown Parent Feed";
+		return $retVal;
+	}
+
+	$r = mysql_fetch_object($q);
+	my_mysql_query("UPDATE feeds SET endID=endID+2 WHERE endID >= $r->endID");
+	my_mysql_query("UPDATE feeds SET startID=startID+2 WHERE startID >= $r->endID"); # $r->endID is correct!
+	$q = my_mysql_query("INSERT INTO feeds (startID, endID, cacheimages, unreadOnChange, name, url)
+		VALUES ({$r->endID}, {$r->endID}+1, '".mres($feed["cacheimages"])."', '".mres($feed["unreadOnChange"])."', '".mres($feed["name"])."', '".mres($feed["url"])."')");
+	if (mysql_error()){
+		$retVal["status"] = "Error";
+		$retVal["msg"] = mysql_error();
+		return $retVal;
+	}
+	$q = my_mysql_query("SELECT * FROM feeds WHERE ID = LAST_INSERT_ID()");
+	$retVal["feed"] = mysql_fetch_array($q);
+	$retVal["status"] = "OK";
+	$retVal["msg"] = "";
+	return $retVal;
+}/*}}}*/
 
 mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS);
 mysql_select_db($MYSQL_DB);
@@ -82,39 +121,13 @@ switch ($path[0]){
 			}
 		}
 		elseif ($method == "POST"){
-			if ($ISDEMO){
-				$data["status"] = "error";
-				$data["msg"] = "This is a demo :-)";
-				break;
-			}
-			# PUT /feeds
-			$q = my_mysql_query("SELECT * FROM feeds WHERE `url` = '".$_GET['url']."' AND `url` != ''");
-			if (mysql_num_rows($q) > 0){
-				$r = mysql_fetch_object($q);
-				$data["status"] = "Error";
-				$data["msg"] = "Duplicate URL! URL already in use in Feed {$r->name}!";
-				break;
-			}
-
-			$q = my_mysql_query("SELECT * FROM feeds WHERE ID = ".mres($_REQUEST["parent"]));
-			if (mysql_error()){
-				$data["status"] = "Error";
-				$data["msg"] = "Unknown Parent Feed";
-				break;
-			}
-
-			$r = mysql_fetch_object($q);
-			my_mysql_query("UPDATE feeds SET endID=endID+2 WHERE endID >= $r->endID");
-			my_mysql_query("UPDATE feeds SET startID=startID+2 WHERE startID >= $r->endID"); # $r->endID is correct!
-			$q = my_mysql_query("INSERT INTO feeds (startID, endID, cacheimages, unreadOnChange, name, url)
-				VALUES ({$r->endID}, {$r->endID}+1, '".mres($_REQUEST["cacheimages"])."', '".mres($_REQUEST["unreadOnChange"])."', '".mres($_REQUEST["name"])."', '".mres($_REQUEST["url"])."')");
-			if (mysql_error()){
-				$data["status"] = "Error";
-				$data["msg"] = mysql_error();
-				break;
-			}
-			$data["status"] = "OK";
-			$data["msg"] = "";
+			$feed = Array();
+			$feed["url"] = $_GET['url'];
+			$feed["parent"] = $_REQUEST['parent'];
+			$feed["cacheimages"] = $_REQUEST['cacheimages'];
+			$feed["unreadOnChange"] = $_REQUEST['unreadOnChange'];
+			$feed["name"] = $_REQUEST['name'];
+			$data = addFeed($feed);
 		}
 		break;
 		// }}}
@@ -557,7 +570,47 @@ switch ($path[0]){
 		break;
 		// }}}
 	case "opml": // {{{
-		if ($method == "GET"){
+		if ($method == "POST"){/*{{{*/
+			$parent = (int)$path[1];
+
+			$body = file_get_contents($_FILES["file"]["tmp_name"]);
+			$xml = new SimpleXMLElement($body);
+			$outlines = $xml->xpath('/opml/body/outline');
+
+			function recurse($outline, $parent){
+				foreach($outline AS $k => $o){
+					$feed = Array();
+					$feed["type"] = "";
+					foreach ($o->attributes() as $ak => $av){
+						$ak = strtolower($ak);
+						if ($ak == "title"){
+							$feed["name"] = (string)$av;
+						}
+						if ($ak == "xmlurl"){
+							$feed["url"] = (string)$av;
+						}
+						if ($ak == "type"){
+							$feed["type"] = (string)$av;
+						}
+					}
+					$feed["parent"] = $parent;
+					$feed["cacheimages"] = 0;
+					$feed["unreadOnChange"] = 1;
+					if ($feed["type"] != "rss"){
+						$feed["url"] = null;
+						$feed["type"] = null;
+						$r = addFeed($feed);
+						error_log(var_export($r, true));
+						$feed["children"] = recurse($o, $r["feed"]["ID"]);
+					} else {
+						$r = addFeed($feed);
+					}
+				}
+			}
+
+			$data["newFeeds"] = recurse($outlines, $parent);
+		}/*}}}*/
+		elseif ($method == "GET"){/*{{{*/
 			# GET /opml
 			$q = my_mysql_query("SELECT * FROM feeds ORDER BY startID ASC");
 			$feeds = Array();
@@ -569,7 +622,7 @@ switch ($path[0]){
 			$data["head"] = Array("title" => "Subscriptions");
 			$data["body"] = Array();
 
-			function iterate(&$feeds, $parent){
+			function recurse(&$feeds, $parent){/*{{{*/
 				$retVal = Array();
 				while ($f = current($feeds)){
 					if ($f->startID > $parent->endID)
@@ -578,17 +631,18 @@ switch ($path[0]){
 					$f->name = htmlspecialchars($f->name);
 					$f->url = htmlspecialchars($f->url);
 					if ("x".$f->url == "x"){
-						$n = Array("title" => $f->name, "text" => $f->name, "outline" => iterate($feeds, $f));
+						$n = Array("title" => $f->name, "text" => $f->name, "outline" => recurse($feeds, $f));
 					} else {
 						$n = Array("title" => $f->name, "text" => $f->name, "type" => "rss", "xmlUrl" => $f->url);
 					}
 					$retVal[] = $n;
 				}
 				return $retVal;
-			}
+			}/*}}}*/
+
 			reset($feeds);
-			$data["body"]["outline"] = iterate($feeds, $feeds[0]);
-		}
+			$data["body"]["outline"] = recurse($feeds, $feeds[0]);
+		}/*}}}*/
 		break;
 		// }}}
 }

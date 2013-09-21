@@ -25,6 +25,10 @@
 		<script src="bootstrap-select/bootstrap-select.js"></script>
 
 		<script src="jqtree/tree.jquery.js"></script>
+
+		<script src="jqfileupload/jquery.fileupload.js"></script>
+		<script src="jqfileupload/jquery.iframe-transport.js"></script>
+
 		<script src="blindrss.js"></script>
 	</head>
 
@@ -124,9 +128,23 @@
 									<li><!-- import/export OPML -->
 										<form class="form-horizontal">
 											<div class='control-group'>
-												<label class='control-label' for='buttonExportOPML'>OPML operations:</label>
+												<label class='control-label' for='buttonExportOPML'>Export OPML:</label>
 												<div class='controls'>
-													<a id='buttonExportOPML' class="btn" href="rest.php/opml.xml">Download OPML</a>
+													<a id='buttonExportOPML' class="btn" href="rest.php/opml.xml">Export OPML</a><br />
+												</div>
+											</div>
+										</form>
+									</li>
+									<li><!-- import/export OPML -->
+										<form class="form-horizontal">
+											<div class='control-group'>
+												<label class='control-label' for='importOPML'>Upload OPML:</label>
+												<div class='controls'>
+													<input id='importOPML' type='file' name='file' multiple>
+													<select id='importOPMLParent' disabled>
+														<option>[Select parent]</option>
+													</select>
+													<a href='#' disabled class='btn' id='buttonImportOPML'>Upload</a>
 												</div>
 											</div>
 										</form>
