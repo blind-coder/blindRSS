@@ -1054,7 +1054,7 @@ function addRSSHandler(){{{
 	var addDir = $("#parent :selected");
 	if (confirm("Add Feed handler to Firefox and place new feeds under "+addDir.text()+"?")){
 		var l = window.location;
-		var address = l.protocol+"/"+l.hostname+l.pathname.replace("index.html", "")+"add.php?url=%s&parentID="+addDir.val();
+		var address = l.protocol+"/"+l.hostname+l.pathname.replace("index.html", "")+"add.html?url=%s&parentID="+addDir.val();
 		window.navigator.registerContentHandler('application/vnd.mozilla.maybe.feed',address,"blindRSS " + addDir.text().replace(/^.*\//, ""));
 	}
 }}}

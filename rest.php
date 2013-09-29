@@ -1,5 +1,6 @@
 <?
 include("etc/config.php");
+require_once("autoloader.php");
 function mres($x){
 	return mysql_real_escape_string($x);
 }
@@ -60,10 +61,24 @@ function addFeed($feed){/*{{{*/
 		$retVal["msg"] = "This is a demo :-)";
 		return $retVal;
 	}
+
+	if ($feed["name"] == "" && "x".$feed["url"] != "x"){
+		$SimplePie = new SimplePie();
+		$SimplePie->set_feed_url($feed["url"]);
+		$SimplePie->enable_cache(false);
+		$SimplePie->set_useragent("blindRSS");
+		$SimplePie->init();
+		$SimplePie->handle_content_type();
+		$feed["name"] = $SimplePie->get_title();
+		if ($feed["name"] == "")
+			$feed["name"] = "Unknown feed";
+	}
+
 	$q = my_mysql_query("SELECT * FROM feeds WHERE `url` = '".$feed["url"]."' AND `url` != ''");
 	if (mysql_num_rows($q) > 0){
 		$r = mysql_fetch_object($q);
 		$retVal["status"] = "Error";
+		$retVal["name"] = $feed["name"];
 		$retVal["msg"] = "Duplicate URL! URL already in use in Feed {$r->name}!";
 		return $retVal;
 	}
@@ -122,7 +137,7 @@ switch ($path[0]){
 		}
 		elseif ($method == "POST"){
 			$feed = Array();
-			$feed["url"] = $_GET['url'];
+			$feed["url"] = $_REQUEST['url'];
 			$feed["parent"] = $_REQUEST['parent'];
 			$feed["cacheimages"] = $_REQUEST['cacheimages'];
 			$feed["unreadOnChange"] = $_REQUEST['unreadOnChange'];
