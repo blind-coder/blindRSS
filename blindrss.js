@@ -441,6 +441,10 @@ function FeedUpdateCount(){{{
 		success: function(data){
 			$.each(data, function(k, v){
 				var feed = globalFeeds[parseInt(v.ID)];
+				if (!feed){
+					getFeeds(); // This feed is missing, probably added via firefox rss handler or another instance.
+					return false;
+				}
 				feed.data.unreadCount = v.unread;
 				feed.data.maxID = v.maxID;
 				feed.renderCount();
