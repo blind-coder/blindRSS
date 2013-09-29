@@ -33,6 +33,11 @@ The layout, CSS and Icons are from the Twitter Bootstrap toolkit:
 	http://twitter.github.com/bootstrap/
 Twitter Bootstrap Code licensed under Apache License v2.0, documentation under CC BY 3.0.
 Glyphicons Free licensed under CC BY 3.0.
+Font Awesome by Dave Gandy - http://fontawesome.io licensed under SIL OFL 1.1 and MIT License
+
+The spinning symbol is an implementation by Felix Gnass: http://fgnass.github.io/spin.js/
+	Licensed under the MIT License.
+	This means the file spin.js
 
 The RSS logo is from the Mozilla foundation as made available at http://www.feedicons.com/
 This means the following file:
