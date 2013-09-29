@@ -178,6 +178,7 @@ switch ($path[0]){
 						SELECT ID FROM feeds WHERE startID >= {$r->startID} AND endID <= {$r->endID}
 					) $date ORDER BY `date` DESC");
 					while ($r = mysql_fetch_object($q)){
+						$r->title=htmlentities($r->title, ENT_NOQUOTES, "UTF-8");
 						$data[] = $r;
 					}
 					break;
@@ -458,6 +459,7 @@ switch ($path[0]){
 			$data = Array();
 			$q = my_mysql_query("SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE favorite = 'yes' ORDER BY `date` DESC");
 			while ($r = mysql_fetch_object($q)){
+				$r->title=htmlentities($r->title, ENT_NOQUOTES, "UTF-8");
 				$data[] = $r;
 			}
 			break;
@@ -483,6 +485,7 @@ switch ($path[0]){
 			$data = Array();
 			$q = my_mysql_query("SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE isread = '0' ORDER BY `date` DESC");
 			while ($r = mysql_fetch_object($q)){
+				$r->title=htmlentities($r->title, ENT_NOQUOTES, "UTF-8");
 				$data[] = $r;
 			}
 			break;
@@ -514,6 +517,7 @@ switch ($path[0]){
 					SELECT entryID FROM entries_tags WHERE tagID = ".mres($path[1])."
 				) ORDER BY `date` DESC");
 				while ($r = mysql_fetch_object($q)){
+					$r->title=htmlentities($r->title, ENT_NOQUOTES, "UTF-8");
 					$data[] = $r;
 				}
 				break;
@@ -535,6 +539,7 @@ switch ($path[0]){
 					break;
 				}
 				while ($r = mysql_fetch_object($q)){
+					$r->title=htmlentities($r->title, ENT_NOQUOTES, "UTF-8");
 					$data[] = $r;
 				}
 				break;

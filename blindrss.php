@@ -41,6 +41,9 @@ while ($feed = mysql_fetch_object($query_feeds)){
 	}
 	foreach ($SimplePie->get_items() as $feedEntry){
 		$title = $feedEntry->get_title();
+		while ($title !== html_entity_decode($title)){
+			$title = html_entity_decode($title, ENT_QUOTES, "UTF-8");
+		}
 		$content = $feedEntry->get_content();
 		$timestamp = $feedEntry->get_date("U");
 		$guid = $feedEntry->get_id();

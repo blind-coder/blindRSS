@@ -125,6 +125,7 @@ function parseEntries(data){{{
 			oldDate = newDate;
 		}
 		var e = new Entry(v);
+		e.data.title = $("<div />").html(e.data.title).text();
 		tree.push({id: e.data.ID, label: e.data.title, entry: e});
 	});
 	return tree;
@@ -641,7 +642,7 @@ function EntryShow(){{{
 				return;
 			}
 			$("#content").html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
-			$("#headline").empty().attr("href", data.link).html("<nobr>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
+			$("#headline").empty().attr("href", data.link).append("<nobr>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
 			$("#headlineTags").empty();
 			$("#btnAddNewTag").show();
 			$("#frmAddNewTag").hide().unbind("submit").on("submit", function(){ that.addTag(); });
