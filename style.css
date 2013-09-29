@@ -53,10 +53,10 @@ li.active > div > a > [class^="icon-"] {
 .sidebar-nav span.new, .entries li.new > a {
 	font-weight: bold;
 }
-.sidebar-nav span i.newmessage {
+.sidebar-nav .jqtree-title i.newmessage {
 	visibility: hidden;
 }
-.sidebar-nav span.new i.newmessage {
+.sidebar-nav .new i.newmessage {
 	visibility: visible;
 }
 .sidebar-nav .numNewMessages {
@@ -70,10 +70,10 @@ li.active > div > a > [class^="icon-"] {
 .inactive :hover {
 	background-color: #EEEEEE;
 }
-div.jqtree-element>a>i.editButton {
+div.jqtree-element span>i.editButton {
 	visibility: hidden;
 }
-div.jqtree-element:hover>a>i.editButton {
+div.jqtree-element:hover span>i.editButton {
 	visibility: visible;
 }
 #content {
@@ -205,6 +205,18 @@ div.jqtree-element:hover>a>i.editButton {
     background: -ms-linear-gradient(top, #BEE0F5, #89AFCA);
     background: -o-linear-gradient(top, #BEE0F5, #89AFCA);
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.jqtree-title {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	padding-right: 64px;
+}
+.jqtree-title>.utils {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 0;
 }
 .well {
 	padding: 0 !important;

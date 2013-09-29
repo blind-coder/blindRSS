@@ -1329,7 +1329,7 @@ limitations under the License.
         }
         class_string = li_classes.join(' ');
         escaped_name = escapeIfNecessary(node.name);
-        return $("<li class=\"" + class_string + "\"><div class=\"jqtree-element jqtree_common\"><span class=\"jqtree-title jqtree_common\">" + escaped_name + "</span></div></li>");
+        return $("<li class=\"" + class_string + "\"><div class=\"jqtree-element jqtree_common\"><div class=\"jqtree-title jqtree_common\">" + escaped_name + "</div></div></li>");
       };
       createFolderLi = function(node) {
         var button_char, button_classes, escaped_name, folder_classes, getButtonClasses, getFolderClasses;
@@ -1363,7 +1363,7 @@ limitations under the License.
         } else {
           button_char = _this.options.closedIcon;
         }
-        return $("<li class=\"jqtree_common " + folder_classes + "\"><div class=\"jqtree-element jqtree_common\"><a class=\"jqtree_common " + button_classes + "\">" + button_char + "</a><span class=\"jqtree_common jqtree-title\">" + escaped_name + "</span></div></li>");
+        return $("<li class=\"jqtree_common " + folder_classes + "\"><div class=\"jqtree-element jqtree_common\"><a class=\"jqtree_common " + button_classes + "\">" + button_char + "</a><div class=\"jqtree_common jqtree-title\">" + escaped_name + "</div></div></li>");
       };
       doCreateDomElements = function($element, children, is_root_node, is_open) {
         var $li, $ul, child, _i, _len;

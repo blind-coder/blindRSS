@@ -301,11 +301,7 @@ function FeedUpdateFeed(){{{
 				alert(data.msg);
 				return;
 			}
-			that.data.name = d.find("#name").val();
-			that.data.cacheimages = d.find("input[name=cacheimages]:checked").val();
-			that.data.unreadOnChange = d.find("input[name=unreadOnChange]:checked").val();
-			that.data.url = d.find("input[name=isgroup]:checked").val() == "1" ? "" : d.find("#url").val();
-			that.nameFeed.empty().append(d.find("#name").val());
+			getFeeds();
 		},
 		complete: function(){
 			d.modal("hide");
@@ -770,9 +766,9 @@ function showFeeds(){{{
 					return false; // last 'click' handler
 				});
 
-			$li.find(".jqtree-element")
-				.prepend(that.spin)
-				.append($("<a href='#' />")
+			that.nameFeed
+				.append($("<span class='utils' />")
+					.append(that.spin)
 					.append(that.buttons.settings)
 					.append(that.buttons.newMessage)
 				);
@@ -931,10 +927,13 @@ function getTags(){{{
 				useContextMenu: false,
 				onCreateLi: function(node, $li){
 					$li.find(".jqtree-title")
-						.prepend("<i id='num_"+node.id+"' class='floatRight badge'>"+node.num+"</i>")
 						.prepend("<i class='icon-tag'> </i>")
 						.prepend("<span class='floatLeft spin' id='spinFeed_tag"+node.id+"'>&nbsp;</span>")
-						.prepend("<i class='icon-pencil floatRight hidden'></i>");
+						.append($("<span class='utils' />")
+							.append("<span class='floatLeft spin' id='spinFeed_"+node.id+"'>&nbsp;</span>")
+							.append("<i class='icon-pencil floatRight hidden'></i>")
+							.append("<span id='num_"+node.id+"' class='floatRight badge'>"+node.num+"</span>")
+						);
 				}
 			});
 			t.bind(
@@ -946,7 +945,11 @@ function getTags(){{{
 					event.node.action(event);
 				}
 			);
+			$("#spinFeed_tagspecialUnread").next().toggleClass("icon-tag icon-asterisk");
+			$("#spinFeed_tagspecialFavorites").next().toggleClass("icon-tag icon-star");
 			globalSpecialFeedsTree = t;
+			globalRootFeed.updateCount();
+			getFavoritesCount();
 		}
 	});
 }}}
