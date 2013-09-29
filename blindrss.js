@@ -46,6 +46,10 @@ function search(){{{
 		$("#frmSearch [type=submit]").attr("disabled", false);
 	});
 }}}
+function EntriesScrolled(event){{{
+	if (this.scrollTop + 15 > this.scrollTopMax)
+		$("#entries ul li:last .jqtree-title").click();
+}}}
 function showEntries(tree, append=false){{{
 	if (!append){
 		if (globalEntriesTree){
@@ -367,6 +371,9 @@ function FeedGetEntries(append){{{
 			);
 			showEntries(tree, append);
 			curFeed = that;
+			if ($("#entries")[0].scrollTopMax == 0){
+				$("#entries ul li:last .jqtree-title").click();
+			}
 		},
 		complete: function(){ that.spin.spin(false); $("#entries").parent().spin(false); }
 	});
@@ -948,7 +955,8 @@ function getTags(){{{
 			$("#spinFeed_tagspecialUnread").next().toggleClass("icon-tag icon-asterisk");
 			$("#spinFeed_tagspecialFavorites").next().toggleClass("icon-tag icon-star");
 			globalSpecialFeedsTree = t;
-			globalRootFeed.updateCount();
+			if (globalRootFeed)
+				globalRootFeed.updateCount();
 			getFavoritesCount();
 		}
 	});
@@ -973,6 +981,8 @@ function startup(){{{
 	$(".selectpicker").selectpicker();
 
 	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); resize(); /* necessary here because the form is a bit higher than the button */});
+
+	$("#entries").on("scroll", EntriesScrolled);
 
 	$("#importOPML").fileupload({
 		url: "rest.php/opml",
