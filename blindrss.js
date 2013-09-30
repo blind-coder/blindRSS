@@ -47,6 +47,8 @@ function search(){{{
 	});
 }}}
 function EntriesScrolled(event){{{
+	if ($("#buttonAutoAdvance input").attr("checked") != "checked")
+		return;
 	if (this.scrollTop + 15 > this.scrollTopMax)
 		$("#entries ul li:last .jqtree-title").click();
 }}}
@@ -1106,6 +1108,12 @@ function getOptions(){{{
 			$("#buttonDeleteTagged").on("switch-change", function(e, data){
 				var value = data.value;
 				setOption("deleteTagged", value ? "yes" : "no");
+			});
+			$("#buttonAutoAdvance").attr("checked", data.autoAdvance.value == "yes" ? "checked" : "")
+						  .switch("setState", data.autoAdvance.value == "yes");
+			$("#buttonAutoAdvance").on("switch-change", function(e, data){
+				var value = data.value;
+				setOption("autoAdvance", value ? "yes" : "no");
 			});
 			$("#buttonTextOrIcons").attr("checked", data.textOrIcons.value == "text" ? "checked" : "")
 						  .switch("setState", data.textOrIcons.value == "text");
