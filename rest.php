@@ -73,7 +73,11 @@ function addFeed($feed){/*{{{*/
 		if (($f = fopen("http://g.etfv.co/".$SimplePie->get_link()."?defaulticon=none","rb")) == true){
 			$img = stream_get_contents($f);
 			fclose($f);
-			$feed["favicon"] = "data:image;base64,".base64_encode($img);
+			if (preg_match("/DOCTYPE/", $img) || $img == ""){
+				$feed["favicon"] = "";
+			} else {
+				$feed["favicon"] = "data:image;base64,".base64_encode($img);
+			}
 		} else {
 			$feed["favicon"] = "";
 		}
