@@ -4,3 +4,4 @@ UPDATE feeds SET unreadOnChange = IF(@uoC='false','no','yes');
 DELETE FROM `options` WHERE `key` = 'unreadOnChange';
 INSERT INTO `options` (`key`, `value`) VALUES ('reloadEvery', '-1');
 INSERT INTO `options` (`key`, `value`) VALUES ('autoAdvance', 'no');
+INSERT INTO `options` (`key`, `value`) VALUES ('showFavicons', 'no');

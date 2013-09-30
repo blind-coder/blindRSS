@@ -775,6 +775,13 @@ function showFeeds(){{{
 					return false; // last 'click' handler
 				});
 
+			if (!that.isDirectory){
+				if (that.data.favicon == "" || that.data.favicon == undefined){
+					that.nameFeed.prepend("<i class='icon-rss favicon'> </i>");
+				} else {
+					that.nameFeed.prepend("<img src='"+that.data.favicon+"' class='favicon' /> ");
+				}
+			}
 			that.nameFeed
 				.append($("<span class='utils' />")
 					.append(that.spin)
@@ -853,6 +860,11 @@ function showFeeds(){{{
 		}
 	);
 
+	if ($("#buttonShowFavicons input").attr("checked") == "checked"){
+		$(".favicon").show();
+	} else {
+		$(".favicon").hide();
+	}
 	globalFeedsTree = t;
 	resize();
 	return;
@@ -1064,9 +1076,9 @@ function showAddFeed(){{{
 	options.val(globalRootFeed.data.ID);
 	d.find("#controlParent").empty().append(options);
 	options.selectpicker();
-	d.find("#buttonAddRSSHandler").unbind("click");
-	d.find("#buttonAddRSSHandler").bind("click", addRSSHandler);
+	d.find("#buttonAddRSSHandler").unbind("click").bind("click", addRSSHandler);
 	d.find("#buttonAddFeed").unbind("click").bind("click", addFeed);
+	d.find("#isgroup").switch("setState", false);
 	d.modal();
 }}}
 function addRSSHandler(){{{
@@ -1114,6 +1126,17 @@ function getOptions(){{{
 			$("#buttonAutoAdvance").on("switch-change", function(e, data){
 				var value = data.value;
 				setOption("autoAdvance", value ? "yes" : "no");
+			});
+			$("#buttonShowFavicons").attr("checked", data.autoAdvance.value == "yes" ? "checked" : "")
+						  .switch("setState", data.showFavicons.value == "yes");
+			$("#buttonShowFavicons").on("switch-change", function(e, data){
+				var value = data.value;
+				setOption("showFavicons", value ? "yes" : "no");
+				if (value){
+					$(".favicon").show();
+				} else {
+					$(".favicon").hide();
+				}
 			});
 			$("#buttonTextOrIcons").attr("checked", data.textOrIcons.value == "text" ? "checked" : "")
 						  .switch("setState", data.textOrIcons.value == "text");

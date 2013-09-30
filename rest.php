@@ -62,13 +62,24 @@ function addFeed($feed){/*{{{*/
 		return $retVal;
 	}
 
+	$SimplePie = new SimplePie();
+	$SimplePie->set_feed_url($feed["url"]);
+	$SimplePie->enable_cache(false);
+	$SimplePie->set_useragent("blindRSS");
+	$SimplePie->init();
+	$SimplePie->handle_content_type();
+
+	if ($SimplePie->get_link() != null){
+		if (($f = fopen("http://g.etfv.co/".$SimplePie->get_link()."?defaulticon=none","rb")) == true){
+			$img = stream_get_contents($f);
+			fclose($f);
+			$feed["favicon"] = "data:image;base64,".base64_encode($img);
+		} else {
+			$feed["favicon"] = "";
+		}
+	}
+
 	if ($feed["name"] == "" && "x".$feed["url"] != "x"){
-		$SimplePie = new SimplePie();
-		$SimplePie->set_feed_url($feed["url"]);
-		$SimplePie->enable_cache(false);
-		$SimplePie->set_useragent("blindRSS");
-		$SimplePie->init();
-		$SimplePie->handle_content_type();
 		$feed["name"] = $SimplePie->get_title();
 		if ($feed["name"] == "")
 			$feed["name"] = "Unknown feed";
@@ -93,8 +104,8 @@ function addFeed($feed){/*{{{*/
 	$r = mysql_fetch_object($q);
 	my_mysql_query("UPDATE feeds SET endID=endID+2 WHERE endID >= $r->endID");
 	my_mysql_query("UPDATE feeds SET startID=startID+2 WHERE startID >= $r->endID"); # $r->endID is correct!
-	$q = my_mysql_query("INSERT INTO feeds (startID, endID, cacheimages, unreadOnChange, name, url)
-		VALUES ({$r->endID}, {$r->endID}+1, '".mres($feed["cacheimages"])."', '".mres($feed["unreadOnChange"])."', '".mres($feed["name"])."', '".mres($feed["url"])."')");
+	$q = my_mysql_query("INSERT INTO feeds (startID, endID, cacheimages, unreadOnChange, name, url, favicon)
+		VALUES ({$r->endID}, {$r->endID}+1, '".mres($feed["cacheimages"])."', '".mres($feed["unreadOnChange"])."', '".mres($feed["name"])."', '".mres($feed["url"])."', '".mres($feed["favicon"])."')");
 	if (mysql_error()){
 		$retVal["status"] = "Error";
 		$retVal["msg"] = mysql_error();
