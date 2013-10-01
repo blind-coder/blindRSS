@@ -187,28 +187,28 @@ switch ($path[0]){
 				case "entries":
 					$data = Array();
 					$date = "";
-					$q = my_mysql_query("SELECT startID, endID FROM feeds WHERE ID = ".mres($r->ID));
+					$q = my_mysql_query("SELECT url, startID, endID FROM feeds WHERE ID = ".mres($r->ID));
 					$r = mysql_fetch_object($q);
 					if ($r->url == ""){ // shortcut for feeds
 						if (count($path) >= 4){
 							/* We need to get the first date with entries after one day before $path[4] */
-							$q = my_mysql_query("SELECT DISTINCT `date` FROM `entries` WHERE feedID = {$r->ID} entries.`date` <= '".mres($path[3])." 23:59:59' ORDER BY `date` DESC LIMIT 1;");
+							$q = my_mysql_query("SELECT MAX(`date`) AS `date` FROM `entries` WHERE feedID = {$r->ID} AND entries.`date` <= '".mres($path[3])." 23:59:59'");
 							if (!($d = mysql_fetch_object($q))){
 								/* no more entries */
 								break;
 							}
-							$date = "AND `date` >= '".substr($d->{"date"}, 0, 10)." 00:00:00' AND `date` < '".mres($path[3])." 23:59:59'";
+							$date = "AND `date` >= '".substr($d->{"date"}, 0, 10)." 00:00:00' AND `date` <= '".mres($path[3])." 23:59:59'";
 						}
-						$q = my_mysql_query("SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE feedID = {$r->ID} AND $date ORDER BY `date` DESC");
+						$q = my_mysql_query("SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE feedID = {$r->ID} $date ORDER BY `date` DESC");
 					} else { // longer way for directories
 						if (count($path) >= 4){
 							/* We need to get the first date with entries after one day before $path[4] */
-							$q = my_mysql_query("SELECT DISTINCT `date` FROM `entries` JOIN feeds ON feeds.ID = entries.feedID AND startID >= {$r->startID} AND endID <= {$r->endID} WHERE entries.`date` <= '".mres($path[3])." 23:59:59' ORDER BY `date` DESC LIMIT 1;");
+							$q = my_mysql_query("SELECT MAX(`date`) AS `date` FROM `entries` JOIN feeds ON feeds.ID = entries.feedID AND startID >= {$r->startID} AND endID <= {$r->endID} WHERE entries.`date` <= '".mres($path[3])." 23:59:59'");
 							if (!($d = mysql_fetch_object($q))){
 								/* no more entries */
 								break;
 							}
-							$date = "AND `date` >= '".substr($d->{"date"}, 0, 10)." 00:00:00' AND `date` < '".mres($path[3])." 23:59:59'";
+							$date = "AND `date` >= '".substr($d->{"date"}, 0, 10)." 00:00:00' AND `date` <= '".mres($path[3])." 23:59:59'";
 						}
 						$q = my_mysql_query("SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE feedID IN (
 							SELECT ID FROM feeds WHERE startID >= {$r->startID} AND endID <= {$r->endID}
