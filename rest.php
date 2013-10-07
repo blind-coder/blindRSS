@@ -606,6 +606,12 @@ switch ($path[0]){
 		// }}}
 	case "opml": // {{{
 		if ($method == "POST"){/*{{{*/
+			global $ISDEMO;
+			if ($ISDEMO){
+				$data["status"] = "error";
+				$data["msg"] = "This is a demo :-)";
+				break;
+			}
 			$parent = (int)$path[1];
 
 			$body = file_get_contents($_FILES["file"]["tmp_name"]);
