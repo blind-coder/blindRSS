@@ -106,15 +106,18 @@ function addFeed($feed){/*{{{*/
 	}
 
 	$r = mysql_fetch_object($q);
+	my_mysql_query("START TRANSACTION");
 	my_mysql_query("UPDATE feeds SET endID=endID+2 WHERE endID >= $r->endID");
 	my_mysql_query("UPDATE feeds SET startID=startID+2 WHERE startID >= $r->endID"); # $r->endID is correct!
 	$q = my_mysql_query("INSERT INTO feeds (startID, endID, cacheimages, unreadOnChange, name, url, favicon)
 		VALUES ({$r->endID}, {$r->endID}+1, '".mres($feed["cacheimages"])."', '".mres($feed["unreadOnChange"])."', '".mres($feed["name"])."', '".mres($feed["url"])."', '".mres($feed["favicon"])."')");
 	if (mysql_error()){
 		$retVal["status"] = "Error";
-		$retVal["msg"] = mysql_error();
+		$retVal["msg"] = mysql_error()."<br />SQL was:"."INSERT INTO feeds (startID, endID, cacheimages, unreadOnChange, name, url, favicon) VALUES ({$r->endID}, {$r->endID}+1, '".mres($feed["cacheimages"])."', '".mres($feed["unreadOnChange"])."', '".mres($feed["name"])."', '".mres($feed["url"])."', '".mres($feed["favicon"])."')";
+		my_mysql_query("ROLLBACK");
 		return $retVal;
 	}
+	my_mysql_query("COMMIT");
 	$q = my_mysql_query("SELECT * FROM feeds WHERE ID = LAST_INSERT_ID()");
 	$retVal["feed"] = mysql_fetch_array($q);
 	$retVal["status"] = "OK";
