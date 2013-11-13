@@ -14,6 +14,9 @@ ul li a {
 li.active > div > a > [class^="icon-"] {
 	background-image: url("bootstrap/img/glyphicons-halflings-white.png");
 }
+h3 {
+	margin: 0px;
+}
 .nav ul {
 	margin: 0;
 	padding: 0 0 0 10px;
@@ -124,17 +127,10 @@ div.jqtree-element:hover span>i.editButton {
 	filter:Alpha(opacity=100); /* IE8 and earlier */
 }
 
-.headline {
-	width: 100%;
-	color: #000000;
-	font-weight: bold;
-	background-color: #f0f0f0;
-	font-size: 14px;
-	border: 1px solid black;
-}
-
-.headline a {
-	color: #000000;
+#headline > div {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
 
 .floatRight {

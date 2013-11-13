@@ -662,7 +662,7 @@ function EntryShow(){{{
 				return;
 			}
 			$("#content").html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
-			$("#headline").empty().attr("href", data.link).append("<nobr>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</nobr>");
+			$("#headline").empty().attr("href", data.link).append("<div>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</div>");
 			$("#headlineTags").empty();
 			$("#btnAddNewTag").show();
 			$("#frmAddNewTag").hide().unbind("submit").on("submit", function(){ that.addTag(); });
