@@ -278,6 +278,17 @@ function FeedShowSettings(){{{
 	$("#buttonDeleteFeed").unbind("click").bind("click", function(){ if (confirm("Really delete feed? This cannot be undone!")){ that.deleteFeed(); } });
 	$("#buttonSaveChanges").unbind("click");
 	$("#buttonSaveChanges").bind("click", function(){ that.updateFeed(); });
+	if (that.isDirectory){
+		$("#buttonAddRSSHandler").show().unbind("click").bind("click", function(){
+			if (confirm("Add Feed handler to Firefox and place new feeds under "+that.data.name+"?")){
+				var l = window.location;
+				var address = l.protocol+"/"+l.hostname+l.pathname.replace("index.html", "")+"add.html?url=%s&parentID="+that.data.ID;
+				window.navigator.registerContentHandler('application/vnd.mozilla.maybe.feed',address,"blindRSS " + that.data.name);
+			}
+		});
+	} else {
+		$("#buttonAddRSSHandler").hide();
+	}
 	$("#feedSettings").modal();
 }}}
 function FeedUpdateFeed(){{{
@@ -1076,18 +1087,9 @@ function showAddFeed(){{{
 	options.val(globalRootFeed.data.ID);
 	d.find("#controlParent").empty().append(options);
 	options.selectpicker();
-	d.find("#buttonAddRSSHandler").unbind("click").bind("click", addRSSHandler);
 	d.find("#buttonAddFeed").unbind("click").bind("click", addFeed);
 	d.find("#isgroup").switch("setState", false);
 	d.modal();
-}}}
-function addRSSHandler(){{{
-	var addDir = $("#parent :selected");
-	if (confirm("Add Feed handler to Firefox and place new feeds under "+addDir.text()+"?")){
-		var l = window.location;
-		var address = l.protocol+"/"+l.hostname+l.pathname.replace("index.html", "")+"add.html?url=%s&parentID="+addDir.val();
-		window.navigator.registerContentHandler('application/vnd.mozilla.maybe.feed',address,"blindRSS " + addDir.text().replace(/^.*\//, ""));
-	}
 }}}
 function toggleTextOrIcons(textOrIcons){{{
 	if (textOrIcons == "icons"){
