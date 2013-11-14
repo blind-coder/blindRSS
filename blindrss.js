@@ -235,10 +235,10 @@ function FeedShowSettings(){{{
 	d.find("#unreadOnChange").switch("setState", that.data.unreadOnChange == "yes");
 	d.find("#deleteFeed").button().on("click", function(){
 		if (confirm("Really delete feed? This cannot be undone!")){
-			if (parseInt(that.data.startID) == 1){
+			if (that.data.startID == 1){
 				alert("Cowardly refusing to delete root category '"+that.data.name+"'");
 			}
-			else if (parseInt(that.data.endID) - 1 != parseInt(that.data.startID)){ // non-empty category
+			else if (that.data.endID - 1 != that.data.startID){ // non-empty category
 				alert("Cowardly refusing to delete non-empty category!");
 			} else {
 				d.dialog("close");
@@ -327,14 +327,14 @@ function FeedUpdateFeed(){{{
 }}}
 function FeedRenderCount(){{{
 	this.buttons.newMessage.empty();
-	if (parseInt(this.data.unreadCount) > 0){
+	if (this.data.unreadCount > 0){
 		this.buttons.newMessage.append(this.data.unreadCount);
 		this.nameFeed.addClass("new");
 	} else {
 		this.nameFeed.removeClass("new");
 	}
 	if (this.data.startID == "1"){ /* All Feeds element */
-		if (parseInt(this.data.unreadCount) != NaN){
+		if (!isNaN(this.data.unreadCount)){
 			$("#num_specialUnread").empty().append(this.data.unreadCount);
 		}
 	}
@@ -400,7 +400,7 @@ function FeedMarkAllRead(){{{
 	 * Server updates feeds, gets new entries into database
 	 * Client "marks all as read" which would also cause entries unknown to the client to be marked
 	 */
-	if (!(maxID = parseInt(that.data.maxID))){
+	if (!(maxID = that.data.maxID)){
 		maxID = 0;
 	}
 
@@ -423,7 +423,7 @@ function FeedMarkAllRead(){{{
 		success: function(data){
 			if (data.status == "OK"){
 				$.each(globalFeeds, function(k,f){
-					if (parseInt(f.data.startID) >= parseInt(that.data.startID) && parseInt(f.data.endID) <= parseInt(that.data.endID)){
+					if (f.data.startID >= that.data.startID && f.data.endID <= that.data.endID){
 						$.each(f.entries, function(k,v){
 							v.data.isread="1";
 							v.update();
@@ -461,15 +461,15 @@ function FeedUpdateCount(){{{
 					getFeeds(); // This feed is missing, probably added via firefox rss handler or another instance.
 					return false;
 				}
-				feed.data.unreadCount = v.unread;
-				feed.data.maxID = v.maxID;
+				feed.data.unreadCount = parseInt(v.unread);
+				feed.data.maxID = parseInt(v.maxID);
 				feed.renderCount();
 			})
 			for (var x = that.parent; x; x=x.parent){
 				/* Only need to update this feeds parents because we only get the unreadcount for this feeds children */
 				var newCount = 0;
 				for (var c = 0; c < x.children.length; c++){
-					newCount += parseInt(x.children[c].data.unreadCount);
+					newCount += x.children[c].data.unreadCount;
 				}
 				x.data.unreadCount = newCount;
 				x.renderCount();
@@ -499,7 +499,14 @@ function FeedSQLDate(){{{
 }}}
 function Feed(data){{{
 	var that = this;
-	globalFeeds[parseInt(data.ID)] = this;
+	$.each(["ID","endID","startID","maxID","unreadCount"], function(k,v){
+		if (data[v]){
+			data[v] = parseInt(data[v]);
+		} else {
+			data[v] = 0;
+		}
+	});
+	globalFeeds[data.ID] = this;
 	this.data = data;
 	this.getEntries=FeedGetEntries;
 	this.updateCount=FeedUpdateCount;
@@ -521,14 +528,14 @@ function Feed(data){{{
 		var parents =
 			$.grep(keys, function(i, n){
 				var f = globalFeeds[i];
-				return parseInt(f.data.startID) <= parseInt(that.data.startID) &&
-					parseInt(f.data.endID) >= parseInt(that.data.endID) &&
+				return f.data.startID <= that.data.startID &&
+					f.data.endID >= that.data.endID &&
 					f.isDirectory;
 				});
-		min = parseInt(globalRootFeed.data.endID) + 1;
+		min = globalRootFeed.data.endID + 1;
 		for (idx in parents){
 			var f = globalFeeds[parents[idx]];
-			var diff = parseInt(f.data.endID) - parseInt(f.data.startID);
+			var diff = f.data.endID - f.data.startID;
 			if (diff < min){
 				min = diff;
 				that.parent = f;
