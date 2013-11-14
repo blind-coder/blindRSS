@@ -55,6 +55,8 @@ function EntriesScrolled(event){{{
 }}}
 function showEntries(tree, append=false){{{
 	if (append){
+		delete globalEntriesTreeData[globalEntriesTreeData.length-1];
+		globalEntriesTreeData.splice(globalEntriesTreeData.length-1,1);
 		$.each(tree, function(k,v){
 			globalEntriesTreeData.push(v);
 		});
@@ -362,9 +364,6 @@ function FeedGetEntries(append){{{
 		type: "GET",
 		dataType: "json",
 		success: function(data){
-			if (append){
-				globalEntriesTree.tree('removeNode', globalEntriesTree.tree('getNodeById', 'loadMore'));
-			}
 			if (data.length == 0){
 				globalEntriesTree.tree('appendNode', { id: "noMoreEntries", label: "[ No more entries ]", action: function(e){ return; }});
 				return;
