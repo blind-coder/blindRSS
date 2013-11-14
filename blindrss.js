@@ -1,6 +1,7 @@
 var globalFeedsTree;
 var globalSpecialFeedsTree;
 var globalEntriesTree;
+var globalEntriesTreeData;
 var labelNames = new Array("label-success", "label-warning", "label-important", "label-info", "label-inverse");
 var globalFeeds = new Object();
 var globalRootFeed;
@@ -53,72 +54,75 @@ function EntriesScrolled(event){{{
 		$("#entries ul li:last .jqtree-title").click();
 }}}
 function showEntries(tree, append=false){{{
-	if (!append){
-		if (globalEntriesTree){
-			globalEntriesTree.tree("destroy");
-			globalEntriesTree = false;
-		}
-		var dBody = $("#entries");
-		dBody.tree(false);
-		dBody.empty();
-		var t = dBody.tree({
-			data: tree,
-			autoOpen: true,
-			dragAndDrop: false,
-			selectable: true,
-			useContextMenu: false,
-			onCreateLi: function(node, $li){
-				if (!node.entry){
-					return;
-				}
-				var iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
+	if (append){
+		$.each(tree, function(k,v){
+			globalEntriesTreeData.push(v);
+		});
+	} else {
+		globalEntriesTreeData = tree;
+	}
+	if (globalEntriesTree){
+		globalEntriesTree.tree("destroy");
+		globalEntriesTree = false;
+	}
+	var dBody = $("#entries");
+	dBody.tree(false);
+	dBody.empty();
+	var t = dBody.tree({
+		data: globalEntriesTreeData,
+		autoOpen: true,
+		dragAndDrop: false,
+		selectable: true,
+		useContextMenu: false,
+		onCreateLi: function(node, $li){
+			if (!node.entry){
+				return;
+			}
+			var iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
 				.on("click", function(){
 					node.entry.toggleRead();
 					return false;
 				});
-				var iconFav = $("<i class='floatLeft icon-star-empty' />")
+			var iconFav = $("<i class='floatLeft icon-star-empty' />")
 				.on("click", function(){
 					node.entry.toggleFavorite();
 					return false;
 				});
-				if (node.entry.data.favorite == "yes"){
-					iconFav.toggleClass("icon-star icon-star-empty");
-				}
-				if (node.entry.data.isread == "0"){
-					$li.find(".jqtree-title").addClass("new");
-				} else {
-					$li.find(".jqtree-title").removeClass("new");
-				}
-				var spin = $("<span class='floatLeft spin' id='spinEntry_"+node.entry.data.ID+"'>&nbsp;</span>");
-				node.entry.spin = spin;
-				node.entry.iconFav = iconFav;
-				node.entry.iconNew = iconNew;
-				node.entry.span = $li.find(".jqtree-title");
+			if (node.entry.data.favorite == "yes"){
+				iconFav.toggleClass("icon-star icon-star-empty");
+			}
+			if (node.entry.data.isread == "0"){
+				$li.find(".jqtree-title").addClass("new");
+			} else {
+				$li.find(".jqtree-title").removeClass("new");
+			}
+			var spin = $("<span class='floatLeft spin' id='spinEntry_"+node.entry.data.ID+"'>&nbsp;</span>");
+			node.entry.spin = spin;
+			node.entry.iconFav = iconFav;
+			node.entry.iconNew = iconNew;
+			node.entry.span = $li.find(".jqtree-title");
 
-				$li.find(".jqtree-title")
-					.prepend(spin)
-					.prepend(iconFav)
-					.prepend(iconNew);
+			$li.find(".jqtree-title")
+				.prepend(spin)
+				.prepend(iconFav)
+				.prepend(iconNew);
+		}
+	});
+	t.bind(
+		'tree.click',
+		function(event){
+			if (!event.node){
+				return;
 			}
-		});
-		t.bind(
-			'tree.click',
-			function(event){
-				if (!event.node){
-					return;
-				}
-				if (event.node.action){
-					event.node.action(event);
-					return;
-				}
-				var that = event.node.entry;
-				that.show();
+			if (event.node.action){
+				event.node.action(event);
+			return;
 			}
-		);
-		globalEntriesTree = t;
-	} else {
-		$.each(tree, function(k,v){ globalEntriesTree.tree('appendNode', v); });
-	}
+			var that = event.node.entry;
+			that.show();
+		}
+	);
+	globalEntriesTree = t;
 }}}
 function parseEntries(data){{{
 	var oldDate;
@@ -326,16 +330,17 @@ function FeedUpdateFeed(){{{
 	});
 }}}
 function FeedRenderCount(){{{
-	this.buttons.newMessage.empty();
-	if (this.data.unreadCount > 0){
-		this.buttons.newMessage.append(this.data.unreadCount);
-		this.nameFeed.addClass("new");
+	var that = this;
+	that.buttons.newMessage.empty();
+	if (that.data.unreadCount > 0){
+		that.buttons.newMessage.append(that.data.unreadCount);
+		that.nameFeed.addClass("new");
 	} else {
-		this.nameFeed.removeClass("new");
+		that.nameFeed.removeClass("new");
 	}
-	if (this.data.startID == "1"){ /* All Feeds element */
-		if (!isNaN(this.data.unreadCount)){
-			$("#num_specialUnread").empty().append(this.data.unreadCount);
+	if (that.data.startID == 1){ /* All Feeds element */
+		if (!isNaN(that.data.unreadCount)){
+			$("#num_specialUnread").empty().append(that.data.unreadCount);
 		}
 	}
 }}}
@@ -438,7 +443,7 @@ function FeedMarkAllRead(){{{
 }}}
 function FeedUpdateCount(){{{
 	var that = this;
-	if (!this.parent){
+	if (!that.parent){
 		$("#spin_Refresh").addClass("icon-spin");
 	} else {
 		that.spin.spin("tiny");
@@ -521,7 +526,7 @@ function Feed(data){{{
 	this.directories=FeedDirectories;
 	this.children = new Array();
 
-	if (this.data.startID != "1"){
+	if (this.data.startID > 1){
 		/* unless this is the root feed, we need a pointer to our parent feed */
 		var keys = [];
 		for (k in globalFeeds){ keys.push(k); };
@@ -531,7 +536,7 @@ function Feed(data){{{
 				return f.data.startID <= that.data.startID &&
 					f.data.endID >= that.data.endID &&
 					f.isDirectory;
-				});
+			});
 		min = globalRootFeed.data.endID + 1;
 		for (idx in parents){
 			var f = globalFeeds[parents[idx]];
@@ -541,16 +546,14 @@ function Feed(data){{{
 				that.parent = f;
 			}
 		}
-		this.parent.children.push(this);
+		that.parent.children.push(that);
 	}
 
 	/* unfortunately, any of these tend to be sent from the server */
-	if ("x"+this.data.url == "x" ||
-		"x"+this.data.url == "xnull" ||
-		"x"+this.data.url == "xundefined"){
-		this.isDirectory=true;
+	if ("x"+that.data.url == "x" || "x"+that.data.url == "xnull" || "x"+that.data.url == "xundefined"){
+		that.isDirectory=true;
 	} else {
-		this.isDirectory=false;
+		that.isDirectory=false;
 	}
 
 	return;
