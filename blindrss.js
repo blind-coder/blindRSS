@@ -428,10 +428,12 @@ function FeedMarkAllRead(){{{
 			if (data.status == "OK"){
 				$.each(globalFeeds, function(k,f){
 					if (f.data.startID >= that.data.startID && f.data.endID <= that.data.endID){
-						$.each(f.entries, function(k,v){
-							v.data.isread="1";
-							v.update();
-						});
+						if (f.entries){
+							$.each(f.entries, function(k,v){
+								v.data.isread="1";
+								v.update();
+							});
+						}
 					}
 				});
 			} else {
