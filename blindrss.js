@@ -32,11 +32,11 @@ function cronjob(){{{
 function resize(){{{
 	$.each(["#content", "#feeds"], function(k,v){
 		var x = $(v);
-		x.height(window.innerHeight - (x.position().top + 10));
+		x.height(window.innerHeight - (x.offset().top + 10));
 	});
 	$.each(["#specialFeeds", "#entries"], function(k,v){
 		var x = $(v);
-		x.height(x.parent().innerHeight() - (x.position().top - x.parent().position().top));
+		x.height(x.parent().innerHeight() - (x.offset().top - x.parent().offset().top));
 	});
 }}}
 function search(){{{
