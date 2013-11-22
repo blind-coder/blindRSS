@@ -3,10 +3,11 @@
 	<head>
 		<title>blindRSS</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 		<link rel="icon" type="image/png" href="images/feed-icon-14x14.png" />
 
 		<link rel="stylesheet" href="bootstrap/css/bootstrap.css" />
-		<link rel="stylesheet" href="bootstrap/css/bootstrap-responsive.css" />
 		<link rel="stylesheet" href="bootstrap-switch/bootstrap-switch.css" />
 		<link rel="stylesheet" href="bootstrap-select/bootstrap-select.css" />
 		<link rel="stylesheet" href="jqtree/jqtree.css" />
@@ -33,323 +34,344 @@
 	</head>
 
 	<body>
-		<div class="navbar navbar-inverse navbar-fixed-top printRemove">
-			<div class="navbar-inner">
-				<div class="container-fluid">
-					<a class="brand" href="#">blindRSS</a>
-					<div class="nav-collapse collapse">
-						<ul class="nav">
-							<li><a href="javascript:globalRootFeed.updateCount();"><span class='titleText'>Refresh</span><i id='spin_Refresh' class="titleIcon icon-refresh icon-1dot5x"></i></a></li>
-							<li><a href="javascript:showAddFeed();"><span class='titleText'>Add feed</span><i class="titleIcon icon-white icon-plus icon-1dot5x"></i></a></li>
-						</ul>
-						<ul class="nav pull-right">
-							<li><!--{{{search-->
-								<form action="javascript:search();" id='frmSearch' class='form-search'>
-									<div class="input-append">
-										<input id="txtSearch" type="text" class="input-medium search-query" placeholder="Search...">
-										<button type="submit" class="btn"><i id='spin_search' class="icon-search"> </i></button>
+		<nav class="navbar navbar-inverse navbar-fixed-top printRemove" role="navigation">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation-bar-top">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#">blindRSS</a>
+			</div>
+			<div class="collapse navbar-collapse" id="navigation-bar-top">
+				<ul class="nav navbar-nav">
+					<li>
+						<a href="javascript:globalRootFeed.updateCount();">
+							<span class="titleText">Refresh</span>
+							<i id="spin_Refresh" class="titleIcon icon-white icon-refresh"></i>
+						</a>
+					</li>
+					<li>
+						<a href="javascript:showAddFeed();">
+							<span class="titleText">Add feed</span>
+							<i class="titleIcon icon-white icon-plus"></i>
+						</a>
+					</li>
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><span class="titleText">Options</span><i class="titleIcon icon-cog"></i></a>
+						<ul class="dropdown-menu" role="menu">
+							<li><!--{{{ purgeAfter-->
+								<form class="form-horizontal" role="form">
+									<div class="form-group">
+										<label class="col-sm-6 col-sm-6 control-label" for="selectPurgeAfter">Keep entries for:</label>
+										<div class="col-sm-6">
+											<select id="selectPurgeAfter">
+												<option value="7">7 Days</option>
+												<option value="14">14 Days</option>
+												<option value="31">31 Days</option>
+												<option value="365">365 Days</option>
+												<option value="36135">99 Years</option>
+											</select>
+										</div>
 									</div>
 								</form>
 							</li><!--}}}-->
-							<li class="dropdown">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><span class='titleText'>Options</span><i class="titleIcon icon-cog icon-1dot5x"></i></a>
-								<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-									<li><!--{{{ purgeAfter-->
-										<form class="form-horizontal">
-											<div class='control-group'>
-												<label class='control-label' for='selectPurgeAfter'>Keep entries for:</label>
-												<div class='controls'>
-													<select id='selectPurgeAfter'>
-														<option value='7'>7 Days</option>
-														<option value='14'>14 Days</option>
-														<option value='31'>31 Days</option>
-														<option value='365'>365 Days</option>
-														<option value='36135'>99 Years</option>
-													</select>
-												</div>
+							<li><!--{{{ deleteFavorites-->
+								<form class="form-horizontal">
+									<div class="form-group">
+										<label class="col-sm-6 col-sm-6 control-label" for="buttonDeleteFavorites">Delete entries if they are favorites?</label>
+										<div class="col-sm-6">
+											<div id="buttonDeleteFavorites" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+												<input type="checkbox" checked="checked">
 											</div>
-										</form>
-									</li><!--}}}-->
-									<li><!--{{{ deleteFavorites-->
-										<form class="form-horizontal">
-											<div class='control-group'>
-												<label class='control-label' for='buttonDeleteFavorites'>Delete entries if they are favorites?</label>
-												<div class='controls'>
-													<div id='buttonDeleteFavorites' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-														<input type="checkbox" checked="checked">
-													</div>
-												</div>
+										</div>
+									</div>
+								</form>
+							</li><!--}}}-->
+							<li><!--{{{ deleteTagged-->
+								<form class="form-horizontal">
+									<div class="form-group">
+										<label class="col-sm-6 control-label" for="buttonDeleteFavorites">Delete entries if they are tagged?</label>
+										<div class="col-sm-6">
+											<div id="buttonDeleteTagged" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+												<input type="checkbox" checked="checked">
 											</div>
-										</form>
-									</li><!--}}}-->
-									<li><!--{{{ deleteTagged-->
-										<form class="form-horizontal">
-											<div class='control-group'>
-												<label class='control-label' for='buttonDeleteFavorites'>Delete entries if they are tagged?</label>
-												<div class='controls'>
-													<div id='buttonDeleteTagged' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-														<input type="checkbox" checked="checked">
-													</div>
-												</div>
+										</div>
+									</div>
+								</form>
+							</li><!--}}}-->
+							<li><!--{{{ show favicons-->
+								<form class="form-horizontal">
+									<div class="form-group">
+										<label class="col-sm-6 control-label" for="buttonShowFavicons">Show feed icons?</label>
+										<div class="col-sm-6">
+											<div id="buttonShowFavicons" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+												<input type="checkbox" checked="checked">
 											</div>
-										</form>
-									</li><!--}}}-->
-									<li><!--{{{ show favicons-->
-										<form class="form-horizontal">
-											<div class='control-group'>
-												<label class='control-label' for='buttonShowFavicons'>Show feed icons?</label>
-												<div class='controls'>
-													<div id='buttonShowFavicons' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-														<input type="checkbox" checked="checked">
-													</div>
-												</div>
+										</div>
+									</div>
+								</form>
+							</li><!--}}}-->
+							<li><!--{{{ auto-advance-->
+								<form class="form-horizontal">
+									<div class="form-group">
+										<label class="col-sm-6 control-label" for="buttonAutoAdvance">Automatically advance to next day?</label>
+										<div class="col-sm-6">
+											<div id="buttonAutoAdvance" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+												<input type="checkbox" checked="checked">
 											</div>
-										</form>
-									</li><!--}}}-->
-									<li><!--{{{ auto-advance-->
-										<form class="form-horizontal">
-											<div class='control-group'>
-												<label class='control-label' for='buttonAutoAdvance'>Automatically advance to next day?</label>
-												<div class='controls'>
-													<div id='buttonAutoAdvance' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-														<input type="checkbox" checked="checked">
-													</div>
-												</div>
+										</div>
+									</div>
+								</form>
+							</li><!--}}}-->
+							<li class="divider"></li>
+							<li><!--{{{ reloadEvery-->
+								<form class="form-horizontal">
+									<div class="form-group">
+										<label class="col-sm-6 control-label" for="selectReloadEvery">Automatically reload:</label>
+										<div class="col-sm-6">
+											<select id="selectReloadEvery">
+												<option value="-1">Never</option>
+												<option value="15">15 minutes</option>
+												<option value="30">30 minutes</option>
+												<option value="60">60 minutes</option>
+												<option value="other">other</option>
+											</select>
+											<input type="text" id="reloadEveryOther" />
+										</div>
+									</div>
+								</form>
+							</li><!--}}}-->
+							<li><!--{{{ textOrIcons-->
+								<form class="form-horizontal">
+									<div class="form-group">
+										<label class="col-sm-6 control-label" for="buttonTextOrIcons">Style of titlebar:</label>
+										<div class="col-sm-6">
+											<div id="buttonTextOrIcons" class="switch switch-small" data-on-label="Text" data-off-label="Icons">
+												<input type="checkbox" checked="checked">
 											</div>
-										</form>
-									</li><!--}}}-->
-									<li class="divider"></li>
-									<li><!--{{{ reloadEvery-->
-										<form class="form-horizontal">
-											<div class='control-group'>
-												<label class='control-label' for='selectReloadEvery'>Automatically reload:</label>
-												<div class='controls'>
-													<select id='selectReloadEvery'>
-														<option value='-1'>Never</option>
-														<option value='15'>15 minutes</option>
-														<option value='30'>30 minutes</option>
-														<option value='60'>60 minutes</option>
-														<option value='other'>other</option>
-													</select>
-													<input type="text" id="reloadEveryOther" class="hide" />
-												</div>
-											</div>
-										</form>
-									</li><!--}}}-->
-									<li><!--{{{ textOrIcons-->
-										<form class="form-horizontal">
-											<div class='control-group'>
-												<label class='control-label' for='buttonTextOrIcons'>Style of titlebar:</label>
-												<div class='controls'>
-													<div id='buttonTextOrIcons' class="switch switch-small" data-on-label="Text" data-off-label="Icons">
-														<input type="checkbox" checked="checked">
-													</div>
-												</div>
-											</div>
-										</form>
-									</li><!--}}}-->
-									<li class="divider"></li>
-									<li><!-- import/export OPML -->
-										<form class="form-horizontal">
-											<div class='control-group'>
-												<label class='control-label' for='buttonExportOPML'>Export OPML:</label>
-												<div class='controls'>
-													<a id='buttonExportOPML' class="btn" href="rest.php/opml.xml">Export OPML</a><br />
-												</div>
-											</div>
-										</form>
-									</li>
-									<li><!-- import/export OPML -->
-										<form class="form-horizontal">
-											<div class='control-group'>
-												<label class='control-label' for='importOPML'>Upload OPML:</label>
-												<div class='controls'>
-													<input id='importOPML' type='file' name='file' multiple>
-													<select id='importOPMLParent' disabled>
-														<option>[Select parent]</option>
-													</select>
-													<a href='#' disabled class='btn' id='buttonImportOPML'>Upload</a>
-												</div>
-											</div>
-										</form>
-									</li>
-								</ul>
+										</div>
+									</div>
+								</form>
+							</li><!--}}}-->
+							<li class="divider"></li>
+							<li><!-- import/export OPML -->
+								<form class="form-horizontal">
+									<div class="form-group">
+										<label class="col-sm-6 control-label" for="buttonExportOPML">Export OPML:</label>
+										<div class="col-sm-6">
+											<a id="buttonExportOPML" class="btn" href="rest.php/opml.xml">Export OPML</a><br />
+										</div>
+									</div>
+								</form>
+							</li>
+							<li><!-- import/export OPML -->
+								<form class="form-horizontal">
+									<div class="form-group">
+										<label class="col-sm-6 control-label" for="importOPML">Upload OPML:</label>
+										<div class="col-sm-6">
+											<input id="importOPML" type="file" name="file" multiple>
+											<select id="importOPMLParent" disabled>
+												<option>[Select parent]</option>
+											</select>
+											<a href="#" disabled class="btn" id="buttonImportOPML">Upload</a>
+										</div>
+									</div>
+								</form>
 							</li>
 						</ul>
+					</li>
+				</ul>
+				<form action="javascript:search();" id="frmSearch" class="navbar-form navbar-right" role="search">
+					<div class="input-group">
+						<input id="txtSearch" type="text" class="input-medium form-control" placeholder="Search...">
+						<span class="input-group-btn">
+							<button type="submit" class="btn btn-default"><i id="spin_search" class="icon-search"> </i></button>
+						</span>
+					</div>
+				</form>
+			</div>
+		</nav>
+
+		<div class="container">
+			<div class="row printRemove">
+				<div class="col-md-3">
+					<div class="panel panel-default specials">
+						<div class="panel-heading">Special Feeds</div>
+						<div id="specialFeeds" class="sidebar-nav"> </div>
+					</div>
+				</div> <!-- /col-md-3 -->
+				<div class="col-md-9">
+					<div class="panel panel-default entries">
+						<div class="panel-heading">Entries</div>
+						<div id="entries" class="sidebar-nav"> </div>
+					</div>
+				</div> <!-- /col-md-9 -->
+			</div> <!-- /row -->
+
+			<div class="row">
+				<div class="col-md-3">
+					<div class="printRemove panel panel-default">
+						<div class="panel-heading">RSS Feeds</div>
+						<div id="feeds" class="sidebar-nav"> </div>
+					</div>
+				</div><!--/col-md-3-->
+
+				<div class="col-md-9">
+					<div class="panel panel-default content">
+						<div class="panel-heading">
+							<a href="#" target="_blank" id="headline">Welcome to blindRSS</a>
+						</div>
+						<div>
+							<span id="btnAddNewTag" class="label label-default" style="display: none;"><i title="Add new tag" class="icon-tag"></i></span>
+							<form id="frmAddNewTag" class="form" style="display: none;">
+								<input type="hidden" id="entryID" value="0">
+								<div class="input-group">
+									<span class="input-group-addon"><i class="icon-tag"></i></span>
+									<input class="col-sm-2 form-control" id="newTag" type="text" placeholder="Add tag...">
+								</div>
+							</form>
+							<span id="headlineTags"></span>
+						</div>
+						<div id="content">
+							blindRSS is a very simple browser-operated RSS reader.<br>
+							You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
+							It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
+							<br>
+							Enjoy :-)
+						</div>
+					</div>
+				</div><!--/col-md-9-->
+			</div><!--/row-->
+		</div><!--/.container-->
+
+		<!-- Modal addFeed -->
+		<div id="addFeed" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
+			<div class="modal-dialog" style="min-width: 800px;">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h3 id="feedSettingsLabel">Add Feed</h3>
+					</div>
+					<div class="modal-body">
+						<form class="form-horizontal">
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="parent">Parent:</label>
+								<div id="controlParent" class="col-sm-8">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="name">Name:</label>
+								<div class="col-sm-8">
+									<input type="text" class="input-xxlarge" id="name">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="url">Feed URL:</label>
+								<div class="col-sm-8">
+									<input type="text" id="url" class="input-xxlarge">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="isgroup">Is this a group:</label>
+								<div class="col-sm-8">
+									<div id="isgroup" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+										<input type="checkbox" checked="checked">
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="cacheimages">Cache images in this feed:</label>
+								<div class="col-sm-8">
+									<div id="cacheimages" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+										<input type="checkbox" checked="checked">
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label" for="unreadOnChange">Mark entries "new" when content changes:</label>
+								<div class="col-sm-8">
+									<div id="unreadOnChange" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+										<input type="checkbox" checked="checked">
+									</div>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="modal-footer">
+						<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+						<button class="btn btn-primary" id="buttonAddFeed">Add Feed</button>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="container-fluid">
-			<div class="row-fluid printRemove">
-				<div class="span3 well specials">
-					<div class='nav-header'>Special Feeds</div>
-					<div id="specialFeeds" class="sidebar-nav"> </div>
-				</div> <!-- /span3 -->
-				<div class="span9 well entries">
-					<div id='entries' class='sidebar-nav'> </div>
-				</div> <!-- /span9 -->
-			</div> <!-- /row-fluid /specials -->
-
-			<div class="row-fluid">
-				<div class="span3 printRemove well">
-					<div class='nav-header'>RSS Feeds</div>
-					<div id="feeds" class='sidebar-nav'> </div>
-				</div><!--/span3-->
-
-				<div class="span9 well content">
-					<h3><a href='#' target="_blank" id="headline">Welcome to blindRSS</a></h3>
-					<div>
-						<span id='btnAddNewTag' class='label hide'><i title='Add new tag' class='icon-tag'></i></span>
-						<form id='frmAddNewTag' class='form hide'>
-							<input type='hidden' id='entryID' value='0'>
-							<div class="input-prepend">
-								<span class="add-on"><i class='icon-tag'></i></span>
-								<input class="span2" id="newTag" type="text" placeholder="Add Tag...">
+		<!-- Modal feedSettings -->
+		<div id="feedSettings" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
+			<div class="modal-dialog" style="min-width: 800px;">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+						<h3 id="feedSettingsLabel">Feedsettings</h3>
+					</div>
+					<div class="modal-body">
+						<form class="form-horizontal">
+							<div class="form-group">
+								<label class="col-sm-6 control-label" for="name">Name:</label>
+								<div class="col-sm-6">
+									<input type="text" class="input-xxlarge" id="name">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-6 control-label" for="url">Feed URL:</label>
+								<div class="col-sm-6">
+									<input type="text" id="url" class="input-xxlarge">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-6 control-label" for="isgroup">Is this a group:</label>
+								<div class="col-sm-6">
+									<div id="isgroup" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+										<input type="checkbox" checked="checked">
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-6 control-label" for="cacheimages">Cache images in this feed:</label>
+								<div class="col-sm-6">
+									<div id="cacheimages" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+										<input type="checkbox" checked="checked">
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-6 control-label" for="unreadOnChange">Mark entries "new" when content changes:</label>
+								<div class="col-sm-6">
+									<div id="unreadOnChange" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+										<input type="checkbox" checked="checked">
+									</div>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-2 control-label" for="filter">Filter:</label>
+								<div class="col-sm-10">
+									<table class="table" id="filter"></table>
+								</div>
 							</div>
 						</form>
-						<span id='headlineTags'></span>
 					</div>
-					<div id="content">
-						blindRSS is a very simple browser-operated RSS reader.<br>
-						You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
-						It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
-						<br>
-						Enjoy :-)
+					<div class="modal-footer">
+						<button class="btn btn-danger pull-left" id="buttonDeleteFeed">Delete Feed</button>
+						<button class="btn pull-left" id="buttonAddRSSHandler">Add RSS Handler</button>
+						<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+						<button class="btn btn-primary" id="buttonSaveChanges">Save changes</button>
 					</div>
-				</div><!--/span12-->
-			</div><!--/row-fluid-->
-		</div><!--/.fluid-container-->
+				</div>
+			</div>
+		</div>
 
-	<!-- Modal addFeed -->
-	<div id="addFeed" class="modal hide fade" style="width: 800px;" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
-		<div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-			<h3 id="feedSettingsLabel">Add Feed</h3>
-		</div>
-		<div class="modal-body">
-			<form class='form-horizontal'>
-				<div class='control-group'>
-					<label class="control-label" for="parent">Parent:</label>
-					<div id='controlParent' class="controls">
-					</div>
-				</div>
-				<div class="control-group">
-					<label class="control-label" for="name">Name:</label>
-					<div class="controls">
-						<input type='text' class='input-xxlarge' id='name'>
-					</div>
-				</div>
-				<div class="control-group">
-					<label class="control-label" for="url">Feed URL:</label>
-					<div class="controls">
-						<input type='text' id='url' class='input-xxlarge'>
-					</div>
-				</div>
-				<div class='control-group'>
-					<label class="control-label" for="isgroup">Is this a group:</label>
-					<div class="controls">
-						<div id='isgroup' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-							<input type="checkbox" checked="checked">
-						</div>
-					</div>
-				</div>
-				<div class='control-group'>
-					<label class="control-label" for="cacheimages">Cache images in this feed:</label>
-					<div class="controls">
-						<div id='cacheimages' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-							<input type="checkbox" checked="checked">
-						</div>
-					</div>
-				</div>
-				<div class='control-group'>
-					<label class='control-label' for='unreadOnChange'>Mark entries 'new' when content changes:</label>
-					<div class='controls'>
-						<div id='unreadOnChange' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-							<input type="checkbox" checked="checked">
-						</div>
-					</div>
-				</div>
-			</form>
-		</div>
-		<div class="modal-footer">
-			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-			<button class="btn btn-primary" id="buttonAddFeed">Add Feed</button>
-		</div>
-	</div>
-
-	<!-- Modal feedSettings -->
-	<div id="feedSettings" class="modal hide fade" style="width: 800px;" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
-		<div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-			<h3 id="feedSettingsLabel">Feedsettings</h3>
-		</div>
-		<div class="modal-body">
-			<form class="form-horizontal">
-				<div class='control-group'>
-					<label class="control-label" for="name">Name:</label>
-					<div class="controls">
-						<input type='text' class='input-xxlarge' id='name'>
-					</div>
-				</div>
-				<div class='control-group'>
-					<label class="control-label" for="url">Feed URL:</label>
-					<div class="controls">
-						<input type='text' id='url' class='input-xxlarge'>
-					</div>
-				</div>
-				<div class='control-group'>
-					<label class="control-label" for="isgroup">Is this a group:</label>
-					<div class="controls">
-						<div id='isgroup' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-							<input type="checkbox" checked="checked">
-						</div>
-					</div>
-				</div>
-				<div class='control-group'>
-					<label class="control-label" for="cacheimages">Cache images in this feed:</label>
-					<div class="controls">
-						<div id='cacheimages' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-							<input type="checkbox" checked="checked">
-						</div>
-					</div>
-				</div>
-				<div class='control-group'>
-					<label class='control-label' for='unreadOnChange'>Mark entries 'new' when content changes:</label>
-					<div class='controls'>
-						<div id='unreadOnChange' class="switch switch-small" data-on-label="Yes" data-off-label="No">
-							<input type="checkbox" checked="checked">
-						</div>
-					</div>
-				</div>
-				<div class='control-group'>
-					<label class="control-label" for="filter">Filter:</label>
-					<div class="controls">
-						<table class='table' id='filter'></table>
-					</div>
-				</div>
-			</form>
-		</div>
-		<div class="modal-footer">
-			<button class="btn btn-danger pull-left" id="buttonDeleteFeed">Delete Feed</button>
-			<button class="btn pull-left" id="buttonAddRSSHandler">Add RSS Handler</button>
-			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-			<button class="btn btn-primary" id="buttonSaveChanges">Save changes</button>
-		</div>
-	</div>
-
-	<!-- Modal rearrangeFeeds -->
-	<div id="rearrangeFeeds" class="modal hide fade" style="width: 800px;" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
-		<div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-			<h3 id="feedSettingsLabel">Rearrange feeds</h3>
-		</div>
-		<div class="modal-body" style="max-height: 600px;">
-		</div>
-		<div class="modal-footer">
-			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-		</div>
-	</div>
-</body>
+	</body>
 </html>

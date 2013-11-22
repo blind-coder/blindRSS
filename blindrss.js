@@ -2,7 +2,7 @@ var globalFeedsTree;
 var globalSpecialFeedsTree;
 var globalEntriesTree;
 var globalEntriesTreeData;
-var labelNames = new Array("label-success", "label-warning", "label-important", "label-info", "label-inverse");
+var labelNames = new Array("label-success", "label-warning", "label-info");
 var globalFeeds = new Object();
 var globalRootFeed;
 
@@ -48,10 +48,12 @@ function search(){{{
 	});
 }}}
 function EntriesScrolled(event){{{
-	if ($("#buttonAutoAdvance input").attr("checked") != "checked")
-		return;
+	console.log("scrolled");
+	if (!($("#buttonAutoAdvance input").prop("checked")))
+		return true;
 	if (this.scrollTop + 15 > this.scrollTopMax)
 		$("#entries ul li:last .jqtree-title").click();
+	return true;
 }}}
 function showEntries(tree, append=false){{{
 	if (append){
