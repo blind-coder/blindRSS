@@ -98,7 +98,7 @@ div.jqtree-element:hover span>i.editButton {
 }
 .entries, .specials {
 	overflow: hidden;
-	height: 185px !important;
+	height: 190px !important;
 }
 .entries ul, .specials ul {
 	padding: 0;
@@ -229,4 +229,7 @@ i.favicon {
 }
 .badge {
 	min-width: 30px;
+}
+.container {
+	width: 100%;
 }
