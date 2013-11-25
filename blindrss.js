@@ -272,12 +272,18 @@ function FeedShowSettings(){{{
 					"<option value='ignore' "+(v.whiteorblack == "ignore" ? "selected" : "")+">Ignore entry</option>"+
 					"</select>"+
 					"</td><td>"+
-					"<input type='text' value='"+v.regex+"' name='regex_"+v.ID+"'>"+
+					"<input type='text' value='"+v.regex+"' class='form-control' name='regex_"+v.ID+"'>"+
 					"</td><td>"+
-					"<label class='checkbox'><input type='checkbox' name='delete_"+v.ID+"' id='delete_"+v.ID+"'>Delete?</label>"+
+					"<div id='delete_"+v.ID+"' class='switch switch-danger switch-small' data-on-label='Delete' data-off-label='Keep'>"+
+					"<input type='checkbox' checked='false'>"+
+					"</div>"+
 					"</td></tr>";
 			});
 			filter.append(s).spin(false);
+			$.each(data, function(k,v){
+				filter.find("#delete_"+v.ID).switch();
+				filter.find("#delete_"+v.ID).switch("setState", false);
+			});
 			filter.find(".selectpicker").selectpicker();
 		},
 		complete: function(){ d.find("input[type=radio]").button(); d.find("input[type=checkbox]").button(); }
@@ -307,7 +313,7 @@ function FeedUpdateFeed(){{{
 		var id = v.name.split("_")[1];
 		var regex = v.value;
 		var wob = d.find("select[name=whiteorblack_"+id+"] :selected").val();
-		var del = d.find("input[name=delete_"+id+"]").attr("checked") == "checked" ? "true" : "false";
+		var del = d.find("#delete_"+id+" input").prop("checked") ? "true" : "false";
 		filter[filter.length] = {ID: id, regex: regex, whiteorblack: wob, delete: del};
 	});
 	$.ajax({
@@ -316,9 +322,9 @@ function FeedUpdateFeed(){{{
 		dataType: "json",
 		data: JSON.stringify({
 			name: d.find("#name").val(),
-			url: (d.find("#isgroup input").attr("checked") == "checked" ? "" : d.find("#url").val()),
-			cacheimages: d.find("#cacheimages input").attr("checked") == "checked" ? "yes" : "no",
-			unreadOnChange: d.find("#unreadOnChange input").attr("checked") == "checked" ? "yes" : "no",
+			url: (d.find("#isgroup input").prop("checked") ? "" : d.find("#url").val()),
+			cacheimages: d.find("#cacheimages input").prop("checked") ? "yes" : "no",
+			unreadOnChange: d.find("#unreadOnChange input").prop("checked") ? "yes" : "no",
 			filter: filter
 		}),
 		success: function(data){
@@ -884,7 +890,7 @@ function showFeeds(){{{
 		}
 	);
 
-	if ($("#buttonShowFavicons input").attr("checked") == "checked"){
+	if ($("#buttonShowFavicons input").prop("checked")){
 		$(".favicon").show();
 	} else {
 		$(".favicon").hide();
@@ -1069,9 +1075,9 @@ function addFeed(){{{
 		data: {
 			parent: d.find("#parent").val(),
 			name: d.find("#name").val(),
-			url: (d.find("#isgroup input").attr("checked") == "checked" ? "" : d.find("#url").val()),
-			cacheimages: d.find("#cacheimages input").attr("checked") == "checked" ? "yes" : "no",
-			unreadOnChange: d.find("#unreadOnChange input").attr("checked") == "checked" ? "yes" : "no"
+			url: (d.find("#isgroup input").prop("checked") ? "" : d.find("#url").val()),
+			cacheimages: d.find("#cacheimages input").prop("checked") ? "yes" : "no",
+			unreadOnChange: d.find("#unreadOnChange input").prop("checked") ? "yes" : "no"
 		},
 		success: function(data){
 			if (data.status == "OK"){
