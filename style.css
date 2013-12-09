@@ -96,7 +96,7 @@ div.jqtree-element:hover span>i.editButton {
 	margin-bottom: 0px;
 	padding: 0;
 }
-.entries, .specials {
+.entries {
 	overflow: hidden;
 	height: 190px !important;
 }

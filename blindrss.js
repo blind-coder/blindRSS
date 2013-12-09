@@ -34,7 +34,7 @@ function resize(){{{
 		var x = $(v);
 		x.height(window.innerHeight - (x.offset().top + 10));
 	});
-	$.each(["#specialFeeds", "#entries"], function(k,v){
+	$.each(["#entries"], function(k,v){
 		var x = $(v);
 		x.height(x.parent().innerHeight() - (x.offset().top - x.parent().offset().top));
 	});
@@ -181,6 +181,7 @@ function FeedJqTree(){{{
 	var that = this;
 
 	var retVal = { id: this.data.ID, feed: this, label: this.data.name };
+	retVal.movable = (that != globalRootFeed);
 	if (this.children.length){
 		retVal["children"] = [];
 		for (var i = 0; i < this.children.length; i++){
@@ -350,7 +351,7 @@ function FeedRenderCount(){{{
 	}
 	if (that.data.startID == 1){ /* All Feeds element */
 		if (!isNaN(that.data.unreadCount)){
-			$("#num_specialUnread").empty().append(that.data.unreadCount);
+			$("#numNew_specialUnread").empty().append(that.data.unreadCount);
 		}
 	}
 }}}
@@ -756,27 +757,49 @@ function showFeeds(){{{
 	dBody.tree(false);
 	dBody.empty();
 
-	var tree = globalRootFeed.jqTree();
+	var tree = [
+		{ id: "specialFeeds",
+			label: "Special Feeds",
+			num: 0,
+			movable: false,
+			children: [
+				{ id: "specialUnread",
+					label: "Unread entries",
+					num: 0,
+					movable: false,
+					action: function(event){ getEntries("rest.php/unread", "spinFeed_specialUnread"); }
+				},
+				{ id: "specialFavorites",
+					label: "Favorites",
+					num: 0,
+					movable: false,
+					action: function(event){ getEntries("rest.php/favorites", "spinFeed_specialFavorites"); }
+				},
+				{ id: "specialTags",
+					label: "Tags",
+					num: 0,
+					movable: false,
+					children: []
+				}
+			]
+		}
+	];
+
+	tree = tree.concat(globalRootFeed.jqTree());
 
 	var t = dBody.tree({
-		data: [tree],
+		data: tree,
 		autoOpen: true,
 		dragAndDrop: true,
 		selectable: true,
-		openedIcon: '<i class="icon-folder-open"></i>',
-		closedIcon: '<i class="icon-folder-close"></i>',
 		useContextMenu: false,
 		onCanMove: function(node) {
-			/* Root feed can not be moved */
-			if (!node.parent.parent) {
-				return false;
-			} else {
-				return true;
-			}
+			return node.movable;
 		},
-		onCanMoveTo: function(moved_node, target_node, position) {
+		onCanMoveTo: function(moved_node, target_node, position) {{{
 			/* Can only move inside directories
 			 * Can not move outside Root feed
+			 * Can not move inside special feeds
 			 */
 			if (position == "inside"){
 				return target_node.feed.isDirectory;
@@ -784,11 +807,22 @@ function showFeeds(){{{
 			if (!target_node.parent.parent){
 				return false;
 			}
+			if (target_node.id.match(/^special/)){
+				return false;
+			}
 			return true;
-		},
-		onCreateLi: function(node, $li){
+		}}},
+		onCreateLi: function(node, $li){{{
 			var that = node.feed; // passed from .jqTree()
 
+			if (!that){ /* TODO */
+				var utils = $("<div>").addClass("utils");
+				utils.append($("<span>").addClass("floatLeft spin").attr("id", "spinFeed_"+node.id).append("&nbsp;"));
+				utils.append($("<i>").addClass("icon-pencil floatRight").css("visibility", "hidden")); // small hack to adjust right margin
+				utils.append($("<span>").addClass("floatRight badge").attr("id", "numNew_"+node.id).append(node.num > 0 ? node.num : ""));
+				$li.find(".jqtree-title").append(utils);
+				return;
+			}
 			that.spin = $("<span class='floatLeft spin' id='spinFeed_"+that.data.startID+"'>&nbsp;</span>");
 			that.nameFeed = $li.find(".jqtree-title");
 
@@ -818,28 +852,34 @@ function showFeeds(){{{
 					.append(that.buttons.settings)
 					.append(that.buttons.newMessage)
 				);
-		}
+		}}}
 	});
 
 	t.bind(
 		'tree.open',
-		function(event){
+		function(event){{{
 			var that = event.node.feed;
-			that.collapse(false);
-		}
+			if (that)
+				that.collapse(false);
+		}}}
 	);
 	t.bind(
 		'tree.close',
-		function(event){
+		function(event){{{
 			var that = event.node.feed;
-			that.collapse(true);
-		}
+			if (that)
+				that.collapse(true);
+		}}}
 	);
 
 	t.bind(
 		'tree.click',
-		function(event){
+		function(event){{{
 			if (!event.node){
+				return;
+			}
+			if (typeof event.node.action == "function"){
+				event.node.action(event);
 				return;
 			}
 			var that = event.node.feed;
@@ -853,12 +893,12 @@ function showFeeds(){{{
 			that.date = new Date();
 			$("#entries").empty();
 			that.getEntries(false);
-		}
+		}}}
 	);
 
 	t.bind(
 		'tree.move',
-		function(event){
+		function(event){{{
 			/* event.move_info.moved_node
 			 * event.move_info.target_node
 			 * event.move_info.position: ['before','after','inside']
@@ -887,7 +927,7 @@ function showFeeds(){{{
 					getFeeds();
 				}
 			});
-		}
+		}}}
 	);
 
 	if ($("#buttonShowFavicons input").prop("checked")){
@@ -897,7 +937,7 @@ function showFeeds(){{{
 	}
 	globalFeedsTree = t;
 	resize();
-	return;
+	getTags();
 }}}
 function getFeeds(){{{
 	$.ajax({
@@ -943,64 +983,22 @@ function getTags(){{{
 				alert(data.msg);
 				return;
 			}
-			if (globalSpecialFeedsTree){
-				globalSpecialFeedsTree.tree("destroy");
-				globalSpecialFeedsTree = false;
-			}
-			var dBody = $("#specialFeeds");
-			dBody.tree(false);
-			dBody.empty();
 
-			var tree = [
-				{ id: "specialUnread",
-					label: "Unread entries",
-					num: 0,
-					action: function(event){ getEntries("rest.php/unread", "spinFeed_specialUnread"); }
-				},
-				{ id: "specialFavorites",
-					label: "Favorites",
-					num: 0,
-					action: function(event){ getEntries("rest.php/favorites", "spinFeed_specialFavorites"); }
-				}
-			];
+			var parent_node = globalFeedsTree.tree("getNodeById", "specialTags");
 
 			for (var i = 0; i < data.tags.length; i++){
 				var t = data.tags[i].tag;
 				var tID = data.tags[i].ID;
 				var num = data.tags[i].num;
-				tree.push({ id: tID, label: t, num: num, action: function(event){ getTag(event.node.id); }});
+				globalFeedsTree.tree("appendNode",
+					{ id: "tag"+tID,
+						tagID: tID,
+						label: t,
+						num: num,
+						action: function(event){ getTag(event.node.tagID); }
+					},
+					parent_node);
 			}
-			var t = dBody.tree({
-				data: tree,
-				autoOpen: true,
-				dragAndDrop: false,
-				selectable: true,
-				useContextMenu: false,
-				onCreateLi: function(node, $li){
-					$li.find(".jqtree-title")
-						.prepend("<i class='icon-tag'> </i>")
-						.prepend("<span class='floatLeft spin' id='spinFeed_tag"+node.id+"'>&nbsp;</span>")
-						.append($("<span class='utils' />")
-							.append("<span class='floatLeft spin' id='spinFeed_"+node.id+"'>&nbsp;</span>")
-							.append("<i class='icon-pencil floatRight hidden'></i>")
-							.append("<span id='num_"+node.id+"' class='floatRight badge'>"+node.num+"</span>")
-						);
-				}
-			});
-			t.bind(
-				'tree.click',
-				function(event){
-					if (!event.node){
-						return;
-					}
-					event.node.action(event);
-				}
-			);
-			$("#spinFeed_tagspecialUnread").next().toggleClass("icon-tag icon-asterisk");
-			$("#spinFeed_tagspecialFavorites").next().toggleClass("icon-tag icon-star");
-			globalSpecialFeedsTree = t;
-			if (globalRootFeed)
-				globalRootFeed.updateCount();
 			getFavoritesCount();
 		}
 	});
@@ -1015,7 +1013,7 @@ function getFavoritesCount(){{{
 				alert(data.msg);
 				return;
 			}
-			$("#num_specialFavorites").empty().append(data.num);
+			$("#numNew_specialFavorites").empty().append(data.num);
 		}
 	});
 }}}
@@ -1058,7 +1056,7 @@ function startup(){{{
 	});
 
 	getFeeds();
-	getTags();
+	//getTags();
 	getFavoritesCount();
 	getOptions();
 	resize();
