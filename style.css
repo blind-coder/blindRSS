@@ -233,3 +233,6 @@ i.favicon {
 .container {
 	width: 100%;
 }
+ul.nav > li button {
+	margin-top: 8px;
+}

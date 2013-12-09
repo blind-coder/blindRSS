@@ -47,142 +47,115 @@
 			<div class="collapse navbar-collapse" id="navigation-bar-top">
 				<ul class="nav navbar-nav">
 					<li>
-						<a href="javascript:globalRootFeed.updateCount();">
+						<button class="btn btn-primary" type="button" onClick="javascript:globalRootFeed.updateCount();">
 							<span class="titleText">Refresh</span>
 							<i id="spin_Refresh" class="titleIcon icon-white icon-refresh"></i>
-						</a>
+						</button>
 					</li>
 					<li>
-						<a href="javascript:showAddFeed();">
+						<div class="separator">&nbsp;</div>
+					</li>
+					<li>
+						<button class="btn" type="button" onClick="javascript:showAddFeed();">
 							<span class="titleText">Add feed</span>
 							<i class="titleIcon icon-white icon-plus"></i>
-						</a>
+						</button>
 					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
-					<li class="dropdown">
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><span class="titleText">Options</span><i class="titleIcon icon-cog"></i></a>
-						<ul class="dropdown-menu" role="menu">
-							<li><!--{{{ purgeAfter-->
-								<form class="form-horizontal" role="form">
-									<div class="form-group">
-										<label class="col-sm-6 col-sm-6 control-label" for="selectPurgeAfter">Keep entries for:</label>
-										<div class="col-sm-6">
-											<select id="selectPurgeAfter">
-												<option value="7">7 Days</option>
-												<option value="14">14 Days</option>
-												<option value="31">31 Days</option>
-												<option value="365">365 Days</option>
-												<option value="36135">99 Years</option>
-											</select>
-										</div>
-									</div>
-								</form>
-							</li><!--}}}-->
-							<li><!--{{{ deleteFavorites-->
-								<form class="form-horizontal">
-									<div class="form-group">
-										<label class="col-sm-6 col-sm-6 control-label" for="buttonDeleteFavorites">Delete entries if they are favorites?</label>
-										<div class="col-sm-6">
-											<div id="buttonDeleteFavorites" class="switch switch-small" data-on-label="Yes" data-off-label="No">
-												<input type="checkbox" checked="checked">
+					<li>
+						<div class="dropdown">
+							<button class="btn dropdown-toggle" type="button" data-toggle="dropdown" id="btnOptionMenu">
+								<span class="titleText">Options</span><i class="titleIcon icon-cog"></i>
+							</button>
+							<ul class="dropdown-menu" role="menu" aria-labelledby="btnOptionMenu"> <!-- {{{ -->
+								<li>
+									<form class="form-horizontal" role="form">
+										<div class="form-group">
+											<label class="col-sm-6 col-sm-6 control-label" for="selectPurgeAfter">Keep entries for:</label>
+											<div class="col-sm-6">
+												<select id="selectPurgeAfter">
+													<option value="7">7 Days</option>
+													<option value="14">14 Days</option>
+													<option value="31">31 Days</option>
+													<option value="365">365 Days</option>
+													<option value="36135">99 Years</option>
+												</select>
 											</div>
 										</div>
-									</div>
-								</form>
-							</li><!--}}}-->
-							<li><!--{{{ deleteTagged-->
-								<form class="form-horizontal">
-									<div class="form-group">
-										<label class="col-sm-6 control-label" for="buttonDeleteFavorites">Delete entries if they are tagged?</label>
-										<div class="col-sm-6">
-											<div id="buttonDeleteTagged" class="switch switch-small" data-on-label="Yes" data-off-label="No">
-												<input type="checkbox" checked="checked">
+										<div class="form-group">
+											<label class="col-sm-6 col-sm-6 control-label" for="buttonDeleteFavorites">Delete entries if they are favorites?</label>
+											<div class="col-sm-6">
+												<div id="buttonDeleteFavorites" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+													<input type="checkbox" checked="checked">
+												</div>
 											</div>
 										</div>
-									</div>
-								</form>
-							</li><!--}}}-->
-							<li><!--{{{ show favicons-->
-								<form class="form-horizontal">
-									<div class="form-group">
-										<label class="col-sm-6 control-label" for="buttonShowFavicons">Show feed icons?</label>
-										<div class="col-sm-6">
-											<div id="buttonShowFavicons" class="switch switch-small" data-on-label="Yes" data-off-label="No">
-												<input type="checkbox" checked="checked">
+										<div class="form-group">
+											<label class="col-sm-6 control-label" for="buttonDeleteFavorites">Delete entries if they are tagged?</label>
+											<div class="col-sm-6">
+												<div id="buttonDeleteTagged" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+													<input type="checkbox" checked="checked">
+												</div>
 											</div>
 										</div>
-									</div>
-								</form>
-							</li><!--}}}-->
-							<li><!--{{{ auto-advance-->
-								<form class="form-horizontal">
-									<div class="form-group">
-										<label class="col-sm-6 control-label" for="buttonAutoAdvance">Automatically advance to next day?</label>
-										<div class="col-sm-6">
-											<div id="buttonAutoAdvance" class="switch switch-small" data-on-label="Yes" data-off-label="No">
-												<input type="checkbox" checked="checked">
+										<div class="form-group">
+											<label class="col-sm-6 control-label" for="buttonShowFavicons">Show feed icons?</label>
+											<div class="col-sm-6">
+												<div id="buttonShowFavicons" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+													<input type="checkbox" checked="checked">
+												</div>
 											</div>
 										</div>
-									</div>
-								</form>
-							</li><!--}}}-->
-							<li class="divider"></li>
-							<li><!--{{{ reloadEvery-->
-								<form class="form-horizontal">
-									<div class="form-group">
-										<label class="col-sm-6 control-label" for="selectReloadEvery">Automatically reload:</label>
-										<div class="col-sm-6">
-											<select id="selectReloadEvery">
-												<option value="-1">Never</option>
-												<option value="15">15 minutes</option>
-												<option value="30">30 minutes</option>
-												<option value="60">60 minutes</option>
-												<option value="other">other</option>
-											</select>
-											<input type="text" id="reloadEveryOther" />
-										</div>
-									</div>
-								</form>
-							</li><!--}}}-->
-							<li><!--{{{ textOrIcons-->
-								<form class="form-horizontal">
-									<div class="form-group">
-										<label class="col-sm-6 control-label" for="buttonTextOrIcons">Style of titlebar:</label>
-										<div class="col-sm-6">
-											<div id="buttonTextOrIcons" class="switch switch-small" data-on-label="Text" data-off-label="Icons">
-												<input type="checkbox" checked="checked">
+										<div class="form-group">
+											<label class="col-sm-6 control-label" for="buttonAutoAdvance">Automatically advance to next day?</label>
+											<div class="col-sm-6">
+												<div id="buttonAutoAdvance" class="switch switch-small" data-on-label="Yes" data-off-label="No">
+													<input type="checkbox" checked="checked">
+												</div>
 											</div>
 										</div>
-									</div>
-								</form>
-							</li><!--}}}-->
-							<li class="divider"></li>
-							<li><!-- import/export OPML -->
-								<form class="form-horizontal">
-									<div class="form-group">
-										<label class="col-sm-6 control-label" for="buttonExportOPML">Export OPML:</label>
-										<div class="col-sm-6">
-											<a id="buttonExportOPML" class="btn" href="rest.php/opml.xml">Export OPML</a><br />
+										<div class="form-group">
+											<label class="col-sm-6 control-label" for="selectReloadEvery">Automatically reload:</label>
+											<div class="col-sm-6">
+												<select id="selectReloadEvery">
+													<option value="-1">Never</option>
+													<option value="15">15 minutes</option>
+													<option value="30">30 minutes</option>
+													<option value="60">60 minutes</option>
+													<option value="other">other</option>
+												</select>
+												<input type="text" id="reloadEveryOther" />
+											</div>
 										</div>
-									</div>
-								</form>
-							</li>
-							<li><!-- import/export OPML -->
-								<form class="form-horizontal">
-									<div class="form-group">
-										<label class="col-sm-6 control-label" for="importOPML">Upload OPML:</label>
-										<div class="col-sm-6">
-											<input id="importOPML" type="file" name="file" multiple>
-											<select id="importOPMLParent" disabled>
-												<option>[Select parent]</option>
-											</select>
-											<a href="#" disabled class="btn" id="buttonImportOPML">Upload</a>
+										<div class="form-group">
+											<label class="col-sm-6 control-label" for="buttonTextOrIcons">Style of titlebar:</label>
+											<div class="col-sm-6">
+												<div id="buttonTextOrIcons" class="switch switch-small" data-on-label="Text" data-off-label="Icons">
+													<input type="checkbox" checked="checked">
+												</div>
+											</div>
 										</div>
-									</div>
-								</form>
-							</li>
-						</ul>
+										<div class="form-group">
+											<label class="col-sm-6 control-label" for="buttonExportOPML">Export OPML:</label>
+											<div class="col-sm-6">
+												<a id="buttonExportOPML" class="btn" href="rest.php/opml.xml">Export OPML</a><br />
+											</div>
+										</div>
+										<div class="form-group">
+											<label class="col-sm-6 control-label" for="importOPML">Upload OPML:</label>
+											<div class="col-sm-6">
+												<input id="importOPML" type="file" name="file" multiple>
+												<select id="importOPMLParent" disabled>
+													<option>[Select parent]</option>
+												</select>
+												<a href="#" disabled class="btn" id="buttonImportOPML">Upload</a>
+											</div>
+										</div>
+									</form>
+								</li>
+							</ul> <!-- }}} -->
+						</div>
 					</li>
 				</ul>
 				<form action="javascript:search();" id="frmSearch" class="navbar-form navbar-right" role="search">
