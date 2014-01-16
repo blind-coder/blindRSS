@@ -462,6 +462,7 @@ function FeedUpdateCount(){{{
 		url: "rest.php/unreadcount/"+that.data.ID,
 		dataType: "json",
 		type: "GET",
+		data: { _time: new Date() },
 		complete: function(){
 			if (!that.parent){
 				$("#spin_Refresh").removeClass("icon-spin");
@@ -793,7 +794,7 @@ function showFeeds(){{{
 		dragAndDrop: true,
 		selectable: true,
 		useContextMenu: false,
-		onCanMove: function(node) {
+		onCanMove: function(node) { /* not all feeds can be moved */
 			return node.movable;
 		},
 		onCanMoveTo: function(moved_node, target_node, position) {{{
@@ -815,7 +816,7 @@ function showFeeds(){{{
 		onCreateLi: function(node, $li){{{
 			var that = node.feed; // passed from .jqTree()
 
-			if (!that){ /* TODO */
+			if (!that){ /* is this a special feed? */
 				var utils = $("<div>").addClass("utils");
 				utils.append($("<span>").addClass("floatLeft spin").attr("id", "spinFeed_"+node.id).append("&nbsp;"));
 				utils.append($("<i>").addClass("icon-pencil floatRight").css("visibility", "hidden")); // small hack to adjust right margin
@@ -823,6 +824,7 @@ function showFeeds(){{{
 				$li.find(".jqtree-title").append(utils);
 				return;
 			}
+
 			that.spin = $("<span class='floatLeft spin' id='spinFeed_"+that.data.startID+"'>&nbsp;</span>");
 			that.nameFeed = $li.find(".jqtree-title");
 
@@ -999,6 +1001,8 @@ function getTags(){{{
 					},
 					parent_node);
 			}
+		},
+		complete: function(){
 			getFavoritesCount();
 		}
 	});
@@ -1022,7 +1026,11 @@ function startup(){{{
 	$("input[type=button]").button();
 	$(".selectpicker").selectpicker();
 
-	$("#btnAddNewTag").on("click", function(){ $("#btnAddNewTag").hide(); $("#frmAddNewTag").show(); resize(); /* necessary here because the form is a bit higher than the button */});
+	$("#btnAddNewTag").on("click", function(){
+		$("#btnAddNewTag").hide();
+		$("#frmAddNewTag").show();
+		resize(); /* necessary here because the form is a bit higher than the button */
+	});
 
 	$("#entries").on("scroll", EntriesScrolled);
 
@@ -1030,10 +1038,10 @@ function startup(){{{
 		url: "rest.php/opml",
 		dataType: "json",
 		add: function(e, data){
-			data.context = $('#buttonImportOPML').text('Upload').attr("disabled", false)
+			data.context = $('#buttonImportOPML').text('Upload').prop("disabled", false)
 			.one("click", function(){
 				$("#importOPML").fileupload("option", "url", "rest.php/opml/"+$("#importOPMLParent").val());
-				data.context.text("Uploading...").attr("disabled", "disabled");
+				data.context.text("Uploading...").prop("disabled", true);
 				data.submit();
 			});
 
@@ -1047,7 +1055,7 @@ function startup(){{{
 				}
 				options.append("<option value='"+v.data.ID+"'>"+s+"</option>");
 			});
-			options.val(globalRootFeed.data.ID).attr("disabled", false);
+			options.val(globalRootFeed.data.ID).prop("disabled", false);
 		},
 		done: function(data){
 			$("#buttonImportOPML").text('Upload finished.');
@@ -1056,8 +1064,6 @@ function startup(){{{
 	});
 
 	getFeeds();
-	//getTags();
-	getFavoritesCount();
 	getOptions();
 	resize();
 	window.onresize=resize;
