@@ -48,7 +48,6 @@ function search(){{{
 	});
 }}}
 function EntriesScrolled(event){{{
-	console.log("scrolled");
 	if (!($("#buttonAutoAdvance input").prop("checked")))
 		return true;
 	if (this.scrollTop + 15 > this.scrollTopMax)
@@ -808,7 +807,7 @@ function showFeeds(){{{
 			if (!target_node.parent.parent){
 				return false;
 			}
-			if (target_node.id.match(/^special/)){
+			if (target_node.id.toString().match(/^special/)){
 				return false;
 			}
 			return true;
@@ -1206,6 +1205,11 @@ function getOptions(){{{
 	});
 }}}
 function setOption(key, value){{{
+	if (key == "purgeAfter"){
+		if (!confirm("Really purge entries after "+value+" days?")){
+			return;
+		}
+	}
 	$.ajax({
 		url: "rest.php/options/"+key,
 		type: "POST",
