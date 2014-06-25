@@ -47,72 +47,66 @@ function EntriesScrolled(event){{{
 	if (!($("#buttonAutoAdvance input").prop("checked")))
 		return true;
 	if (this.scrollTop + 15 > this.scrollTopMax)
-		$("#entries ul li:last .jqtree-title").click();
+		$("#content .panel-heading:last a").click();
 	return true;
 }}}
 function showEntries(tree, append=false){{{
 	var dBody = $("#content");
 	globalEntriesTreeData = tree;
-	if (!append){
+	if (append){
+		$("#content .panel:last").remove();
+		$("#content").append("<br />");
+	} else {
 		dBody.empty();
+		dBody.scrollTop(0);
 	}
 	for (var i = 0; i < tree.length; i++){
-		var entry = tree[i].entry;
-		if (!entry){
-			continue;
-		}
 		var div = $("<div class='panel panel-default'>");
-		var divheading = $("<div class='panel-heading'>"+entry.data.title+"</div>");
+		var divheading = $("<div class='panel-heading'><a href='#'><div>"+tree[i].label+"</div></a></div>");
 
-		var iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
-			.on("click", function(){
-				entry.toggleRead();
-				return false;
-			});
-		var iconFav = $("<i class='floatLeft icon-star-empty' />")
-			.on("click", function(){
-				entry.toggleFavorite();
-				return false;
-			});
-		if (entry.data.favorite == "yes"){
-			iconFav.toggleClass("icon-star icon-star-empty");
-		}
-		if (entry.data.isread == "0"){
-			div.addClass("new");
-		} else {
-			div.removeClass("new");
-		}
-		var spin = $("<span class='floatLeft spin' id='spinEntry_"+entry.data.ID+"'>&nbsp;</span>");
-		entry.spin = spin;
-		entry.iconFav = iconFav;
-		entry.iconNew = iconNew;
-		entry.span = div;
+		if (tree[i].entry != null){
+			var entry = tree[i].entry;
+			var iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
+				.on("click", null, entry, function(event){
+					event.data.toggleRead();
+					return false;
+				});
+			var iconFav = $("<i class='floatLeft icon-star-empty' />")
+				.on("click", null, entry, function(event){
+					event.data.toggleFavorite();
+					return false;
+				});
+			if (entry.data.favorite == "yes"){
+				iconFav.toggleClass("icon-star icon-star-empty");
+			}
+			if (entry.data.isread == "0"){
+				divheading.addClass("new");
+			} else {
+				divheading.removeClass("new");
+			}
 
-		divheading
-			.prepend(spin)
-			.prepend(iconFav)
-			.prepend(iconNew)
-			.appendTo(div);
+			entry.spin = $("<span class='floatLeft spin' id='spinEntry_"+entry.data.ID+"'>&nbsp;</span>");
+			entry.iconFav = iconFav;
+			entry.iconNew = iconNew;
+			entry.span = divheading;
+			entry.content = $("<div>").appendTo(div);
+			entry.headline = divheading.find("a");
+
+			divheading
+				.prepend(iconFav)
+				.prepend(iconNew);
+		}
+		divheading.prependTo(div);
+		divheading.on('click', "a", tree[i], function(event){
+			if (event.data.action){
+				event.data.action(event);
+			}
+			if (event.data.entry){
+				event.data.entry.show();
+			}
+		});
 		div.appendTo(dBody);
 	}
-
-	/*
-	t.bind(
-		'tree.click',
-		function(event){
-			if (!event.node){
-				return;
-			}
-			if (event.node.action){
-				event.node.action(event);
-			return;
-			}
-			var that = event.node.entry;
-			that.show();
-		}
-	);
-	globalEntriesTree = t;
-	*/
 }}}
 function parseEntries(data){{{
 	var oldDate;
@@ -126,7 +120,7 @@ function parseEntries(data){{{
 		}
 		var e = new Entry(v);
 		e.data.title = $("<div />").html(e.data.title).text();
-		tree.push({id: e.data.ID, label: e.data.title, entry: e});
+		tree.push({id: e.data.ID, label: globalFeeds[e.data.feedID].data.name+": "+e.data.title, entry: e});
 	});
 	return tree;
 }}}
@@ -360,7 +354,12 @@ function FeedGetEntries(append){{{
 		dataType: "json",
 		success: function(data){
 			if (data.length == 0){
-				globalEntriesTree.tree('appendNode', { id: "noMoreEntries", label: "[ No more entries ]", action: function(e){ return; }});
+				tree = [];
+				tree.push({
+					id: "noLoadMore",
+					label: "[ No more entries ]"
+				});
+				showEntries(tree, true);
 				return;
 			}
 
@@ -374,17 +373,17 @@ function FeedGetEntries(append){{{
 					feed: that,
 					oldDate: oldDate,
 					action: function(event){
-						var that = event.node.feed;
-						var d = event.node.oldDate.match(/^(....)-0?(.?.)-0?(.?.)/);
+						var that = event.data.feed;
+						var d = event.data.oldDate.match(/^(....)-0?(.?.)-0?(.?.)/);
 						that.date = new Date(parseInt(d[1]), parseInt(d[2])-1, parseInt(d[3])-1);
-						event.node.feed.getEntries(true);
+						event.data.feed.getEntries(true);
 					}
 				}
 			);
 			showEntries(tree, append);
 			curFeed = that;
-			if ($("#entries")[0].scrollTopMax == 0){
-				$("#entries ul li:last .jqtree-title").click();
+			if ($("#content")[0].scrollTopMax == 0){
+				$("#content .panel-heading:last a").click();
 			}
 		},
 		complete: function(){ that.spin.spin(false); $("#entries").parent().spin(false); }
@@ -655,9 +654,8 @@ function EntryAddTag(){{{
 }}}
 function EntryShow(){{{
 	var that = this;
-	$("#content").empty().spin();
-	$("#headline").empty().attr("href", "#").html("Loading...");
-	that.spin.spin("tiny");
+	that.content.empty().spin();
+	that.headline.empty().attr("href", "#").html("Loading...");
 	$.ajax({
 		url: "rest.php/entry/"+this.data.ID,
 		type: "GET",
@@ -668,8 +666,9 @@ function EntryShow(){{{
 				alert(data.msg);
 				return;
 			}
-			$("#content").html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
-			$("#headline").empty().attr("href", data.link).append("<div>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</div>");
+			that.content.html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
+			that.content.find("img").attr("align", "");
+			that.headline.empty().attr("href", data.link).append("<div>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</div>");
 			$("#headlineTags").empty();
 			$("#btnAddNewTag").show();
 			$("#frmAddNewTag").hide().unbind("submit").on("submit", function(){ that.addTag(); });
@@ -1018,7 +1017,7 @@ function startup(){{{
 		resize(); /* necessary here because the form is a bit higher than the button */
 	});
 
-	$("#entries").on("scroll", EntriesScrolled);
+	$("#content").on("scroll", EntriesScrolled);
 
 	$("#importOPML").fileupload({
 		url: "rest.php/opml",

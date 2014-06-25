@@ -7,7 +7,10 @@ body {
 	overflow-x: hidden;
 	overflow-y: hidden;
 }
-ul li a {
+ul li a, .panel-heading > a {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
 	color: #000000;
 	text-decoration: none;
 }
@@ -53,13 +56,13 @@ h3 {
 	font-variant: normal;
 	font-size: 11px;
 }
-.sidebar-nav span.new, .entries li.new > a {
+.sidebar-nav .new, .entries .new > a {
 	font-weight: bold;
 }
-.sidebar-nav .jqtree-title i.newmessage {
+i.newmessage {
 	visibility: hidden;
 }
-.sidebar-nav .new i.newmessage {
+.new i.newmessage {
 	visibility: visible;
 }
 .sidebar-nav .numNewMessages {
@@ -81,9 +84,6 @@ div.jqtree-element:hover span>i.editButton {
 }
 #content {
 	overflow-y: scroll;
-	overflow-x: hidden;
-}
-.content {
 	overflow-x: hidden;
 }
 #entries {
@@ -108,27 +108,20 @@ div.jqtree-element:hover span>i.editButton {
 	font-weight: bold;
 }
 
-.entries .jqtree-element:hover i.newmessage {
+.entries .panel-heading:hover i.newmessage {
 	visibility: visible;
 	opacity: 0.5;
 	filter:Alpha(opacity=50); /* IE8 and earlier */
 }
-.entries .jqtree-element:hover .new i.newmessage {
+.entries .new:hover i.newmessage {
 	visibility: visible;
 	opacity: 1;
 	filter:Alpha(opacity=100); /* IE8 and earlier */
 }
 
-#headline > div {
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	overflow: hidden;
-}
 
 .floatRight {
 	float: right;
-	/*min-width: 18px;
-	min-height: 18px;*/
 }
 .floatLeft {
 	float: left;
@@ -234,4 +227,7 @@ ul.nav > li button {
 }
 .panel {
 	margin-bottom: 0px;
+}
+.panel-heading {
+	padding: 0px;
 }
