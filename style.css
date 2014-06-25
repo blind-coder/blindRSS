@@ -96,10 +96,6 @@ div.jqtree-element:hover span>i.editButton {
 	margin-bottom: 0px;
 	padding: 0;
 }
-.entries {
-	overflow: hidden;
-	height: 190px !important;
-}
 .entries ul, .specials ul {
 	padding: 0;
 	margin: 0;
@@ -235,4 +231,7 @@ i.favicon {
 }
 ul.nav > li button {
 	margin-top: 8px;
+}
+.panel {
+	margin-bottom: 0px;
 }

@@ -34,10 +34,6 @@ function resize(){{{
 		var x = $(v);
 		x.height(window.innerHeight - (x.offset().top + 10));
 	});
-	$.each(["#entries"], function(k,v){
-		var x = $(v);
-		x.height(x.parent().innerHeight() - (x.offset().top - x.parent().offset().top));
-	});
 }}}
 function search(){{{
 	$("#spin_search").toggleClass("icon-search icon-spin icon-spinner");
@@ -55,62 +51,52 @@ function EntriesScrolled(event){{{
 	return true;
 }}}
 function showEntries(tree, append=false){{{
-	if (append){
-		delete globalEntriesTreeData[globalEntriesTreeData.length-1];
-		globalEntriesTreeData.splice(globalEntriesTreeData.length-1,1);
-		$.each(tree, function(k,v){
-			globalEntriesTreeData.push(v);
-		});
-	} else {
-		globalEntriesTreeData = tree;
+	var dBody = $("#content");
+	globalEntriesTreeData = tree;
+	if (!append){
+		dBody.empty();
 	}
-	if (globalEntriesTree){
-		globalEntriesTree.tree("destroy");
-		globalEntriesTree = false;
-	}
-	var dBody = $("#entries");
-	dBody.tree(false);
-	dBody.empty();
-	var t = dBody.tree({
-		data: globalEntriesTreeData,
-		autoOpen: true,
-		dragAndDrop: false,
-		selectable: true,
-		useContextMenu: false,
-		onCreateLi: function(node, $li){
-			if (!node.entry){
-				return;
-			}
-			var iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
-				.on("click", function(){
-					node.entry.toggleRead();
-					return false;
-				});
-			var iconFav = $("<i class='floatLeft icon-star-empty' />")
-				.on("click", function(){
-					node.entry.toggleFavorite();
-					return false;
-				});
-			if (node.entry.data.favorite == "yes"){
-				iconFav.toggleClass("icon-star icon-star-empty");
-			}
-			if (node.entry.data.isread == "0"){
-				$li.find(".jqtree-title").addClass("new");
-			} else {
-				$li.find(".jqtree-title").removeClass("new");
-			}
-			var spin = $("<span class='floatLeft spin' id='spinEntry_"+node.entry.data.ID+"'>&nbsp;</span>");
-			node.entry.spin = spin;
-			node.entry.iconFav = iconFav;
-			node.entry.iconNew = iconNew;
-			node.entry.span = $li.find(".jqtree-title");
-
-			$li.find(".jqtree-title")
-				.prepend(spin)
-				.prepend(iconFav)
-				.prepend(iconNew);
+	for (var i = 0; i < tree.length; i++){
+		var entry = tree[i].entry;
+		if (!entry){
+			continue;
 		}
-	});
+		var div = $("<div class='panel panel-default'>");
+		var divheading = $("<div class='panel-heading'>"+entry.data.title+"</div>");
+
+		var iconNew = $("<i class='newmessage floatLeft icon-asterisk' />")
+			.on("click", function(){
+				entry.toggleRead();
+				return false;
+			});
+		var iconFav = $("<i class='floatLeft icon-star-empty' />")
+			.on("click", function(){
+				entry.toggleFavorite();
+				return false;
+			});
+		if (entry.data.favorite == "yes"){
+			iconFav.toggleClass("icon-star icon-star-empty");
+		}
+		if (entry.data.isread == "0"){
+			div.addClass("new");
+		} else {
+			div.removeClass("new");
+		}
+		var spin = $("<span class='floatLeft spin' id='spinEntry_"+entry.data.ID+"'>&nbsp;</span>");
+		entry.spin = spin;
+		entry.iconFav = iconFav;
+		entry.iconNew = iconNew;
+		entry.span = div;
+
+		divheading
+			.prepend(spin)
+			.prepend(iconFav)
+			.prepend(iconNew)
+			.appendTo(div);
+		div.appendTo(dBody);
+	}
+
+	/*
 	t.bind(
 		'tree.click',
 		function(event){
@@ -126,6 +112,7 @@ function showEntries(tree, append=false){{{
 		}
 	);
 	globalEntriesTree = t;
+	*/
 }}}
 function parseEntries(data){{{
 	var oldDate;
