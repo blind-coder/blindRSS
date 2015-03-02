@@ -14,7 +14,7 @@
 
 		<link rel="stylesheet" href="fontawesome/css/font-awesome.min.css">
 
-		<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+		<link rel="stylesheet" type="text/css" href="stylenew.css" media="screen" />
 		<link rel="stylesheet" type="text/css" href="print.css" media="print" />
 
 		<script src="jquery/js/jquery-1.8.2.js"></script>
@@ -30,7 +30,7 @@
 		<script src="jqfileupload/jquery.fileupload.js"></script>
 		<script src="jqfileupload/jquery.iframe-transport.js"></script>
 
-		<script src="blindrss.js"></script>
+		<script src="blindrssnew.js"></script>
 	</head>
 
 	<body>
@@ -47,7 +47,7 @@
 			<div class="collapse navbar-collapse" id="navigation-bar-top">
 				<ul class="nav navbar-nav">
 					<li>
-						<button class="btn btn-primary" type="button" onClick="javascript:globalRootFeed.updateCount();">
+						<button class="btn btn-primary" type="button" onClick="javascript:Feeds.root.updateCount();">
 							<span class="titleText">Refresh</span>
 							<i id="spin_Refresh" class="titleIcon icon-white icon-refresh"></i>
 						</button>
@@ -173,11 +173,11 @@
 			<div class="row printRemove">
 
 				<div class="col-md-3">
-					<div class="panel panel-default specials">
+					<div class="panel panel-default rssfeeds">
 						<div class="panel-heading">RSS Feeds</div>
 						<div id="feeds" class="sidebar-nav"> </div>
-					</div> <!-- /panel -->
-				</div> <!-- /col-md-3 -->
+					</div>
+				</div>
 
 				<div class="col-md-9">
 
@@ -207,15 +207,15 @@
 											<br>
 											Enjoy :-)
 										</div>
-									</div> <!-- /content -->
-								</div> <!-- /panel -->
-							</div> <!-- /panel -->
+									</div> <!-- /panel -->
+								</div> <!-- /content -->
+							</div> <!-- /entries -->
 						</div> <!-- /col-md-12 -->
 					</div> <!-- /row -->
 
 				</div> <!-- /col-md-9 -->
-			</div> <!-- /row -->
 
+			</div> <!-- /row -->
 		</div><!--/.container-->
 		<!-- Modal addFeed {{{ -->
 		<div id="addFeed" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">

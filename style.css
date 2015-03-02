@@ -1,233 +1,56 @@
-html,body {
-	height: 100%;
-}
-body {
-	padding-top: 60px;
-	padding-bottom: 0px !important;
-	overflow-x: hidden;
-	overflow-y: hidden;
-}
-ul li a, .panel-heading > a {
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	overflow: hidden;
-	color: #000000;
-	text-decoration: none;
-}
-li.active > div > a > [class^="icon-"] {
-	background-image: url("bootstrap/img/glyphicons-halflings-white.png");
-}
-h3 {
-	margin: 0px;
-}
-.nav ul {
-	margin: 0;
-	padding: 0 0 0 10px;
-	list-style: none;
-	list-style-image: none;
-}
-.sidebar-nav {
-	overflow-y: scroll;
-	overflow-x: hidden;
-	/*height: 100%;*/
-	padding: 0;
-	margin: 0px;
-}
-.sidebar-nav li.active, .sidebar-nav li[class!=nav-header]:hover {
-	background-color: #0081C2;
-	background-image: linear-gradient(to bottom, #0088CC, #0077B3);
-	background-repeat: repeat-x;
-	color: #FFFFFF;
-}
-.sidebar-nav li a {
-	padding: 0px 15px 0px 0px;
-	white-space: normal;
-}
-.sidebar-nav li .nameFeed {
-	min-height: 16px;
-	margin-right: 48px;
-}
-.sidebar-nav li.group .nameFeed {
-	font-weight: bold;
-	font-variant: small-caps;
-}
-.sidebar-nav li.feed .nameFeed {
-	font-weight: normal;
-	font-variant: normal;
-	font-size: 11px;
-}
-.sidebar-nav .new, .entries .new > a {
-	font-weight: bold;
-}
-i.newmessage {
-	visibility: hidden;
-}
-.new i.newmessage {
-	visibility: visible;
-}
-.sidebar-nav .numNewMessages {
-	font-size: 10px;
-	color: #808080;
-}
-.numNewMessages:hover {
-	text-decoration: none;
-}
-
-.inactive :hover {
-	background-color: #EEEEEE;
-}
-div.jqtree-element span>i.editButton {
-	visibility: hidden;
-}
-div.jqtree-element:hover span>i.editButton {
-	visibility: visible;
-}
-#content {
-	overflow-y: scroll;
-	overflow-x: hidden;
-}
-#entries {
-	display: block;
-	position: static;
-}
-#feedsParent {
-	display: block;
-	position: static;
-	margin-bottom: 0px;
-	padding: 0;
-}
-.entries ul, .specials ul {
-	padding: 0;
-	margin: 0;
-}
-.entries ul > li > a, .specials ul > li > a {
-	padding: 0px 15px;
-}
-
-.new {
-	font-weight: bold;
-}
-
-.entries .panel-heading:hover i.newmessage {
-	visibility: visible;
-	opacity: 0.5;
-	filter:Alpha(opacity=50); /* IE8 and earlier */
-}
-.entries .new:hover i.newmessage {
-	visibility: visible;
-	opacity: 1;
-	filter:Alpha(opacity=100); /* IE8 and earlier */
-}
-
-
-.floatRight {
-	float: right;
-}
-.floatLeft {
-	float: left;
-}
-.spin {
-	position: absolute;
-	left: -1.5em;
-	padding-top: 0px;
-	min-width: 16px;
-	min-height: 16px;
-}
-.jqtree-folder>.jqtree-element>.spin {
-	left: -2.5em;
-}
-.loadMore {
-	padding-left: 25px;
-	font-style: italic;
-}
-.ui-draggable {
-	border: 1px black solid;
-	color: black;
-	padding: 5px;
-}
-.ui-droppable {
-	margin-top: 2px;
-	margin-bottom: 2px;
-}
-.ui-droppable-hover {
-	border: 1px blue solid;
-	background-color: lightyellow;
-	color: lightblue;
-	margin-top: 2px;
-	margin-bottom: 2px;
-}
-.form {
-	margin: 0;
-}
-.form-search {
-	margin-bottom: 0;
-	padding-top: 5px;
-}
-.accordion-inner {
-	padding-left: 0px;
-}
-.icon-1dot5x {
-	font-size: 1.5em;
-}
-.hidden {
-	visibility: hidden;
-}
-.icon-spin {
-	height: auto !important;
-}
-.jqtree-tree {
-	padding: 3px 0px 3px 25px !important;
-	font-size: 12px;
-}
-.jqtree-element:hover {
-    background-color: #97BDD6;
-    background: -webkit-gradient(linear, left top, left bottom, from(#BEE0F5), to(#89AFCA));
-    background: -moz-linear-gradient(top, #BEE0F5, #89AFCA);
-    background: -ms-linear-gradient(top, #BEE0F5, #89AFCA);
-    background: -o-linear-gradient(top, #BEE0F5, #89AFCA);
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-.jqtree-title {
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	overflow: hidden;
-	padding-right: 64px;
-}
-.jqtree-title>.utils {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	right: 0;
-}
-.well {
-	padding: 0 !important;
-}
-img.favicon {
-	max-width: 16px;
-	max-height: 16px;
-}
-i.favicon {
-	width: 16px;
-	height: 16px;
-}
-.dropdown-menu {
-	min-width: 320px;
-}
-.dropdown-menu > ul {
-	padding-left: 20px;
-}
-.badge {
-	min-width: 30px;
-}
-.container {
-	width: 100%;
-}
-ul.nav > li button {
-	margin-top: 8px;
-}
-.panel {
-	margin-bottom: 0px;
-}
-.panel-heading {
-	padding: 0px;
-}
+#content { overflow-y: scroll; overflow-x: hidden; }
+#entries { display: block; position: static; }
+#feedsParent { display: block; position: static; margin-bottom: 0px; padding: 0; }
+.accordion-inner { padding-left: 0px; }
+.badge { min-width: 30px; }
+.container { width: 100%; }
+.dropdown-menu > ul { padding-left: 20px; }
+.dropdown-menu { min-width: 320px; }
+.entries .new:hover i.newmessage { visibility: visible; opacity: 1; filter:Alpha(opacity=100); /* IE8 and earlier */ }
+.entries .panel-heading:hover i.newmessage { visibility: visible; opacity: 0.5; filter:Alpha(opacity=50); /* IE8 and earlier */ }
+.entries ul > li > a, .rssfeeds ul > li > a { padding: 0px 15px; }
+.entries ul, .rssfeeds ul { padding: 0; margin: 0; }
+.floatLeft { float: left; }
+.floatRight { float: right; }
+.form { margin: 0; }
+.form-search { margin-bottom: 0; padding-top: 5px; }
+.hidden { visibility: hidden; }
+.icon-1dot5x { font-size: 1.5em; }
+.icon-spin { height: auto !important; }
+.inactive :hover { background-color: #EEEEEE; }
+.jqtree-element:hover { background-color: #97BDD6; background: -webkit-gradient(linear, left top, left bottom, from(#BEE0F5), to(#89AFCA)); background: -moz-linear-gradient(top, #BEE0F5, #89AFCA); background: -ms-linear-gradient(top, #BEE0F5, #89AFCA); background: -o-linear-gradient(top, #BEE0F5, #89AFCA); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7); }
+.jqtree-folder>.jqtree-element>.spin { left: -2.5em; }
+.jqtree-title { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; padding-right: 64px; }
+.jqtree-title>.utils { position: absolute; top: 0; bottom: 0; right: 0; }
+.jqtree-tree { padding: 3px 0px 3px 25px !important; font-size: 12px; }
+.loadMore { padding-left: 25px; font-style: italic; }
+.nav ul { margin: 0; padding: 0 0 0 10px; list-style: none; list-style-image: none; }
+.new i.newmessage { visibility: visible; }
+.new { font-weight: bold; }
+.numNewMessages:hover { text-decoration: none; }
+.panel { margin-bottom: 0px; }
+.panel-heading { padding: 0px; }
+.sidebar-nav .new, .entries .new > a { font-weight: bold; }
+.sidebar-nav .numNewMessages { font-size: 10px; color: #808080; }
+.sidebar-nav li .nameFeed { min-height: 16px; margin-right: 48px; }
+.sidebar-nav li a { padding: 0px 15px 0px 0px; white-space: normal; }
+.sidebar-nav li.active, .sidebar-nav li[class!=nav-header]:hover { background-color: #0081C2; background-image: linear-gradient(to bottom, #0088CC, #0077B3); background-repeat: repeat-x; color: #FFFFFF; }
+.sidebar-nav li.feed .nameFeed { font-weight: normal; font-variant: normal; font-size: 11px; }
+.sidebar-nav li.group .nameFeed { font-weight: bold; font-variant: small-caps; }
+.sidebar-nav { overflow-y: scroll; overflow-x: hidden; /*height: 100%;*/ padding: 0; margin: 0px; }
+.spin { left: -1.5em; padding-top: 0px; min-width: 16px; min-height: 16px; }
+.ui-draggable { border: 1px black solid; color: black; padding: 5px; }
+.ui-droppable { margin-top: 2px; margin-bottom: 2px; }
+.ui-droppable-hover { border: 1px blue solid; background-color: lightyellow; color: lightblue; margin-top: 2px; margin-bottom: 2px; }
+.well { padding: 0 !important; }
+body { padding-top: 60px; padding-bottom: 0px !important; overflow-x: hidden; overflow-y: hidden; }
+div.jqtree-element span>i.editButton { visibility: hidden; }
+div.jqtree-element:hover span>i.editButton { visibility: visible; }
+h3 { margin: 0px; }
+html,body { height: 100%; }
+i.favicon { width: 16px; height: 16px; }
+i.newmessage { visibility: hidden; }
+img.favicon { max-width: 16px; max-height: 16px; }
+li.active > div > a > [class^="icon-"] { background-image: url("bootstrap/img/glyphicons-halflings-white.png"); }
+ul li a, .panel-heading > a { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: #000000; text-decoration: none; }
+ul.nav > li button { margin-top: 8px; }
