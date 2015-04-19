@@ -1,4 +1,4 @@
-<?
+<?php
 include("etc/config.php");
 require_once("autoloader.php");
 
