@@ -205,7 +205,7 @@ switch ($path[0]){
 							/* no more entries */
 							break;
 						}
-						$date = "AND `date` >= '".substr($d->{"date"}, 0, 10)." 00:00:00' AND `date` < '".mres($path[3])." 23:59:59'";
+						$date = "AND `date` >= '".substr($d->{"date"}, 0, 10)." 00:00:00' AND `date` <= '".mres($path[3])." 23:59:59'";
 					}
 					$q = my_mysql_query($SQL = "SELECT ID, title, date, isread, feedID, favorite FROM entries WHERE feedID IN (
 						SELECT ID FROM feeds WHERE startID >= {$r->startID} AND endID <= {$r->endID}
