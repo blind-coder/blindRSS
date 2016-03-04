@@ -2,27 +2,26 @@
 include("etc/config.php");
 require_once("autoloader.php");
 
-mysql_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS) || die (mysql_error());
-mysql_select_db($MYSQL_DB) || die (mysql_error());
-mysql_query("SET NAMES 'utf8';");
+($link = mysqli_connect($MYSQL_HOST, $MYSQL_USER, $MYSQL_PASS, $MYSQL_DB)) || die (mysqli_error($link));
+mysqli_query($link, "SET NAMES 'utf8';");
 
-function my_mysql_query($query){
-	$retval = mysql_query($query);
-	if (mysql_error()){
-		echo "Mysql error: ".mysql_error()."\nQuery was: $query\n";
+function my_mysqli_query($link, $query){
+	$retval = mysqli_query($link, $query);
+	if (mysqli_error($link)){
+		echo "Mysql error: ".mysqli_error($error)."\nQuery was: $query\n";
 	}
 	return $retval;
 }
 
 /* Purge old entries */
-my_mysql_query("
+my_mysqli_query($link, "
 DELETE FROM `entries` WHERE `date` < SUBDATE(CURDATE(), INTERVAL (SELECT `value` FROM options WHERE `key` = 'purgeAfter') DAY)
 	AND `favorite` IN ('no', (SELECT `value` FROM options WHERE `key` = 'deleteFavorites'))
 	AND IF((SELECT `value` FROM options WHERE `key` = 'deleteTagged') = 'no', NOT(SELECT COUNT(ID) FROM entries_tags WHERE entryID = entries.ID LIMIT 1), 1);
 ");
 
-$query_feeds = my_mysql_query("SELECT * FROM feeds WHERE `url` != '' AND `url` IS NOT NULL AND `url` != 'SEARCHRESULTS'");
-while ($feed = mysql_fetch_object($query_feeds)){
+$query_feeds = my_mysqli_query($link, "SELECT * FROM feeds WHERE `url` != '' AND `url` IS NOT NULL AND `url` != 'SEARCHRESULTS'");
+while ($feed = mysqli_fetch_object($query_feeds)){
 	echo "Fetching $feed->url\n";
 	$SimplePie = new SimplePie();
 	$SimplePie->set_feed_url($feed->url);
@@ -33,9 +32,9 @@ while ($feed = mysql_fetch_object($query_feeds)){
 	if (!$SimplePie){ continue; }
 	$feedfilter = array();
 	$query = sprintf("SELECT * FROM filter WHERE feedID = '%s'", $feed->ID);
-	$query_filter = my_mysql_query($query);
+	$query_filter = my_mysqli_query($link, $query);
 	if ($query_filter){
-		while ($filter = mysql_fetch_object($query_filter)){
+		while ($filter = mysqli_fetch_object($query_filter)){
 			$feedfilter[] = $filter;
 		}
 	}
@@ -47,7 +46,7 @@ while ($feed = mysql_fetch_object($query_feeds)){
 		$content = $feedEntry->get_content();
 		$timestamp = $feedEntry->get_date("U");
 		$guid = $feedEntry->get_id();
-		$link = $feedEntry->get_link();
+		$entrylink = $feedEntry->get_link();
 		if ($timestamp == null){
 			$timestamp = time();
 		}
@@ -108,13 +107,13 @@ while ($feed = mysql_fetch_object($query_feeds)){
 						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"cache.php?q=".base64_encode($url)."\"", $desc);
 					} else {
 						$query = sprintf("SELECT * FROM cache WHERE sha1_link='%s'", $url_sha1);
-						$query_cache = my_mysql_query($query);
-						if (mysql_num_rows($query_cache) == 0){
+						$query_cache = my_mysqli_query($link, $query);
+						if (mysqli_num_rows($link, $query_cache) == 0){
 							$content = file_get_contents($url);
 							$content = base64_encode($content);
 							$query = sprintf("INSERT INTO cache (link, sha1_link, content) VALUES ('%s', '%s', '%s')",
 								$url, $url_sha1, $content);
-							my_mysql_query($query);
+							my_mysqli_query($link, $query);
 						}
 						$desc = preg_replace(",src=[\"\']?".preg_quote($value, ',')."[\"\']?,i", "src=\"cache.php?q=".$url_sha1."\"", $desc);
 					}
@@ -124,30 +123,30 @@ while ($feed = mysql_fetch_object($query_feeds)){
 		}
 
 		/* Finally update the database */
-		$query = sprintf("SELECT * FROM entries WHERE feedID = '%s' AND sha1_link = '%s'", $feed->ID, sha1($link));
-		$query_oldentry = my_mysql_query($query);
-		if (mysql_num_rows($query_oldentry) > 0){
-			$oldFeedEntry = mysql_fetch_array($query_oldentry);
+		$query = sprintf("SELECT * FROM entries WHERE feedID = '%s' AND sha1_link = '%s'", $feed->ID, sha1($entrylink));
+		$query_oldentry = my_mysqli_query($link, $query);
+		if (mysqli_num_rows($query_oldentry) > 0){
+			$oldFeedEntry = mysqli_fetch_array($query_oldentry);
 			/* We have an old entry in this feed with this URL, now check if it's new */
 			if ($oldFeedEntry["title"] != $title ||
 			    $oldFeedEntry["description"] != $content){
 				$query = sprintf("UPDATE entries SET title='%s', description='%s', date=FROM_UNIXTIME(%s) WHERE ID = '%s'",
-					mysql_real_escape_string($title),
-					mysql_real_escape_string($content),
+					mysqli_real_escape_string($link, $title),
+					mysqli_real_escape_string($link, $content),
 					$timestamp,
 					$oldFeedEntry["ID"]);
-				$query_oldFeedEntry = my_mysql_query($query);
+				$query_oldFeedEntry = my_mysqli_query($link, $query);
 				/* Reset isread? */
 				if ($isread == 1){ // forced read by blacklist
 					$query = sprintf("UPDATE entries SET isread='1' WHERE ID = '%s'",
 						$oldFeedEntry["ID"]);
-					my_mysql_query($query);
+					my_mysqli_query($link, $query);
 				}
 				elseif ($feed->unreadOnChange == "yes"){
 					if ($oldFeedEntry["isread"] == "1" && $isread == "0"){
 						$query = sprintf("UPDATE entries SET isread='0' WHERE ID = '%s'",
 							$oldFeedEntry["ID"]);
-						my_mysql_query($query);
+						my_mysqli_query($link, $query);
 					}
 				}
 			}
@@ -155,14 +154,14 @@ while ($feed = mysql_fetch_object($query_feeds)){
 			$query = sprintf("INSERT INTO entries (feedID, title, link, sha1_link, description, date, isread) ".
 				"VALUES ('%s', '%s', '%s', '%s', '%s', FROM_UNIXTIME(%s), '%s')",
 				$feed->ID,
-				mysql_real_escape_string($title),
-				mysql_real_escape_string($link),
-				sha1(mysql_real_escape_string($link)),
-				mysql_real_escape_string($content),
-				mysql_real_escape_string($timestamp),
+				mysqli_real_escape_string($link, $title),
+				mysqli_real_escape_string($link, $entrylink),
+				sha1(mysqli_real_escape_string($link, $entrylink)),
+				mysqli_real_escape_string($link, $content),
+				mysqli_real_escape_string($link, $timestamp),
 				$isread);
-			my_mysql_query($query);
+			my_mysqli_query($link, $query);
 		}
 	}
 }
-mysql_close();
+mysqli_close($link);
