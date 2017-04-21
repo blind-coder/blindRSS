@@ -13,6 +13,22 @@ function my_mysqli_query($link, $query){
 	return $retval;
 }
 
+function get_enclosures($haystack){
+	$retVal = [];
+	foreach ($haystack as $key => $value){
+		if (is_array($value)){
+			if (array_key_exists("rel", $value)){
+				if ($value["rel"] == "enclosure"){
+					array_push($retVal, $value);
+				}
+			} else {
+				$retVal = array_merge($retVal, get_enclosures($value));
+			}
+		}
+	}
+	return $retVal;
+}
+
 /* Purge old entries */
 my_mysqli_query($link, "
 DELETE FROM `entries` WHERE `date` < SUBDATE(CURDATE(), INTERVAL (SELECT `value` FROM options WHERE `key` = 'purgeAfter') DAY)
@@ -45,6 +61,7 @@ while ($feed = mysqli_fetch_object($query_feeds)){
 		}
 		$content = $feedEntry->get_content();
 		$timestamp = $feedEntry->get_date("U");
+		$enclosures = get_enclosures($feedEntry->data);
 		$guid = $feedEntry->get_id();
 		$entrylink = $feedEntry->get_link();
 		if ($timestamp == null){
@@ -62,6 +79,7 @@ while ($feed = mysqli_fetch_object($query_feeds)){
 		 */
 		foreach ($feedfilter AS $key => $value){
 			if (preg_match("/{$value->regex}/i", $title) ||
+					preg_match("/{$value->regex}/i", $entrylink) ||
 			    preg_match("/{$value->regex}/i", $content)){
 				if ($value->whiteorblack == "white"){
 					$isread = "0";
@@ -75,6 +93,13 @@ while ($feed = mysqli_fetch_object($query_feeds)){
 
 		if ($isread == "-1"){
 			continue;
+		}
+
+		foreach ($enclosures as $key => $value){
+			$content .= "Enclosure: {$value["type"]} ({$value["length"]} Bytes) <a href='{$value["href"]}' target='_new'>{$value["href"]}</a><br />\n";
+			if (preg_match("/^image/", $value["type"])){
+				$content .= "<img src='{$value["href"]}'><br />\n";
+			}
 		}
 
 		if ($feed->cacheimages == "yes"){
