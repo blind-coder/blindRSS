@@ -41,6 +41,7 @@ while ($feed = mysqli_fetch_object($query_feeds)){
 	echo "Fetching $feed->url\n";
 	$SimplePie = new SimplePie();
 	$SimplePie->set_feed_url($feed->url);
+	$SimplePie->force_feed(true);
 	$SimplePie->enable_cache(false);
 	$SimplePie->set_useragent("blindRSS");
 	$SimplePie->init();
