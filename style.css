@@ -54,3 +54,4 @@ img.favicon { max-width: 16px; max-height: 16px; }
 li.active > div > a > [class^="icon-"] { background-image: url("bootstrap/img/glyphicons-halflings-white.png"); }
 ul li a, .panel-heading > a { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: #000000; text-decoration: none; }
 ul.nav > li button { margin-top: 8px; }
+.fbc-badge, .fbc-badge-fence { visibility: hidden; }
