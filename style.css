@@ -43,7 +43,7 @@
 .ui-droppable { margin-top: 2px; margin-bottom: 2px; }
 .ui-droppable-hover { border: 1px blue solid; background-color: lightyellow; color: lightblue; margin-top: 2px; margin-bottom: 2px; }
 .well { padding: 0 !important; }
-body { padding-top: 60px; padding-bottom: 0px !important; overflow-x: hidden; overflow-y: hidden; }
+body { padding-bottom: 0px !important; overflow-x: hidden; overflow-y: hidden; }
 div.jqtree-element span>i.editButton { visibility: hidden; }
 div.jqtree-element:hover span>i.editButton { visibility: visible; }
 h3 { margin: 0px; }
@@ -55,3 +55,9 @@ li.active > div > a > [class^="icon-"] { background-image: url("bootstrap/img/gl
 ul li a, .panel-heading > a { white-space: nowrap; text-overflow: ellipsis; overflow: hidden; color: #000000; text-decoration: none; }
 ul.nav > li button { margin-top: 8px; }
 .fbc-badge, .fbc-badge-fence { visibility: hidden; }
+
+.bd-sidebar { overflow-y: auto; position: sticky; display: block !important; height: calc(100vh - 4.5rem); overflow-x: hidden; }
+.bd-layout { display: grid; grid-template-area: "sidebar main"; }
+.offcanvas-header { display: block !important; padding: 0px; }
+
+.entry img {max-width: 100%; }

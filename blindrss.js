@@ -143,17 +143,17 @@ Feeds.show = function (){{{
 					        .css("visibility", "hidden") // small hack to adjust right margin
 				);
 				utils.append(
-					$("<span>").addClass("floatRight badge")
-					           .attr("id", "numNew_"+node.id)
-										 .append(node.num > 0 ? node.num : "")
+					$("<span>").addClass("floatRight badge bg-secondary")
+						   .attr("id", "numNew_"+node.id)
+						   .append(node.num > 0 ? node.num : "")
 				);
 				$li.find(".jqtree-title").append(utils);
 				return;
 			}
 
 			that.spin = $("<span>").addClass("floatLeft spin")
-				                     .attr("id", "spinFeed_"+that.data.startID)
-														 .append("&nbsp;");
+				.attr("id", "spinFeed_"+that.data.startID)
+				.append("&nbsp;");
 			that.nameFeed = $li.find(".jqtree-title");
 
 			that.buttons = new Object();
@@ -163,7 +163,7 @@ Feeds.show = function (){{{
 					that.showSettings();
 					return false; // last 'click' handler
 				});
-			that.buttons.newMessage = $("<span id='numNew_"+that.data.startID+"' class='badge floatRight ' />")
+			that.buttons.newMessage = $("<span id='numNew_"+that.data.startID+"' class='badge bg-secondary floatRight' />")
 				.on("click", function() {
 					that.markAllRead();
 					return false; // last 'click' handler
@@ -594,9 +594,11 @@ function FeedGetEntries(append){{{
 			);
 			showEntries(tree, append);
 			curFeed = that;
-			if ($("#content")[0].scrollTopMax == 0){
-				$("#entry_loadMore").click();
-			}
+			content = $("#content")[0];
+			if (typeof content !== "undefined")
+				if ($("#content")[0].scrollTopMax == 0){
+					$("#entry_loadMore").click();
+				}
 		},
 		complete: function(){
 			that.spin.spin(false);
@@ -1094,7 +1096,9 @@ function parseEntries(data){{{
 function resize(){{{
 	$.each(["#content", "#feeds"], function(k,v){
 		var x = $(v);
-		x.height(window.innerHeight - (x.offset().top + 10));
+		if (typeof x !== "undefined")
+			if (x.offset() !== undefined)
+				x.height(window.innerHeight - (x.offset().top + 10));
 	});
 }}}
 function search(){{{
@@ -1145,6 +1149,8 @@ function showAddFeed(){{{
 }}}
 function showEntries(tree, append=false){{{
 	var dBody = $("#content");
+	if (typeof dBody[0] == "undefined")
+		dBody = $("#entries");
 	globalEntriesTreeData = tree;
 	if (append){
 		$("#content .panel:last").remove();
@@ -1183,7 +1189,7 @@ function showEntries(tree, append=false){{{
 			entry.iconFav = iconFav;
 			entry.iconNew = iconNew;
 			entry.span = divheading;
-			entry.content = $("<div>").appendTo(div);
+			entry.content = $("<div class='entry'>").appendTo(div);
 			entry.headline = divheading.find("a");
 
 			divheading

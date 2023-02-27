@@ -8,7 +8,7 @@
 
 		<link rel="icon" type="image/png" href="images/feed-icon-14x14.png" />
 
-		<link rel="stylesheet" href="bootstrap/css/bootstrap.css" />
+		<link rel="stylesheet" href="bootstrap-5/css/bootstrap.css" />
 		<link rel="stylesheet" href="bootstrap-switch/bootstrap-switch.css" />
 		<link rel="stylesheet" href="bootstrap-select/bootstrap-select.css" />
 		<link rel="stylesheet" href="jqtree/jqtree.css" />
@@ -22,7 +22,7 @@
 		<script src="jquery/js/jquery-ui-1.9.0.custom.js"></script>
 		<script src="spin.js"></script>
 
-		<script src="bootstrap/js/bootstrap.js"></script>
+		<script src="bootstrap-5/js/bootstrap.bundle.js"></script>
 		<script src="bootstrap-switch/jquery.switch.js"></script>
 		<script src="bootstrap-select/bootstrap-select.js"></script>
 
@@ -35,41 +35,33 @@
 	</head>
 
 	<body>
-		<nav class="navbar navbar-inverse navbar-fixed-top printRemove" role="navigation">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation-bar-top">
-					<span class="sr-only">Toggle navigation</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
+		<nav class="navbar bg-dark navbar-expand-lg bg-body-tertiary printRemove" data-bs-theme="dark" role="navigation"> <!-- {{{ -->
+			<div class="container-fluid">
 				<a class="navbar-brand" href="#">blindRSS</a>
-			</div>
-			<div class="collapse navbar-collapse" id="navigation-bar-top">
-				<ul class="nav navbar-nav">
-					<li>
-						<button class="btn btn-primary" type="button" onClick="javascript:Feeds.root.updateCount();">
-							<span class="titleText">Refresh</span>
-							<i id="spin_Refresh" class="titleIcon icon-white icon-refresh"></i>
-						</button>
-					</li>
-					<li>
-						<div class="separator">&nbsp;</div>
-					</li>
-					<li>
-						<button class="btn" type="button" onClick="javascript:showAddFeed();">
-							<span class="titleText">Add feed</span>
-							<i class="titleIcon icon-white icon-plus"></i>
-						</button>
-					</li>
-				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li>
-						<div class="dropdown">
-							<button class="btn dropdown-toggle" type="button" data-toggle="dropdown" id="btnOptionMenu">
-								<span class="titleText">Options</span><i class="titleIcon icon-cog"></i>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarSupportedContent">
+					<ul class="navbar-nav">
+						<li class="nav-item">
+							<button class="btn btn-primary" type="button" onClick="javascript:Feeds.root.updateCount();">
+								<span class="titleText">Refresh</span>
+								<i id="spin_Refresh" class="titleIcon icon-white icon-refresh"></i>
 							</button>
-							<ul class="dropdown-menu" role="menu" aria-labelledby="btnOptionMenu"> <!-- {{{ -->
+						</li>
+						<li class="nav-item">
+							<button class="btn btn-secondary" type="button" onClick="javascript:showAddFeed();">
+								<span class="titleText">Add feed</span>
+								<i class="titleIcon icon-plus"></i>
+							</button>
+						</li>
+					</ul>
+					<ul class="navbar-nav ms-auto">
+						<li class="nav-item dropdown">
+							<a class="btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+								<span class="titleText">Options</span><i class="titleIcon icon-cog"></i>
+							</a>
+							<ul class="dropdown-menu"> <!-- {{{ -->
 								<li>
 									<form action="#" class="form-horizontal" role="form">
 										<div class="form-group">
@@ -156,68 +148,72 @@
 									</form>
 								</li>
 							</ul> <!-- }}} -->
-						</div>
-					</li>
-				</ul>
-				<form action="javascript:search();" id="frmSearch" class="navbar-form navbar-right" role="search">
-					<div class="input-group">
-						<input id="txtSearch" type="text" class="input-medium form-control" placeholder="Search...">
-						<span class="input-group-btn">
-							<button type="submit" class="btn btn-default"><i id="spin_search" class="icon-search"> </i></button>
-						</span>
-					</div>
-				</form>
-			</div>
-		</nav>
-
-		<div class="container">
-			<div class="row printRemove">
-
-				<div class="col-md-3">
-					<div class="panel panel-default rssfeeds">
-						<div class="panel-heading">RSS Feeds</div>
-						<div id="feeds" class="sidebar-nav"> </div>
+						</li>
+					</ul>
+					<div class="d-flex">
+						<form action="javascript:search();" id="frmSearch" class="container-fluid" role="search">
+							<div class="input-group">
+								<input id="txtSearch" class="form-control" type="search" placeholder="Search...">
+								<button type="submit" class="btn btn-outline-secondary" type="button"><i id="spin_search" class="icon-search"> </i></button>
+							<div>
+						</form>
 					</div>
 				</div>
+			</div>
+		</nav> <!-- }}} -->
 
-				<div class="col-md-9">
-
-					<div class="row">
-						<div class="col-md-12">
-							<div class="entries">
-								<div id="content" class="content">
-									<div class="panel panel-default">
-										<div class="panel-heading">
-											<a href="#" target="_blank" id="headline">Welcome to blindRSS</a>
-										</div>
-										<div>
-											<span id="btnAddNewTag" class="label label-default" style="display: none;"><i title="Add new tag" class="icon-tag"></i></span>
-											<form action="#" id="frmAddNewTag" class="form" style="display: none;">
-												<input type="hidden" id="entryID" value="0">
-												<div class="input-group">
-													<span class="input-group-addon"><i class="icon-tag"></i></span>
-													<input class="col-sm-2 form-control" id="newTag" type="text" placeholder="Add tag...">
-												</div>
-											</form>
-											<span id="headlineTags"></span>
-										</div>
-										<div>
-											blindRSS is a very simple browser-operated RSS reader.<br>
-											You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
-											It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
-											<br>
-											Enjoy :-)
-										</div>
-									</div> <!-- /panel -->
-								</div> <!-- /content -->
-							</div> <!-- /entries -->
-						</div> <!-- /col-md-12 -->
-					</div> <!-- /row -->
-
-				</div> <!-- /col-md-9 -->
-
-			</div> <!-- /row -->
-		</div><!--/.container-->
+		<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-3 col-md-2 sidebar bd-layout printRemove">
+				<aside class="bd-sidebar">
+					<div class="offcanvas-lg offcanvas-start">
+						<div class="offcanvas-header border-bottom">
+							<h5 class="offcanvas-title">RSS Feeds</h5>
+						</div>
+						<div class="offcanvas-body">
+							<nav class="bd-links w-100">
+							<ul id="feeds" class="nav nav-sidebar">
+							</ul>
+							</nav>
+						</div>
+					</div>
+				</aside>
+			</div>
+			<div class="col-sm-9 col-md-10 bd-layout">
+				<aside class="bd-sidebar">
+					<div class="offcanvas-lg offcanvas-start" id="entries">
+						<div class="offcanvas-header border-bottom">
+							<h5 class="offcanvas-title">Welcome to blindRSS</h5>
+						</div>
+						<div class="offcanvas-body">
+							<!--
+							<div class="col-md-12">
+								<span id="btnAddNewTag" class="label label-default" style="display: none;"><i title="Add new tag" class="icon-tag"></i></span>
+								<form action="#" id="frmAddNewTag" class="form" style="display: none;">
+									<input type="hidden" id="entryID" value="0">
+									<div class="input-group">
+										<span class="input-group-addon"><i class="icon-tag"></i></span>
+										<input class="col-sm-2 form-control" id="newTag" type="text" placeholder="Add tag...">
+									</div>
+								</form>
+								<span id="headlineTags"></span>
+							</div>
+							-->
+							<div class="row">
+								<div class="col-md-12">
+								blindRSS is a very simple browser-operated RSS reader.<br>
+								You can click through the feeds on the left, use the (hopefully self-explanatory) icons next to them to manipulate them and do all the other stuff a RSS reader should do.<br>
+								It's programmed so that the feeds are re-read by a cronjob or daemon and as much functionality as possible is done within the client. Thus the server only does what it is IMO supposed to do: serve data.<br>
+								<br>
+								Enjoy :-)
+								</div>
+							</div>
+						</div>
+					</div>
+				</aside>
+			</div> <!-- /#entries -->
+		</div> 
+		</div> <!--/.container-fluid-->
 		<!-- Modal addFeed {{{ -->
 		<div id="addFeed" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
 			<div class="modal-dialog" style="min-width: 800px;">
