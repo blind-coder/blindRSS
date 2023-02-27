@@ -3,7 +3,7 @@ blindRSS
 
 Simple Web-based RSS reader writtin in PHP.
 
-See the demo at http://www.crash-override.net/blindrss_demo/
+See the demo at http://www.benjamin-schieder.de/blindrss_demo/
 
 Installation
 ============
@@ -11,15 +11,17 @@ Installation
 Put the complete extracted directory where your webserver can find it.
 Your webserver must support PHP.
 
-Create a database and run the SQL file doc/DATABASELAYOUT.sql on it.
-Copy etc/config.example.php to etc/config.php and edit to match the database.
+Create a database and run the SQL file ```doc/DATABASELAYOUT.sql``` on it.
+Copy ```etc/config.example.php``` to ```etc/config.php``` and edit to match the database.
 
-Create a cronjob that runs the file blindrss.php every once in a while.
+Create a cronjob that runs the file ```blindrss.php``` every once in a while.
 To run it every 15 minutes on the command line, it could look like this:
 
+```
 */15 * * * * php /var/www/blindrss/blindrss.php
+```
 
-You can also call the file blindrss.php from a webbrowser.
+You can also call the file ```blindrss.php``` from a webbrowser.
 
 Open the index.html in your javascript-capable webbrowser.
 Enjoy!
