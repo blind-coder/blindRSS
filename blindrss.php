@@ -65,6 +65,10 @@ while ($feed = mysqli_fetch_object($query_feeds)){
 		$enclosures = get_enclosures($feedEntry->data);
 		$guid = $feedEntry->get_id();
 		$entrylink = $feedEntry->get_link();
+		if ("x".$guid == "x"){
+			$guid = $entrylink;
+		}
+		$guid_sha1 = sha1($guid);
 		if ($timestamp == null){
 			$timestamp = time();
 		}
@@ -149,7 +153,7 @@ while ($feed = mysqli_fetch_object($query_feeds)){
 		}
 
 		/* Finally update the database */
-		$query = sprintf("SELECT * FROM entries WHERE feedID = '%s' AND sha1_link = '%s'", $feed->ID, sha1($entrylink));
+		$query = sprintf("SELECT * FROM entries WHERE feedID = '%s' AND entryID = '%s'", $feed->ID, mysqli_real_escape_string($link, $guid));
 		$query_oldentry = my_mysqli_query($link, $query);
 		if (mysqli_num_rows($query_oldentry) > 0){
 			$oldFeedEntry = mysqli_fetch_array($query_oldentry);
@@ -177,9 +181,11 @@ while ($feed = mysqli_fetch_object($query_feeds)){
 				}
 			}
 		} else {
-			$query = sprintf("INSERT INTO entries (feedID, title, link, sha1_link, description, date, isread) ".
-				"VALUES ('%s', '%s', '%s', '%s', '%s', FROM_UNIXTIME(%s), '%s')",
+			$query = sprintf("INSERT INTO entries (feedID, entryID, sha1_entryID, title, link, sha1_link, description, date, isread) ".
+				"VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', FROM_UNIXTIME(%s), '%s')",
 				$feed->ID,
+				mysqli_real_escape_string($link, $guid),
+				sha1(mysqli_real_escape_string($link, $guid)),
 				mysqli_real_escape_string($link, $title),
 				mysqli_real_escape_string($link, $entrylink),
 				sha1(mysqli_real_escape_string($link, $entrylink)),
