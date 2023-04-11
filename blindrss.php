@@ -8,7 +8,7 @@ mysqli_query($link, "SET NAMES 'utf8';");
 function my_mysqli_query($link, $query){
 	$retval = mysqli_query($link, $query);
 	if (mysqli_error($link)){
-		echo "Mysql error: ".mysqli_error($error)."\nQuery was: $query\n";
+		echo "Mysql error: ".mysqli_error($link)."\nQuery was: $query\n";
 	}
 	return $retval;
 }
