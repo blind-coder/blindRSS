@@ -63,3 +63,4 @@ ul.nav > li button { margin-top: 8px; }
 .entry img {max-width: 100%; }
 .entry { margin-left: 44px; padding-left: 2px; border-left: 2px darkgrey solid; }
 .entryActive { margin-bottom: 5px; border-bottom: 2px darkgrey solid; }
+.pull-left { position: absolute; left: 5px; }

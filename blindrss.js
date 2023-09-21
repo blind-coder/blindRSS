@@ -158,11 +158,7 @@ Feeds.show = function (){{{
 
 			that.buttons = new Object();
 			/* This button will only be visible when the mouse hovers over the feed/group to prevent cluttering the UI */
-			that.buttons.settings = $("<i class='icon-pencil floatRight editButton' />")
-				.on("click", function(){
-					that.showSettings();
-					return false; // last 'click' handler
-				});
+			that.buttons.settings = $("<i class='icon-pencil floatRight editButton' data-bs-toggle='modal' data-bs-target='#feedSettings' feed='"+that.data.ID+"' />");
 			that.buttons.newMessage = $("<span id='numNew_"+that.data.startID+"' class='badge bg-secondary floatRight' />")
 				.on("click", function() {
 					that.markAllRead();
@@ -1260,6 +1256,12 @@ function startup(){{{
 		showAddFeed();
 	});
 
+	var modalEditFeed = $("#feedSettings")[0];
+	modalEditFeed.addEventListener("show.bs.modal", event => {
+		const button = event.relatedTarget;
+		const id = button.getAttribute("feed");
+		Feeds.feeds[id].showSettings();
+	});
 	Feeds.get();
 	getOptions();
 	resize();
