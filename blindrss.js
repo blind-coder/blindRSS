@@ -594,11 +594,15 @@ function FeedGetEntries(append){{{
 			);
 			showEntries(tree, append);
 			curFeed = that;
-			content = $("#content")[0];
-			if (typeof content !== "undefined")
-				if ($("#content")[0].scrollTopMax == 0){
-					$("#entry_loadMore").click();
+			content = $("#entries")[0];
+			if (typeof content !== "undefined"){
+				if (content.scrollTopMax == 0){
+					var loadMore = $("#entry_loadMore")[0];
+					if (loadMore.getBoundingClientRect().y < content.getBoundingClientRect().bottom){
+						loadMore.click();
+					}
 				}
+			}
 		},
 		complete: function(){
 			that.spin.spin(false);
@@ -1094,7 +1098,7 @@ function parseEntries(data){{{
 	return tree;
 }}}
 function resize(){{{
-	$.each(["#content", "#feeds"], function(k,v){
+	$.each(["#entries", "#feeds"], function(k,v){
 		var x = $(v);
 		if (typeof x !== "undefined")
 			if (x.offset() !== undefined)
@@ -1148,16 +1152,16 @@ function showAddFeed(){{{
 	d.modal();
 }}}
 function showEntries(tree, append=false){{{
-	var dBody = $("#content");
+	var dBody = $("#entries");
 	if (typeof dBody[0] == "undefined")
 		dBody = $("#entries");
 	globalEntriesTreeData = tree;
 	if (append){
-		$("#content .panel:last").remove();
-		$("#content").append("<br />");
+		$("#entries .panel:last").remove();
+		$("#entries").append("<br />");
 	} else {
 		dBody.empty();
-		dBody.scrollTop(0);
+		$("#entries_scroll").scrollTop(0);
 	}
 
 	for (var i = 0; i < tree.length; i++){
@@ -1220,7 +1224,7 @@ function startup(){{{
 		resize(); /* necessary here because the form is a bit higher than the button */
 	});
 
-	$("#content").on("scroll", EntriesScrolled);
+	$("#entries_scroll").on("scroll", EntriesScrolled);
 
 	$("#importOPML").fileupload({ // {{{
 		url: "rest.php/opml",
