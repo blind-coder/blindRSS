@@ -2,14 +2,14 @@
 #entries { display: block; position: static; }
 #feedsParent { display: block; position: static; margin-bottom: 0px; padding: 0; }
 .accordion-inner { padding-left: 0px; }
-.badge { min-width: 30px; }
+.badge { min-width: 30px; margin-top: 2px;}
 .container { width: 100%; }
 .dropdown-menu > ul { padding-left: 20px; }
 .dropdown-menu { min-width: 320px; }
-.entries .new:hover i.newmessage { visibility: visible; opacity: 1; filter:Alpha(opacity=100); /* IE8 and earlier */ }
-.entries .panel-heading:hover i.newmessage { visibility: visible; opacity: 0.5; filter:Alpha(opacity=50); /* IE8 and earlier */ }
-.entries ul > li > a, .rssfeeds ul > li > a { padding: 0px 15px; }
-.entries ul, .rssfeeds ul { padding: 0; margin: 0; }
+#entries .new:hover i.newmessage { visibility: visible; opacity: 1; filter:Alpha(opacity=100); /* IE8 and earlier */ }
+#entries .panel-heading:hover i.newmessage { visibility: visible; opacity: 0.5; filter:Alpha(opacity=50); /* IE8 and earlier */ }
+#entries ul > li > a, .rssfeeds ul > li > a { padding: 0px 15px; }
+#entries ul, .rssfeeds ul { padding: 0; margin: 0; }
 .floatLeft { float: left; }
 .floatRight { float: right; }
 .form { margin: 0; }
@@ -30,7 +30,7 @@
 .numNewMessages:hover { text-decoration: none; }
 .panel { margin-bottom: 0px; }
 .panel-heading { padding: 0px; }
-.sidebar-nav .new, .entries .new > a { font-weight: bold; }
+.sidebar-nav .new, #entries .new > a { font-weight: bold; }
 .sidebar-nav .numNewMessages { font-size: 10px; color: #808080; }
 .sidebar-nav li .nameFeed { min-height: 16px; margin-right: 48px; }
 .sidebar-nav li a { padding: 0px 15px 0px 0px; white-space: normal; }
@@ -61,3 +61,5 @@ ul.nav > li button { margin-top: 8px; }
 .offcanvas-header { display: block !important; padding: 0px; }
 
 .entry img {max-width: 100%; }
+.entry { margin-left: 44px; padding-left: 2px; border-left: 2px darkgrey solid; }
+.entryActive { margin-bottom: 5px; border-bottom: 2px darkgrey solid; }

@@ -12,7 +12,6 @@
 		<link rel="stylesheet" href="bootstrap-switch/bootstrap-switch.css" />
 		<link rel="stylesheet" href="bootstrap-select/bootstrap-select.css" />
 		<link rel="stylesheet" href="jqtree/jqtree.css" />
-
 		<link rel="stylesheet" href="fontawesome/css/font-awesome.min.css">
 
 		<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
@@ -50,7 +49,7 @@
 							</button>
 						</li>
 						<li class="nav-item">
-							<button class="btn btn-secondary" type="button" onClick="javascript:showAddFeed();">
+							<button class="btn btn-secondary" type="button" data-bs-toggle="modal" id="showAddFeed" data-bs-target="#addFeed">
 								<span class="titleText">Add feed</span>
 								<i class="titleIcon icon-plus"></i>
 							</button>
@@ -215,18 +214,19 @@
 		</div> 
 		</div> <!--/.container-fluid-->
 		<!-- Modal addFeed {{{ -->
-		<div id="addFeed" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="feedSettingsLabel" aria-hidden="true">
+		<div id="addFeed" class="modal" tabindex="-1" data-bs-backdrop="static">
 			<div class="modal-dialog" style="min-width: 800px;">
 				<div class="modal-content">
 					<div class="modal-header">
-						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-						<h3 id="feedSettingsLabel">Add Feed</h3>
+						<h1 class="modal-title">Add feed</h1>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
 					<div class="modal-body">
 						<form action="#" class="form-horizontal">
 							<div class="form-group">
 								<label class="col-sm-4" for="parent">Parent:</label>
 								<div id="controlParent" class="col-sm-8">
+									<select class="form-select" id="parent" name="parent"></select>
 								</div>
 							</div>
 							<div class="form-group">
@@ -268,8 +268,8 @@
 						</form>
 					</div>
 					<div class="modal-footer">
-						<button class="btn" data-dismiss="modal" aria-hidden="true">Don't add a feed</button>
-						<button class="btn btn-primary" id="buttonAddFeed">Add Feed</button>
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+						<button type="button" class="btn btn-primary">Add feed</button>
 					</div>
 				</div>
 			</div>

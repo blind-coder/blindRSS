@@ -348,6 +348,7 @@ function EntryShow(){{{
 			}
 			that.content.html(data.description.replace(/<(\/?)script/, "<$1disabledscript"));
 			that.content.find("img").prop("align", "");
+			that.content.addClass("entryActive");
 			that.headline.empty().attr("href", data.link).append("<div>"+data.title.replace(/</, "&lt;").replace(/>/, "&gt;")+"</div>");
 			resize(); /* necessary here because the form is a bit taller than the button */
 			var addTag = $("<a class='label label-default' href='#'><i class='icon-tags'></i></a>"); // TODO
@@ -1132,11 +1133,11 @@ function setOption(key, value){{{
 	});
 }}}
 function showAddFeed(){{{
-	var d = $("#addFeed");
+	var addFeed = $("#addFeed");
 
 	var sortedFeeds = Feeds.root.directories();
-
-	var options = $("<select id='parent' class='selectpicker' />");
+	var options = addFeed.find("select#parent");
+	options.empty();
 	$.each(sortedFeeds, function(k,v){
 		var s = "";
 		for (var x = v; x; x=x.parent){
@@ -1145,11 +1146,9 @@ function showAddFeed(){{{
 		options.append("<option value='"+v.data.ID+"'>"+s+"</option>");
 	});
 	options.val(Feeds.root.data.ID);
-	d.find("#controlParent").empty().append(options);
-	options.selectpicker();
-	d.find("#buttonAddFeed").unbind("click").bind("click", addFeed);
-	d.find("#isgroup").switch("setState", false);
-	d.modal();
+	addFeed.find("#buttonAddFeed").unbind("click").bind("click", addFeed);
+	addFeed.find("#isgroup").switch("setState", false);
+	addFeed.find("form").on("submit", function(event){ event.preventDefault(); });
 }}}
 function showEntries(tree, append=false){{{
 	var dBody = $("#entries");
@@ -1225,6 +1224,7 @@ function startup(){{{
 	});
 
 	$("#entries_scroll").on("scroll", EntriesScrolled);
+	$("#showAddFeed").on("click", showAddFeed);
 
 	$("#importOPML").fileupload({ // {{{
 		url: "rest.php/opml",
@@ -1254,6 +1254,11 @@ function startup(){{{
 			Feeds.get();
 		}
 	}); // }}}
+
+	var modalAddFeed = $("#addFeed")[0];
+	modalAddFeed.addEventListener("show.bs.modal", event => {
+		showAddFeed();
+	});
 
 	Feeds.get();
 	getOptions();
